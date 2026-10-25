@@ -411,3 +411,9 @@ details.faq p{margin:0 0 14px;color:var(--muted);font-size:14px}
 .plus-prices small{color:var(--muted);font-size:12px}
 .plus-prices .best{border-color:var(--herb);background:var(--herb-soft)}
 .sheet:has(.plus-head) .grabber{display:none}
+
+/* ---------- 1.6: Ankündigung, Push-Hilfe ---------- */
+.banner.ann{background:var(--herb-soft, var(--yolk-soft));animation:rise .5s both;margin-bottom:6px}
+.icon-btn.sm{width:32px;height:32px;border-radius:10px;background:transparent}
+.icon-btn.sm svg{width:16px;height:16px}
+.steps{margin:0;padding-left:22px;display:grid;gap:10px;line-height:1.45}

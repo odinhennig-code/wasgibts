@@ -1,6 +1,6 @@
 // Service Worker: macht die App installierbar und offline startbar.
 // Bei jeder neuen Version die Zahl erhöhen, damit Handys das Update laden.
-const CACHE = 'wasgibts-v10';
+const CACHE = 'wasgibts-v11';
 const FILES = ['./', './index.html', './styles.css', './app.js', './data.js', './config.js', './manifest.webmanifest', './icon.svg', './fonts/Figtree.woff', './fonts/Bricolage.woff', './lib/qrcode.min.js'];
 
 self.addEventListener('install', e => {
@@ -17,4 +17,21 @@ self.addEventListener('fetch', e => {
     fetch(e.request, { cache: 'no-cache' }).then(r => { const copy = r.clone(); caches.open(CACHE).then(c => c.put(e.request, copy)); return r; })
       .catch(() => caches.match(e.request).then(r => r || caches.match('./index.html')))
   );
+});
+
+// Push-Nachrichten aus dem Admin-Panel anzeigen
+self.addEventListener('push', e => {
+  let d = {}; try { d = e.data ? e.data.json() : {}; } catch (err) { d = { title: "Was gibt's?", body: e.data ? e.data.text() : '' }; }
+  e.waitUntil(self.registration.showNotification(d.title || "Was gibt's?", {
+    body: d.body || '', icon: './icon-192.png', badge: './icon-192.png', data: { url: d.url || './' }, lang: 'de',
+  }));
+});
+// Antippen öffnet die App (oder holt das offene Fenster nach vorne)
+self.addEventListener('notificationclick', e => {
+  e.notification.close();
+  const target = new URL(e.notification.data && e.notification.data.url || './', self.registration.scope).href;
+  e.waitUntil(clients.matchAll({ type: 'window', includeUncontrolled: true }).then(list => {
+    for (const c of list) if (c.url.startsWith(self.registration.scope) && 'focus' in c) return c.focus();
+    return clients.openWindow(target);
+  }));
 });

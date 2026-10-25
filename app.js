@@ -11,7 +11,7 @@ const configured = !!(SUPABASE_URL && SUPABASE_ANON_KEY);
 const sb = configured ? createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
 
 /* ---------- Zustand ---------- */
-const D = { user:null, profile:null, membership:null, family:null, members:[], profiles:{}, wishes:[], fridge:[], expiries:{}, custom:[], poll:null, votes:[] };
+const D = { user:null, profile:null, membership:null, family:null, members:[], profiles:{}, wishes:[], fridge:[], expiries:{}, custom:[], poll:null, votes:[], ann:null, appAdmin:false };
 const UI = { tab:'home', time:60, mood:'egal', rtab:'wishes', q:'', auth:'login', busy:false, err:'', loading:true,
              joinCode: new URLSearchParams(location.search).get('join') || '' };
 const LOCAL = 'wasgibts.local';
@@ -52,6 +52,12 @@ async function loadAll(){
     p = ins.data;
   }
   D.profile = p; D.profiles = { [uid]: p };
+  sb.rpc('touch_seen').then(()=>{}, ()=>{});
+  const [an, adm] = await Promise.all([
+    sb.from('announcements').select('*').eq('active', true).order('created_at', { ascending:false }).limit(1),
+    sb.rpc('is_app_admin'),
+  ]);
+  D.ann = (an.data && an.data[0]) || null; D.appAdmin = adm.data === true;
   const { data: ms } = await sb.from('memberships').select('*').eq('user_id', uid).order('created_at').limit(1);
   D.membership = ms && ms[0] || null;
   D.family = null; D.members = []; D.wishes = []; D.fridge = []; D.expiries = {}; D.custom = []; D.poll = null; D.votes = [];
@@ -95,6 +101,7 @@ function subscribe(){
     .on('postgres_changes', { event:'*', schema:'public', table:'custom_recipes', filter:'family_id=eq.'+fid }, scheduleReload)
     .on('postgres_changes', { event:'*', schema:'public', table:'polls', filter:'family_id=eq.'+fid }, scheduleReload)
     .on('postgres_changes', { event:'*', schema:'public', table:'votes', filter:'family_id=eq.'+fid }, scheduleReload)
+    .on('postgres_changes', { event:'*', schema:'public', table:'announcements' }, scheduleReload)
     .subscribe();
 }
 document.addEventListener('visibilitychange', () => { if (!document.hidden && D.user) scheduleReload(); });
@@ -237,7 +244,7 @@ function viewHome(){
   const ready = all.filter(s => s.missing.length===0), almost = all.filter(s => s.missing.length===1), top = ready[0];
   const h = new Date().getHours(), greet = h<11?'Guten Morgen':h<17?'Hallo':'Guten Abend';
   const p = isAdmin() ? pendingReq() : [];
-  return header(`Was gibt's heute, ${esc(D.profile.name)}?`, greet) +
+  return header(`Was gibt's heute, ${esc(D.profile.name)}?`, greet) + annBanner() +
     (p.length ? `<button class="banner" data-tab="family"><span class="avatar sm">${prof(p[0].user_id).avatar}</span><span style="flex:1"><b>${esc(prof(p[0].user_id).name)}</b> möchte deiner Familie beitreten</span>${I.chev}</button>` : '') +
     (expiringSoon().length ? `<button class="banner" style="background:var(--tomato-soft)" data-tab="fridge"><span style="font-size:22px">⏰</span><span style="flex:1"><b>Bald aufbrauchen:</b> ${expiringSoon().map(x=>`${esc(ingName(x.k))} (${expLabel(x.d)})`).join(', ')}</span>${I.chev}</button>` : '') +
     `<div class="h2">Wer isst mit?</div>
@@ -309,8 +316,9 @@ function viewFamily(){
 }
 
 /* ---------- Reiter „Mehr" ---------- */
-const VERSION = '1.5';
+const VERSION = '1.6';
 const CHANGELOG = [
+  { v:'1.6', d:'25. Oktober 2026', items:['Neu: Push-Benachrichtigungen – unter „Mehr" einschalten','Neu: Ankündigungen oben auf „Heute" (lassen sich mit ✕ ausblenden)','Am iPhone: kurze Anleitung, wie die App für Benachrichtigungen auf den Home-Bildschirm kommt','Beim Abmelden bekommt das Handy keine Benachrichtigungen mehr'] },
   { v:'1.5', d:'25. Oktober 2026', items:['Neu: „Was gibt\'s? Plus" unter „Mehr" – alles Bisherige bleibt kostenlos','Hinweise auf Plus nur ganz selten: kleines Widget höchstens alle paar Tage, Pop-up höchstens alle 3 Wochen','Jeder Hinweis lässt sich mit ✕, „Nein danke", Tippen daneben oder Escape schließen'] },
   { v:'1.4', d:'25. Oktober 2026', items:['Neu: Kochmodus im Querformat mit „Bitte Handy drehen"-Hinweis','Neu: Große Uhr oben rechts, Fortschrittsbalken und große Weiter/Zurück-Knöpfe','Neu: Animation für jeden Schritt (Schneiden, Braten, Kochen, Backen, Rühren …)','Neu: „Jetzt kochen" direkt unter dem Vorschlag auf „Heute"','Neu: Die App nutzt den ganzen Bildschirm bis zum Rand','Impressum mit Namen ergänzt'] },
   { v:'1.3', d:'25. Oktober 2026', items:['Neu: Start-Intro mit Logo-Animation','Neu: Abstimmung „Was essen wir heute?" für die ganze Familie','Neu: Haltbarkeit im Kühlschrank – Gerichte, die Zutaten aufbrauchen, kommen zuerst','Neu: Eigene Familienrezepte eintragen','Neu: Kochmodus mit großen Schritten und Timer','Neu: Feedback senden, Impressum und Datenschutz','Schriften und QR-Code liegen jetzt direkt in der App (kein Laden bei Google mehr)','Behoben: Updates kamen teilweise erst nach mehrmaligem Öffnen an','Neu: Die App lädt neue Versionen ab jetzt automatisch'] },
@@ -333,6 +341,8 @@ function viewMore(){
     ${FAQ.map(([q,a])=>`<details class="faq"><summary>${esc(q)}</summary><p>${esc(a)}</p></details>`).join('')}
     <div class="h2">Darstellung</div>
     <div class="seg" role="group" aria-label="Farbschema">${[['system','System'],['light','Hell'],['dark','Dunkel']].map(([k,l])=>`<button data-action="theme" data-v="${k}" aria-pressed="${(L.theme||'system')===k}">${l}</button>`).join('')}</div>
+    <div class="h2">Benachrichtigungen</div>
+    <div class="list">${pushRow()}</div>
     <div class="h2">Was gibt's? Plus</div>
     <div class="list"><button class="row" data-action="plus"><span style="font-size:22px">✨</span><span class="grow"><b>Plus ansehen</b><small>Bald verfügbar · Alles Bisherige bleibt kostenlos</small></span>${I.chev}</button></div>
     <div class="h2">Kontakt</div>
@@ -342,12 +352,83 @@ function viewMore(){
       <button class="row" data-action="edit-prefs" data-id="${D.user.id}"><span class="avatar sm">${D.profile.avatar}</span><span class="grow"><b>Mein Profil</b><small>${esc(prefText(D.profile))}</small></span>${I.chev}</button>
       <button class="row" data-action="logout"><span class="grow"><b style="color:var(--tomato)">Abmelden</b><small>${esc(D.user.email||'')}</small></span></button>
     </div>
+    ${D.appAdmin ? `<div class="h2">Betreiber</div><div class="list"><a class="row" href="admin.html" style="color:inherit;text-decoration:none"><span style="font-size:22px">🛠️</span><span class="grow"><b>Admin-Panel</b><small>Nur für dich sichtbar</small></span>${I.chev}</a></div>` : ''}
     <div class="h2">Rechtliches</div>
     <div class="list">
       <button class="row" data-action="legal" data-v="impressum"><span class="grow"><b>Impressum</b></span>${I.chev}</button>
       <button class="row" data-action="legal" data-v="privacy"><span class="grow"><b>Datenschutz</b></span>${I.chev}</button>
     </div>
     <div style="text-align:center;margin-top:22px"><button class="linkbtn" style="color:var(--muted);font-size:12px;font-weight:700" data-action="changelog">Version ${VERSION} · Update-Log${L.seenVersion!==VERSION?' <span class="new-badge">NEU</span>':''}</button></div>`;
+}
+
+/* ---------- Ankündigung (kommt aus dem Admin-Panel) ---------- */
+function annBanner(){
+  const a = D.ann; if (!a || L.annHidden === a.id) return '';
+  return `<div class="banner ann"><span style="font-size:22px">${esc(a.emoji)}</span><span style="flex:1">${esc(a.text)}</span><button class="icon-btn sm" data-action="ann-hide" aria-label="Ausblenden">${I.x}</button></div>`;
+}
+function viewBanned(){
+  return `<div class="center" style="text-align:center;align-items:center;gap:10px"><div style="font-size:56px">🚫</div>
+    <div class="h1" style="font-size:24px">Dein Account ist gesperrt</div>
+    <p style="color:var(--muted);max-width:280px">Wenn du glaubst, dass das ein Fehler ist, melde dich über die Kontaktdaten im Impressum.</p>
+    <button class="btn btn-line" data-action="logout">Abmelden</button></div>`;
+}
+
+/* ---------- Push-Benachrichtigungen ---------- */
+const pushSupported = () => 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window && location.protocol === 'https:';
+const isIOS = () => /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const isStandalone = () => window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+function b64ToBytes(b){ const p = '='.repeat((4 - b.length % 4) % 4); const r = atob((b + p).replace(/-/g,'+').replace(/_/g,'/')); return Uint8Array.from(r, c => c.charCodeAt(0)); }
+async function pushStatus(){
+  if (!pushSupported()) return isIOS() && !isStandalone() ? 'install' : 'unsupported';
+  if (Notification.permission === 'denied') return 'denied';
+  try { const reg = await navigator.serviceWorker.ready; return (await reg.pushManager.getSubscription()) && Notification.permission === 'granted' ? 'on' : 'off'; }
+  catch(e){ return 'unsupported'; }
+}
+async function saveSub(sub){
+  const j = sub.toJSON();
+  await sb.from('push_subs').delete().eq('endpoint', j.endpoint);
+  const { error } = await sb.from('push_subs').insert({ endpoint:j.endpoint, user_id:D.user.id, p256dh:j.keys.p256dh, auth:j.keys.auth });
+  return error;
+}
+async function pushOn(){
+  try {
+    const perm = await Notification.requestPermission();
+    if (perm !== 'granted'){ UI.push = await pushStatus(); return 'Ohne Erlaubnis geht es leider nicht'; }
+    const { data, error } = await sb.functions.invoke('send-push', { body:{ action:'key' } });
+    if (error || !data || !data.publicKey) return 'Gerade nicht möglich, versuch es später nochmal';
+    const reg = await navigator.serviceWorker.ready;
+    let sub = await reg.pushManager.getSubscription();
+    if (!sub) sub = await reg.pushManager.subscribe({ userVisibleOnly:true, applicationServerKey:b64ToBytes(data.publicKey) });
+    const err = await saveSub(sub); if (err) return 'Speichern hat nicht geklappt';
+    UI.push = 'on'; L.pushAsked = true; saveLocal(); return true;
+  } catch(e){ return 'Benachrichtigungen werden hier nicht unterstützt'; }
+}
+async function pushOff(quiet){
+  try {
+    if (!pushSupported()) return;
+    const reg = await navigator.serviceWorker.ready, sub = await reg.pushManager.getSubscription();
+    if (sub){ await sb.from('push_subs').delete().eq('endpoint', sub.endpoint); if (!quiet) await sub.unsubscribe(); }
+  } catch(e){}
+  if (!quiet) UI.push = 'off';
+}
+/* Nach dem Anmelden: bestehendes Abo diesem Account zuordnen */
+async function syncPush(){
+  UI.push = await pushStatus();
+  if (UI.push === 'on'){ try { const reg = await navigator.serviceWorker.ready, sub = await reg.pushManager.getSubscription(); if (sub) await saveSub(sub); } catch(e){} }
+  if (UI.tab === 'more' && !$('.sheet')) render();
+}
+function pushRow(){
+  const st = UI.push || 'unsupported';
+  const sub = { on:'Neuigkeiten und Hinweise aufs Handy', off:'Aus – tippen zum Einschalten', install:'Zuerst die App zum Home-Bildschirm hinzufügen', denied:'In den Handy-Einstellungen blockiert', unsupported:'Dieser Browser unterstützt das nicht' }[st];
+  const clickable = st !== 'unsupported';
+  return `<${clickable?'button':'div'} class="row" ${clickable?'data-action="push"':''}><span style="font-size:22px">🔔</span><span class="grow"><b>Push-Benachrichtigungen</b><small>${sub}</small></span>${st==='on'||st==='off'?`<span class="switch" role="switch" aria-checked="${st==='on'}"></span>`:st==='install'?I.chev:''}</${clickable?'button':'div'}>`;
+}
+function openPushHelp(){
+  sheetFn = null;
+  openSheet(sheetHead('Benachrichtigungen am iPhone') + `
+    <p style="color:var(--muted);margin:0 0 14px">Apple erlaubt Benachrichtigungen nur, wenn die App auf dem Home-Bildschirm liegt. Das dauert 10 Sekunden:</p>
+    <ol class="steps"><li>In Safari unten auf <b>Teilen</b> tippen (Quadrat mit Pfeil).</li><li><b>„Zum Home-Bildschirm"</b> wählen und hinzufügen.</li><li>Die App über das neue Symbol öffnen und hier unter „Mehr" Benachrichtigungen einschalten.</li></ol>
+    <button class="btn btn-herb btn-block" style="margin-top:14px" data-action="close">Verstanden</button>`);
 }
 
 /* ---------- Haupt-Render ---------- */
@@ -359,6 +440,7 @@ function render(){
   if (!configured) v = viewSetup();
   else if (UI.loading) v = `<div class="center" style="align-items:center"><span class="spin" style="width:32px;height:32px;color:var(--herb)"></span></div>`;
   else if (!D.user) v = viewAuth();
+  else if (D.profile && D.profile.banned) v = viewBanned();
   else if (!isActive() || !D.family) v = viewNoFamily();
   else v = ({home:viewHome, fridge:viewFridge, recipes:viewRecipes, family:viewFamily, more:viewMore}[UI.tab])();
   const prev = $('#views .view'), same = !slideDx && prev && prev.dataset.tab === UI.tab, top = same ? prev.scrollTop : 0;
@@ -392,6 +474,7 @@ async function onSession(session){
   if (D.user){ try { await loadAll(); subscribe(); } catch(e){ UI.err = errText(e); } }
   else { UI.auth = UI.auth==='check' ? 'check' : 'login'; D.profile=null; D.membership=null; if (channel){ sb.removeChannel(channel); channel=null; } }
   UI.loading=false; render();
+  if (D.user && !D.profile?.banned) syncPush();
   if (D.user && !UI.counted){ UI.counted = true; trackOpen(); setTimeout(maybePlusPopup, 6000); }
 }
 
@@ -740,7 +823,7 @@ document.addEventListener('click', async e => {
     case 'close': closeSheet(); render(); break;
     case 'auth-mode': UI.auth=t.dataset.v; UI.err=''; render(); break;
     case 'pick-av': L.av=t.dataset.v; saveLocal(); document.querySelectorAll('[data-action=pick-av]').forEach(b=>b.setAttribute('aria-pressed', b.dataset.v===L.av)); buzz(6); break;
-    case 'logout': UI.auth='login'; UI.err=''; await sb.auth.signOut(); UI.tab='home'; break;
+    case 'logout': UI.auth='login'; UI.err=''; await pushOff(true); await sb.auth.signOut(); UI.tab='home'; break;
     case 'join': { const c=$('#join-code').value.trim(); if(!c){ UI.err='Bitte gib den Familien-Code ein.'; render(); break; }
       UI.err=''; t.disabled=true; const { error } = await sb.rpc('request_join', { join_code:c }); if (error) throw error;
       L.joinCode=''; saveLocal(); await loadAll(); subscribe(); render(); toast('Anfrage gesendet'); buzz(20); break; }
@@ -791,7 +874,7 @@ document.addEventListener('click', async e => {
     case 'plus': openPlus(false); break;
     case 'plus-hide': L.plusHideUntil = Date.now() + 14*DAY; saveLocal(); render(); toast('Ausgeblendet für 14 Tage'); break;
     case 'plus-interest': { L.plusInterest = true; saveLocal(); openPlus(false); buzz(20);
-      try { await sb.from('feedback').insert({ user_id:D.user.id, kind:'idee', message:'Interesse an Was gibt\'s? Plus', app_version:VERSION }); } catch(err){} break; }
+      try { await sb.from('feedback').insert({ user_id:D.user.id, kind:'plus', message:'Interesse an Was gibt\'s? Plus', app_version:VERSION }); } catch(err){} break; }
     case 'new-poll': openPollSetup(); break;
     case 'poll-pick': { const on = t.getAttribute('aria-pressed') !== 'true'; if (on && document.querySelectorAll('.pick-opt[aria-pressed=true]').length >= 4){ toast('Höchstens 4 Gerichte'); break; } t.setAttribute('aria-pressed', on); buzz(6); break; }
     case 'start-poll': { const ids = [...document.querySelectorAll('.pick-opt[aria-pressed=true]')].map(b => b.dataset.id);
@@ -840,6 +923,12 @@ document.addEventListener('click', async e => {
     case 'timer': { const m = +t.dataset.v; UI.timer = { end: Date.now() + m*60e3 }; clearInterval(timerT); timerT = setInterval(tickTimer, 500); tickTimer(); beep(); buzz(20); toast(`Timer: ${m} Minuten`); break; }
     case 'legal': { const [title, html] = LEGAL[t.dataset.v]; sheetFn = null; openSheet(`${sheetHead(title)}<div class="legal">${html}</div>`); break; }
     case 'theme': L.theme=t.dataset.v; saveLocal(); render(); break;
+    case 'push': { if (UI.push === 'on'){ await pushOff(); toast('Benachrichtigungen aus'); }
+      else if (UI.push === 'off'){ t.disabled = true; const r = await pushOn(); toast(r === true ? 'Benachrichtigungen an 🔔' : r); }
+      else if (UI.push === 'install') openPushHelp();
+      else if (UI.push === 'denied') toast('Bitte erlaube Benachrichtigungen in den Einstellungen deines Handys');
+      render(); break; }
+    case 'ann-hide': L.annHidden = D.ann && D.ann.id; saveLocal(); render(); break;
   } } catch(err){ UI.err = errText(err); toast(UI.err); render(); }
 });
 
