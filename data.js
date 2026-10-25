@@ -7,7 +7,7 @@ export const ING = {
   tofu:['Tofu','⬜','k'], paprika:['Paprika','🫑','k'], tomaten:['Tomaten','🍅','k'], zucchini:['Zucchini','🥒','k'],
   brokkoli:['Brokkoli','🥦','k'], spinat:['Spinat','🥬','k'], champignons:['Champignons','🍄','k'], zwiebeln:['Zwiebeln','🧅','k'],
   knoblauch:['Knoblauch','🧄','k'], karotten:['Karotten','🥕','k'], kartoffeln:['Kartoffeln','🥔','k'], gurke:['Gurke','🥒','k'],
-  salat:['Salat','🥗','k'], avocado:['Avocado','🥑','k'], zitrone:['Zitrone','🍋','k'],
+  salat:['Salat','🥗','k'], salami:['Salami','🍕','k'], wuerstchen:['Würstchen','🌭','k'], frischkaese:['Frischkäse','🧀','k',['laktose']], quark:['Quark','🥣','k',['laktose']], avocado:['Avocado','🥑','k'], zitrone:['Zitrone','🍋','k'],
   nudeln:['Nudeln','🍝','v',['gluten']], reis:['Reis','🍚','v'], mehl:['Mehl','🌾','v',['gluten']], hefe:['Hefe','🫙','v'],
   tortillas:['Tortillas','🌯','v',['gluten']], brot:['Brot','🍞','v',['gluten']], broetchen:['Burger-Brötchen','🍔','v',['gluten']],
   passierte:['Passierte Tomaten','🥫','v'], kokosmilch:['Kokosmilch','🥥','v'], linsen:['Linsen','🫘','v'], kichererbsen:['Kichererbsen','🫘','v'],
@@ -51,6 +51,12 @@ export const R = [
   {id:'avotoast',n:'Avocado-Toast mit Ei',e:'🥑',t:10,m:'gesund',i:['brot','avocado','eier'],o:['zitrone','tomaten'],x:[],s:['Brot toasten.','Avocado zerdrücken, mit Zitrone und Salz würzen.','Mit Spiegelei oder gekochtem Ei belegen.']},
   {id:'bowl',n:'Kichererbsen-Bowl',e:'🥙',t:20,m:'gesund',i:['kichererbsen','reis','gurke','tomaten'],o:['joghurt','avocado'],x:[],s:['Reis kochen.','Kichererbsen mit Paprikapulver knusprig braten.','Alles in Schalen anrichten, Joghurt drüber.']},
   {id:'schnitzel',n:'Hähnchenschnitzel mit Pommes',e:'🍟',t:40,m:'fast',i:['haehnchen','kartoffeln','eier','mehl'],o:['zitrone'],x:['fleisch'],s:['Kartoffeln in Stifte schneiden, mit Öl bei 220 °C 30 Minuten backen.','Hähnchen flach klopfen, in Mehl, Ei und Bröseln wenden.','Goldbraun braten, mit Zitrone servieren.']},
+  {id:'brotzeit',n:'Brotzeit mit Salami',e:'🥪',t:5,m:'normal',i:['brot','salami'],o:['butter','gurke','tomaten','kaese'],x:['fleisch'],s:['Brot in Scheiben schneiden und mit Butter bestreichen.','Mit Salami belegen.','Mit Gurke oder Tomate dazu servieren.']},
+  {id:'pizzatoast',n:'Pizza-Toast',e:'🍕',t:15,m:'fast',i:['brot','salami','kaese'],o:['passierte','paprika'],x:['fleisch'],s:['Brot mit etwas Tomate bestreichen.','Mit Salami und Käse belegen.','Bei 200 °C etwa 10 Minuten überbacken.']},
+  {id:'hotdog',n:'Hot Dogs',e:'🌭',t:15,m:'fast',i:['broetchen','wuerstchen'],o:['zwiebeln','gurke'],x:['fleisch'],s:['Würstchen in heißem Wasser 8 Minuten ziehen lassen.','Brötchen aufschneiden und kurz rösten.','Würstchen hineinlegen, nach Wunsch Zwiebeln und Gurke dazu.']},
+  {id:'wurstkart',n:'Würstchen mit Bratkartoffeln',e:'🥔',t:30,m:'normal',i:['wuerstchen','kartoffeln','zwiebeln'],o:[],x:['fleisch'],s:['Gekochte Kartoffeln in Scheiben braten.','Zwiebeln dazugeben.','Würstchen in Scheiben schneiden und mitbraten.']},
+  {id:'frischbrot',n:'Frischkäse-Brot mit Gurke',e:'🥒',t:5,m:'gesund',i:['brot','frischkaese'],o:['gurke','tomaten'],x:[],s:['Brot mit Frischkäse bestreichen.','Mit Gurken- oder Tomatenscheiben belegen.','Mit Salz und Pfeffer würzen.']},
+  {id:'quarkkart',n:'Pellkartoffeln mit Kräuterquark',e:'🥔',t:30,m:'gesund',i:['kartoffeln','quark'],o:['zwiebeln','gurke'],x:[],s:['Kartoffeln mit Schale 20 Minuten kochen.','Quark mit Salz, Pfeffer, Kräutern und etwas Milch glatt rühren.','Zusammen servieren.']},
 ];
 export const recipe = id => R.find(r=>r.id===id);
 export const ALLERGENS = {laktose:'Laktose', gluten:'Gluten'};

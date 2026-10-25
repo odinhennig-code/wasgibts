@@ -200,10 +200,12 @@ function suggestionCard(s){
     <div class="em" aria-hidden="true">${s.r.e}</div>
     <div class="main"><div class="t">${esc(s.r.n)}</div>
       <div class="s"><span>⏱ ${s.r.t} Min</span>${s.wishers.length?`<span class="chip c-tomato">🙋 ${s.wishers.length}</span>`:''}${s.favs.length?`<span class="chip c-tomato">❤️ ${s.favs.length}</span>`:''}${s.r.m==='fast'?'<span class="chip c-yolk">Fastfood</span>':s.r.m==='gesund'?'<span class="chip c-herb">Gesund</span>':''}</div>
-      <div class="meter"><i style="width:${s.cover*100}%"></i></div></div>${I.chev}</button>`;
+      ${s.missing.length?`<div class="s" style="margin-top:4px"><span class="chip c-yolk">🛒 ${s.missing.map(ingName).join(', ')}</span></div>`:'<div class="meter"><i style="width:100%"></i></div>'}</div>${I.chev}</button>`;
 }
 function viewHome(){
-  const eat = eatersNow(), list = suggest(), top = list[0];
+  const eat = eatersNow(), all = suggest();
+  /* Nur zeigen, was mit dem Kühlschrank wirklich geht – plus Ideen mit genau einem Einkauf */
+  const ready = all.filter(s => s.missing.length===0), almost = all.filter(s => s.missing.length===1), top = ready[0];
   const h = new Date().getHours(), greet = h<11?'Guten Morgen':h<17?'Hallo':'Guten Abend';
   const p = isAdmin() ? pendingReq() : [];
   return header(`Was gibt's heute, ${esc(D.profile.name)}?`, greet) +
@@ -219,8 +221,9 @@ function viewHome(){
         <div class="lbl">UNSER VORSCHLAG</div><div class="name">${esc(top.r.n)}</div>
         <div class="why">${whyLines(top).map(l=>`<span>${l}</span>`).join('')}</div>
         <div class="meta"><span class="chip">⏱ ${top.r.t} Min</span><span class="chip">Passt für ${eat.length===active().length?'alle':eat.length+' Personen'}</span></div></button>
-      ${list.length>1?`<div class="h2">Weitere Ideen <span class="chip c-muted">${list.length-1}</span></div><div class="stack">${list.slice(1,7).map(suggestionCard).join('')}</div>`:''}`
-    : `<div class="card empty"><div class="g">🤷</div><b>Nichts passt für alle</b>Probier mehr Zeit, „Egal" bei der Lust oder wähle weniger Personen aus.</div>`}`;
+      ${ready.length>1?`<div class="h2">Geht auch <span class="chip c-muted">${ready.length-1}</span></div><div class="stack">${ready.slice(1,8).map(suggestionCard).join('')}</div>`:''}`
+    : `<div class="card empty"><div class="g">🧊</div><b>Mit dem, was da ist, passt noch kein Rezept</b>Trag im Kühlschrank ein, was du hast, oder schau unten, was mit einem Einkauf geht.<button class="btn btn-line btn-block" style="margin-top:12px" data-tab="fridge">Kühlschrank öffnen</button></div>`}
+    ${almost.length?`<div class="h2">Mit einem kleinen Einkauf <span class="chip c-muted">${almost.length}</span></div><div class="stack">${almost.slice(0,6).map(suggestionCard).join('')}</div>`:''}`;
 }
 function viewFridge(){
   const fr = new Set(D.fridge);
