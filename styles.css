@@ -23,7 +23,8 @@
 html,body{height:100%}
 html,body{margin:0}
 *,*::before,*::after{box-sizing:border-box}
-html{padding:env(safe-area-inset-top,0) 0 env(safe-area-inset-bottom,0)}
+/* Volle Bildschirmhöhe: Inhalte selbst von Notch und Home-Leiste fernhalten */
+html{padding:0}
 body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.45;overflow:hidden;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
 button,input,select,textarea{font:inherit;color:inherit}
 button{cursor:pointer}
@@ -281,16 +282,113 @@ details.faq p{margin:0 0 14px;color:var(--muted);font-size:14px}
 .poll-win{display:flex;align-items:center;gap:12px;width:100%;border:0;background:linear-gradient(135deg,var(--yolk-soft),var(--surface))}
 .trophy{font-size:40px;animation:float 3s ease-in-out infinite}
 
-/* ---------- Kochmodus ---------- */
-.cook{position:absolute;inset:0;z-index:60;background:var(--bg);display:flex;flex-direction:column;padding:12px 18px 24px;animation:fade .25s both}
-.framed .cook{padding-top:62px}
+/* ---------- Ganze Bildschirmfläche nutzen ---------- */
+.view{padding-top:calc(6px + env(safe-area-inset-top,0px));padding-left:max(18px,env(safe-area-inset-left,0px));padding-right:max(18px,env(safe-area-inset-right,0px))}
+#tabbar{padding-bottom:calc(8px + env(safe-area-inset-bottom,0px))}
+.sheet{padding-bottom:calc(30px + env(safe-area-inset-bottom,0px))}
+#toast{bottom:calc(100px + env(safe-area-inset-bottom,0px))}
+
+/* ---------- Kochmodus (Querformat) ---------- */
+.cook{--ck-bg:#0f1d14;--ck-card:#18291e;--ck-fg:#eef6ef;--ck-muted:#9db5a3;--ck-acc:#5CC98A;--ck-hot:#FF8A6E;
+  position:absolute;inset:0;z-index:60;background:radial-gradient(120% 120% at 20% 0%,#1c3424,var(--ck-bg) 60%);color:var(--ck-fg);
+  display:grid;grid-template-rows:auto auto 1fr auto;gap:10px;
+  padding:calc(10px + env(safe-area-inset-top,0px)) max(18px,env(safe-area-inset-right,0px)) calc(12px + env(safe-area-inset-bottom,0px)) max(18px,env(safe-area-inset-left,0px))}
+.cook.enter{animation:ckIn .5s cubic-bezier(.2,.9,.3,1) both}
+@keyframes ckIn{from{opacity:0;transform:scale(1.04)}}
 .cook-top{display:flex;align-items:center;gap:12px}
-.cook-bar{height:6px;border-radius:6px;background:var(--surface-2);margin:14px 0 0;overflow:hidden}
-.cook-bar i{display:block;height:100%;background:var(--herb);border-radius:6px;transition:width .4s cubic-bezier(.2,.9,.3,1)}
-.cook-body{flex:1;display:flex;flex-direction:column;justify-content:center;animation:slideIn .4s cubic-bezier(.2,.9,.3,1) both}
-@keyframes slideIn{from{opacity:.2;transform:translateX(40px)}}
-.cook-num{font-weight:800;color:var(--herb);letter-spacing:.06em;text-transform:uppercase;font-size:13px;margin-bottom:12px}
-.cook-text{font-family:var(--f-display);font-weight:600;font-size:27px;line-height:1.3;text-wrap:balance}
-.cook-nav{display:grid;grid-template-columns:1fr 2fr;gap:10px}
-.cook-nav .btn{min-height:56px;font-size:17px}
-.cook-nav .btn:disabled{opacity:.4}
+.cook-x{width:44px;height:44px;border-radius:14px;border:0;background:rgba(255,255,255,.08);color:var(--ck-fg);display:grid;place-items:center;flex:none}
+.cook-title{flex:1;min-width:0;display:flex;flex-direction:column}
+.cook-title span{font-size:11px;font-weight:800;letter-spacing:.14em;color:var(--ck-acc)}
+.cook-title b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:16px}
+.cook-timer{font-family:var(--f-display);font-weight:800;font-size:18px;color:#fff;background:var(--ck-hot);padding:6px 12px;border-radius:12px;font-variant-numeric:tabular-nums;animation:pulseT 1s ease-in-out infinite}
+@keyframes pulseT{50%{transform:scale(1.06)}}
+.cook-clock{font-family:var(--f-display);font-weight:800;font-size:34px;letter-spacing:-.02em;font-variant-numeric:tabular-nums;line-height:1;background:linear-gradient(135deg,#fff,var(--ck-acc));-webkit-background-clip:text;background-clip:text;color:transparent}
+.cook-dots{display:flex;gap:6px}
+.cook-dots i{flex:1;height:6px;border-radius:6px;background:rgba(255,255,255,.12);transition:background .4s}
+.cook-dots i.done{background:var(--ck-acc)}
+.cook-dots i.now{background:linear-gradient(90deg,var(--ck-acc),#fff);animation:dotGlow 1.6s ease-in-out infinite}
+@keyframes dotGlow{50%{box-shadow:0 0 12px var(--ck-acc)}}
+.cook-main{display:grid;grid-template-columns:minmax(150px,38%) 1fr;align-items:center;gap:22px;min-height:0;animation:stepIn .5s cubic-bezier(.2,.9,.3,1) both}
+.cook-main.back{animation-name:stepBack}
+@keyframes stepIn{from{opacity:0;transform:translateX(60px)}}
+@keyframes stepBack{from{opacity:0;transform:translateX(-60px)}}
+.cook-num{font-family:var(--f-display);font-weight:800;font-size:15px;color:var(--ck-acc);letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px}
+.cook-num small{color:var(--ck-muted);font-size:13px}
+.cook-text{font-family:var(--f-display);font-weight:600;font-size:clamp(20px,3.4vw,30px);line-height:1.28;text-wrap:balance}
+.framed .cook-text{font-size:26px}
+.cook-tbtn{margin-top:16px;border:0;border-radius:14px;padding:12px 16px;font-weight:800;background:rgba(255,138,110,.16);color:var(--ck-hot);min-height:46px}
+.cook-nav{display:grid;grid-template-columns:1fr 2fr;gap:12px}
+.cook-btn{border:0;border-radius:20px;min-height:68px;font-family:var(--f-display);font-weight:800;font-size:22px;transition:transform .15s cubic-bezier(.3,1.6,.5,1)}
+.cook-btn:active{transform:scale(.96)}
+.cook-btn.prev{background:rgba(255,255,255,.08);color:var(--ck-fg)}
+.cook-btn.prev:disabled{opacity:.3}
+.cook-btn.next{background:var(--ck-acc);color:#06140b;box-shadow:0 10px 30px rgba(92,201,138,.35)}
+.cook-btn.done{background:linear-gradient(135deg,var(--ck-acc),#ffd36e)}
+
+/* Szenen-Animationen */
+.scene{display:flex;flex-direction:column;align-items:center;gap:10px}
+.sc-stage{position:relative;width:170px;height:170px;border-radius:50%;background:radial-gradient(circle,rgba(92,201,138,.22),rgba(92,201,138,.04) 70%);display:grid;place-items:center}
+.sc-main{font-size:78px;position:relative;z-index:2;filter:drop-shadow(0 10px 18px rgba(0,0,0,.4))}
+.sc-label{font-weight:800;font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--ck-muted)}
+.sc-ing{position:absolute;font-size:30px;left:calc(50% - 15px + var(--x));top:-10px;z-index:3;animation:ingDrop 1.6s cubic-bezier(.3,1.4,.5,1) var(--d) infinite}
+@keyframes ingDrop{0%{transform:translateY(-30px);opacity:0}25%{opacity:1}55%{transform:translateY(70px)}80%{opacity:1}100%{transform:translateY(80px) scale(.6);opacity:0}}
+.sc-chop .sc-main{animation:chop .5s ease-in-out infinite;transform-origin:80% 80%}
+@keyframes chop{50%{transform:rotate(-28deg) translateY(-6px)}}
+.sc-board{position:absolute;bottom:34px;width:110px;height:16px;border-radius:8px;background:#8a5a33}
+.sc-fry .sc-main{animation:shake .25s linear infinite}
+@keyframes shake{25%{transform:translate(-2px,1px) rotate(-2deg)}75%{transform:translate(2px,-1px) rotate(2deg)}}
+.sc-sizzle i,.sc-bubbles i,.sc-heat i,.sc-grains i{position:absolute;display:block}
+.sc-sizzle i{width:4px;height:14px;border-radius:4px;background:#ffd36e;top:40px;animation:spark .7s ease-out infinite}
+.sc-sizzle i:nth-child(1){left:50px}.sc-sizzle i:nth-child(2){left:75px;animation-delay:.2s}.sc-sizzle i:nth-child(3){left:100px;animation-delay:.4s}.sc-sizzle i:nth-child(4){left:120px;animation-delay:.1s}
+@keyframes spark{from{transform:translateY(0);opacity:1}to{transform:translateY(-36px) rotate(25deg);opacity:0}}
+.sc-boil .sc-main{animation:bob 1.6s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(-6px)}}
+.sc-bubbles i{width:12px;height:12px;border-radius:50%;border:2px solid rgba(255,255,255,.7);top:52px;animation:bubble 1.8s ease-in infinite}
+.sc-bubbles i:nth-child(1){left:58px}.sc-bubbles i:nth-child(2){left:78px;animation-delay:.4s}.sc-bubbles i:nth-child(3){left:96px;animation-delay:.8s}.sc-bubbles i:nth-child(4){left:112px;animation-delay:1.1s}.sc-bubbles i:nth-child(5){left:68px;animation-delay:1.4s}
+@keyframes bubble{from{transform:translateY(0) scale(.6);opacity:0}30%{opacity:1}to{transform:translateY(-50px) scale(1.2);opacity:0}}
+.sc-bake .sc-stage{background:radial-gradient(circle,rgba(255,138,110,.35),rgba(255,138,110,.05) 70%);animation:glowO 1.8s ease-in-out infinite}
+@keyframes glowO{50%{box-shadow:0 0 40px rgba(255,138,110,.45)}}
+.sc-heat i{width:6px;height:40px;border-radius:6px;background:linear-gradient(transparent,rgba(255,200,150,.8),transparent);top:10px;animation:heat 1.4s ease-in-out infinite}
+.sc-heat i:nth-child(1){left:60px}.sc-heat i:nth-child(2){left:82px;animation-delay:.3s}.sc-heat i:nth-child(3){left:104px;animation-delay:.6s}
+@keyframes heat{50%{transform:translateY(-12px) skewX(12deg);opacity:.4}}
+.sc-stir .sc-main{animation:stir 1.4s linear infinite}
+@keyframes stir{0%{transform:rotate(0) translateX(14px) rotate(0)}100%{transform:rotate(360deg) translateX(14px) rotate(-360deg)}}
+.sc-swirl{position:absolute;inset:30px;border-radius:50%;border:3px dashed rgba(255,255,255,.25);animation:rot 3s linear infinite}
+.sc-knead .sc-main{animation:squish 1s ease-in-out infinite}
+@keyframes squish{50%{transform:scale(1.18,.82)}}
+.sc-season .sc-main{animation:salt .6s ease-in-out infinite;transform-origin:50% 0}
+@keyframes salt{50%{transform:rotate(25deg)}}
+.sc-grains i{width:4px;height:4px;border-radius:50%;background:#fff;top:110px;animation:grain 1s ease-in infinite}
+.sc-grains i:nth-child(1){left:70px}.sc-grains i:nth-child(2){left:82px;animation-delay:.15s}.sc-grains i:nth-child(3){left:94px;animation-delay:.3s}.sc-grains i:nth-child(4){left:76px;animation-delay:.45s}.sc-grains i:nth-child(5){left:88px;animation-delay:.6s}.sc-grains i:nth-child(6){left:100px;animation-delay:.75s}
+@keyframes grain{from{transform:translateY(0);opacity:1}to{transform:translateY(40px);opacity:0}}
+.sc-rest .sc-main{animation:flip 2s ease-in-out infinite}
+@keyframes flip{0%,40%{transform:rotate(0)}60%,100%{transform:rotate(180deg)}}
+.sc-serve .sc-main{animation:bob 2s ease-in-out infinite}
+.sc-sparkle i{position:absolute;font-style:normal;font-size:20px;animation:twinkle 1.6s ease-in-out infinite}
+.sc-sparkle i:nth-child(1){left:20px;top:30px}.sc-sparkle i:nth-child(2){right:20px;top:50px;animation-delay:.5s}.sc-sparkle i:nth-child(3){left:60px;bottom:20px;animation-delay:1s}
+@keyframes twinkle{0%,100%{transform:scale(.4);opacity:0}50%{transform:scale(1.2);opacity:1}}
+.sc-idle .sc-main{animation:bob 2.4s ease-in-out infinite}
+
+/* Hinweis: Handy drehen (nur Handys im Hochformat) */
+.rotate{display:none}
+@media (orientation:portrait) and (pointer:coarse){
+  .cook:not(.force) .rotate{display:flex;position:absolute;inset:0;z-index:5;background:var(--ck-bg);flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;padding:30px}
+  .rotate b{font-family:var(--f-display);font-size:26px}
+  .rotate p{color:var(--ck-muted);margin:0}
+  .rotate .linkbtn{color:var(--ck-muted);font-size:13px;margin-top:20px}
+}
+/* Hochformat (wenn erzwungen): untereinander */
+@media (orientation:portrait){ .cook.force .cook-main{grid-template-columns:1fr;text-align:center} .cook.force .scene{transform:scale(.85)} }
+.rot-phone{width:70px;height:120px;border:5px solid var(--ck-acc);border-radius:16px;position:relative;animation:rotPhone 2.2s cubic-bezier(.5,0,.3,1) infinite}
+.rot-phone span{position:absolute;bottom:8px;left:50%;width:18px;height:4px;margin-left:-9px;border-radius:3px;background:var(--ck-acc)}
+@keyframes rotPhone{0%,20%{transform:rotate(0)}55%,80%{transform:rotate(-90deg)}100%{transform:rotate(0)}}
+
+/* Simulator am Computer: Handy dreht sich ins Querformat */
+.framed #phone{transition:width .6s cubic-bezier(.5,0,.3,1),height .6s cubic-bezier(.5,0,.3,1)}
+.framed #phoneWrap{transition:width .6s cubic-bezier(.5,0,.3,1),height .6s cubic-bezier(.5,0,.3,1)}
+.framed.cooking #phone{width:874px;height:420px}
+.framed.cooking #side{display:none}
+.framed.cooking #statusbar{display:none}
+.framed.cooking #island{top:50%;left:12px;transform:translateY(-50%);width:36px;height:124px}
+.framed.cooking .cook{padding-left:62px;padding-top:16px}
+.framed.cooking .b1,.framed.cooking .b2,.framed.cooking .b3,.framed.cooking .b4{display:none}

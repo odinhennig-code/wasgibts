@@ -252,6 +252,7 @@ function viewHome(){
         <div class="lbl">UNSER VORSCHLAG</div><div class="name">${esc(top.r.n)}</div>
         <div class="why">${whyLines(top).map(l=>`<span>${l}</span>`).join('')}</div>
         <div class="meta"><span class="chip">⏱ ${top.r.t} Min</span><span class="chip">Passt für ${eat.length===active().length?'alle':eat.length+' Personen'}</span></div></button>
+      <button class="btn btn-tomato btn-block" style="margin-top:10px" data-action="cook" data-id="${top.r.id}">👨‍🍳 Jetzt kochen – Kochmodus starten</button>
       ${ready.length>1?`<div class="h2">Geht auch <span class="chip c-muted">${ready.length-1}</span></div><div class="stack">${ready.slice(1,8).map(suggestionCard).join('')}</div>`:''}`
     : `<div class="card empty"><div class="g">🧊</div><b>Mit dem, was da ist, passt noch kein Rezept</b>Trag im Kühlschrank ein, was du hast, oder schau unten, was mit einem Einkauf geht.<button class="btn btn-line btn-block" style="margin-top:12px" data-tab="fridge">Kühlschrank öffnen</button></div>`}
     ${almost.length?`<div class="h2">Mit einem kleinen Einkauf <span class="chip c-muted">${almost.length}</span></div><div class="stack">${almost.slice(0,6).map(suggestionCard).join('')}</div>`:''}`;
@@ -307,8 +308,9 @@ function viewFamily(){
 }
 
 /* ---------- Reiter „Mehr" ---------- */
-const VERSION = '1.3';
+const VERSION = '1.4';
 const CHANGELOG = [
+  { v:'1.4', d:'25. Oktober 2026', items:['Neu: Kochmodus im Querformat mit „Bitte Handy drehen"-Hinweis','Neu: Große Uhr oben rechts, Fortschrittsbalken und große Weiter/Zurück-Knöpfe','Neu: Animation für jeden Schritt (Schneiden, Braten, Kochen, Backen, Rühren …)','Neu: „Jetzt kochen" direkt unter dem Vorschlag auf „Heute"','Neu: Die App nutzt den ganzen Bildschirm bis zum Rand','Impressum mit Namen ergänzt'] },
   { v:'1.3', d:'25. Oktober 2026', items:['Neu: Start-Intro mit Logo-Animation','Neu: Abstimmung „Was essen wir heute?" für die ganze Familie','Neu: Haltbarkeit im Kühlschrank – Gerichte, die Zutaten aufbrauchen, kommen zuerst','Neu: Eigene Familienrezepte eintragen','Neu: Kochmodus mit großen Schritten und Timer','Neu: Feedback senden, Impressum und Datenschutz','Schriften und QR-Code liegen jetzt direkt in der App (kein Laden bei Google mehr)','Behoben: Updates kamen teilweise erst nach mehrmaligem Öffnen an','Neu: Die App lädt neue Versionen ab jetzt automatisch'] },
   { v:'1.2.1', d:'25. Oktober 2026', items:['Behoben: Zutaten und Profil-Auswahl sprangen beim Antippen zurück und wurden teils nicht gespeichert','Behoben: Seite scrollte nach jedem Antippen wieder nach oben','Behoben: Fenster ruckelte beim Antippen von unten neu rein','Update-Log ist jetzt ein kleiner Knopf unten unter „Mehr"'] },
   { v:'1.2', d:'25. Oktober 2026', items:['Neu: Knopf „Wählerischer Esser" im Profil','Neu: Reiter „Mehr" mit Neuigkeiten und Hilfe','Foto-Erkennung mit Ersatz-KI und Pause-Hinweis'] },
@@ -320,6 +322,7 @@ const FAQ = [
   ['Wie lade ich jemanden ein?','Der Admin tippt unter „Familie" auf „Familienmitglied einladen". Der QR-Code wird mit der Handy-Kamera gescannt, danach muss der Admin die Anfrage annehmen.'],
   ['Was bedeutet „Wählerischer Esser"?','Statt anzugeben, was du nicht magst, wählst du aus, was du isst. Dann bekommst du nur Gerichte, bei denen du alle Hauptzutaten magst.'],
   ['Die Foto-Erkennung macht Pause?','Die KI hat ein Tageslimit. Am nächsten Tag geht es wieder. Bis dahin kannst du die Zutaten antippen.'],
+  ['Wo finde ich den Kochmodus?','Auf „Heute" direkt unter dem Vorschlag („Jetzt kochen") oder in jedem Rezept über „Kochmodus starten". Dort gibt es große Schritte zum Wischen und Timer mit Ton.'],
   ['Wie installiere ich die App?','iPhone: in Safari auf „Teilen" und dann „Zum Home-Bildschirm". Android: im Chrome-Menü auf „App installieren".'],
 ];
 function viewMore(){
@@ -515,32 +518,75 @@ function openFeedback(){
     <button class="btn btn-herb btn-block" data-action="send-feedback">Senden</button>`);
 }
 
-/* ---------- Kochmodus ---------- */
-let wakeLock = null, timerT = null, audioCtx = null;
+/* ---------- Kochmodus (Querformat) ---------- */
+let wakeLock = null, timerT = null, audioCtx = null, clockT = null;
 function stepMinutes(txt){ const m = txt.match(/(\d+)\s*Minuten/); return m ? +m[1] : 0; }
-function openCook(id){
-  UI.cook = { id, step: 0 }; sheetFn = null;
-  try { navigator.wakeLock && navigator.wakeLock.request('screen').then(l => wakeLock = l).catch(()=>{}); } catch(e){}
-  renderCook();
+
+/* Passende Animation zum Arbeitsschritt */
+function sceneFor(txt, r){
+  const t = txt.toLowerCase();
+  const ings = Object.keys(ING).filter(k => t.includes(ING[k][0].toLowerCase().slice(0, Math.max(4, ING[k][0].length - 2)))).slice(0, 3).map(k => ING[k][1]);
+  const drop = ings.map((e, n) => `<span class="sc-ing" style="--d:${n * .18}s;--x:${(n - (ings.length - 1) / 2) * 46}px">${e}</span>`).join('');
+  const pick = [
+    [/schneid|hack|würfel|hobel|reib|streifen|scheiben|zerdrück|halbier/, 'chop', '🔪', 'Schneiden'],
+    [/brat|anbrat|anschwitz|röst|pfanne|ausback/, 'fry', '🍳', 'Braten'],
+    [/back|ofen|überback|°c/, 'bake', '🔥', 'Backen'],
+    [/köchel|koch|sieden|wasser|ziehen lassen|schmor/, 'boil', '🍲', 'Kochen'],
+    [/rühr|verquirl|misch|schwenk|unterheb|vermeng/, 'stir', '🥄', 'Verrühren'],
+    [/knet|teig|ausroll|formen|forme/, 'knead', '🫓', 'Kneten'],
+    [/würz|salz|pfeffer|abschmeck/, 'season', '🧂', 'Würzen'],
+    [/ruhen|gehen lassen|quellen|abkühl|warten/, 'rest', '⏳', 'Warten'],
+    [/servier|anricht|belegen|füllen|einroll|dazu/, 'serve', '🍽️', 'Anrichten'],
+  ].find(([re]) => re.test(t)) || [null, 'idle', r.e, 'Los geht\'s'];
+  const [, kind, icon, label] = pick;
+  const extra = {
+    chop: '<span class="sc-board"></span>',
+    fry: '<span class="sc-sizzle"><i></i><i></i><i></i><i></i></span>',
+    boil: '<span class="sc-bubbles"><i></i><i></i><i></i><i></i><i></i></span>',
+    bake: '<span class="sc-heat"><i></i><i></i><i></i></span>',
+    stir: '<span class="sc-swirl"></span>',
+    season: '<span class="sc-grains"><i></i><i></i><i></i><i></i><i></i><i></i></span>',
+    knead: '', rest: '', serve: '<span class="sc-sparkle"><i>✨</i><i>✨</i><i>✨</i></span>', idle: '',
+  }[kind];
+  return `<div class="scene sc-${kind}"><div class="sc-stage">${extra}<span class="sc-main">${icon}</span>${drop}</div><div class="sc-label">${label}</div></div>`;
 }
-function renderCook(){
+
+function openCook(id){
+  UI.cook = { id, step: 0, dir: 1 }; sheetFn = null;
+  try { navigator.wakeLock && navigator.wakeLock.request('screen').then(l => wakeLock = l).catch(()=>{}); } catch(e){}
+  // Auf dem Handy: Vollbild und Querformat versuchen (Android). iPhone zeigt den Dreh-Hinweis.
+  if (!mq.matches){ try { const el = document.documentElement; (el.requestFullscreen ? el.requestFullscreen() : Promise.reject()).then(() => screen.orientation && screen.orientation.lock && screen.orientation.lock('landscape')).catch(()=>{}); } catch(e){} }
+  document.documentElement.classList.add('cooking'); layout();
+  clearInterval(clockT); clockT = setInterval(tickCookClock, 1000);
+  renderCook(true);
+}
+function tickCookClock(){ const el = $('#cookClock'); if (!el) return; const d = new Date(); el.textContent = d.getHours() + ':' + String(d.getMinutes()).padStart(2,'0'); }
+function renderCook(first){
   const c = UI.cook, r = rec(c.id); if (!r) return;
   const n = r.s.length, txt = r.s[c.step] || '', mins = stepMinutes(txt), last = c.step === n - 1;
-  $('#overlay').innerHTML = `<div class="cook" role="dialog" aria-label="Kochmodus">
-    <div class="cook-top"><button class="icon-btn" data-action="cook-close" aria-label="Kochmodus beenden">${I.x}</button>
-      <div style="flex:1;min-width:0"><div class="muted" style="font-size:12px;font-weight:800;letter-spacing:.08em">KOCHMODUS</div><b style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block">${r.e} ${esc(r.n)}</b></div>
-      <span id="cookTimer" class="chip c-tomato" ${UI.timer?'':'hidden'}></span></div>
-    <div class="cook-bar"><i style="width:${(c.step+1)/n*100}%"></i></div>
-    <div class="cook-body" key="${c.step}">
-      <div class="cook-num">Schritt ${c.step+1} von ${n}</div>
-      <div class="cook-text">${esc(txt)}</div>
-      ${mins ? `<button class="btn btn-ghost" style="margin-top:22px" data-action="timer" data-v="${mins}">⏱ ${mins}-Minuten-Timer starten</button>` : ''}
+  $('#overlay').innerHTML = `<div class="cook ${first?'enter':''} ${UI.cookForce?'force':''}" role="dialog" aria-label="Kochmodus">
+    <div class="cook-top">
+      <button class="cook-x" data-action="cook-close" aria-label="Kochmodus beenden">${I.x}</button>
+      <div class="cook-title"><span>KOCHMODUS</span><b>${r.e} ${esc(r.n)}</b></div>
+      <span id="cookTimer" class="cook-timer" ${UI.timer?'':'hidden'}></span>
+      <div id="cookClock" class="cook-clock"></div>
+    </div>
+    <div class="cook-dots">${r.s.map((_,k)=>`<i class="${k<c.step?'done':k===c.step?'now':''}"></i>`).join('')}</div>
+    <div class="cook-main ${c.dir<0?'back':''}" key="${c.step}">
+      ${sceneFor(txt, r)}
+      <div class="cook-copy">
+        <div class="cook-num">Schritt ${c.step+1}<small> / ${n}</small></div>
+        <div class="cook-text">${esc(txt)}</div>
+        ${mins ? `<button class="cook-tbtn" data-action="timer" data-v="${mins}">⏱ ${mins}-Minuten-Timer starten</button>` : ''}
+      </div>
     </div>
     <div class="cook-nav">
-      <button class="btn btn-ghost" data-action="cook-prev" ${c.step===0?'disabled':''}>Zurück</button>
-      ${last ? `<button class="btn btn-herb" data-action="cook-done">Fertig! 🍽️</button>` : `<button class="btn btn-herb" data-action="cook-next">Weiter</button>`}
-    </div></div>`;
-  tickTimer();
+      <button class="cook-btn prev" data-action="cook-prev" ${c.step===0?'disabled':''} aria-label="Zurück">◀ Zurück</button>
+      ${last ? `<button class="cook-btn next done" data-action="cook-done">Fertig! 🍽️</button>` : `<button class="cook-btn next" data-action="cook-next">Weiter ▶</button>`}
+    </div>
+    <div class="rotate"><div class="rot-phone"><span></span></div><b>Bitte dreh dein Handy</b><p>Im Querformat siehst du alles groß und hast die Hände frei.</p><button class="linkbtn" data-action="cook-force">Drehen geht nicht? Im Hochformat weiter</button></div>
+  </div>`;
+  tickCookClock(); tickTimer();
 }
 function beep(){
   try { audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
@@ -553,16 +599,23 @@ function tickTimer(){
   if (el){ el.hidden = false; el.textContent = `⏱ ${m}:${String(sec).padStart(2,'0')}`; }
   if (left <= 0){ clearInterval(timerT); UI.timer = null; beep(); buzz([300,150,300,150,300]); toast('⏰ Die Zeit ist um!'); if (el) el.hidden = true; }
 }
-function closeCook(){ UI.cook = null; try { wakeLock && wakeLock.release(); } catch(e){} wakeLock = null; $('#overlay').innerHTML = ''; }
+function closeCook(){
+  UI.cook = null; UI.cookForce = false; clearInterval(clockT);
+  try { wakeLock && wakeLock.release(); } catch(e){} wakeLock = null;
+  try { screen.orientation && screen.orientation.unlock && screen.orientation.unlock(); } catch(e){}
+  try { document.fullscreenElement && document.exitFullscreen(); } catch(e){}
+  document.documentElement.classList.remove('cooking'); layout();
+  $('#overlay').innerHTML = '';
+}
 
 /* ---------- Rechtliches ---------- */
 const LEGAL = {
-  impressum: ['Impressum', `<p class="muted" style="font-size:13px">Platzhalter: Vor der Veröffentlichung durch die echten Angaben des Betreibers ersetzen. Bei Minderjährigen müssen das die Eltern übernehmen.</p>
-    <h3>Angaben gemäß § 5 DDG</h3><p>[Vor- und Nachname]<br>[Straße und Hausnummer]<br>[PLZ und Ort]</p>
+  impressum: ['Impressum', `<p class="muted" style="font-size:13px">Anschrift und E-Mail werden vor der öffentlichen Veröffentlichung ergänzt.</p>
+    <h3>Angaben gemäß § 5 DDG</h3><p>Odin Hennig<br>[Straße und Hausnummer]<br>[PLZ und Ort]</p>
     <h3>Kontakt</h3><p>E-Mail: [E-Mail-Adresse]</p>
-    <h3>Verantwortlich für den Inhalt</h3><p>[Vor- und Nachname, Anschrift wie oben]</p>`],
+    <h3>Verantwortlich für den Inhalt</h3><p>Odin Hennig, Anschrift wie oben</p>`],
   privacy: ['Datenschutz', `<p class="muted" style="font-size:13px">Entwurf. Vor der Veröffentlichung prüfen und die Platzhalter ersetzen.</p>
-    <h3>Verantwortlich</h3><p>[Vor- und Nachname, Anschrift, E-Mail wie im Impressum]</p>
+    <h3>Verantwortlich</h3><p>Odin Hennig (Anschrift und E-Mail siehe Impressum)</p>
     <h3>Welche Daten wir speichern</h3><p>Für dein Konto: E-Mail-Adresse und verschlüsseltes Passwort. In der App: Name, Profilbild-Emoji, Essensvorlieben und Unverträglichkeiten, Familienzugehörigkeit, Wünsche, Lieblingsgerichte, Kühlschrank-Inhalt mit Ablaufdaten, eigene Rezepte, Abstimmungen und Feedback. Diese Daten sehen nur die Mitglieder deiner Familie.</p>
     <h3>Wo die Daten liegen</h3><p>Die Daten werden bei Supabase in einem Rechenzentrum in Frankfurt (EU) gespeichert.</p>
     <h3>Kühlschrank-Foto</h3><p>Fotos werden nur zur Erkennung der Zutaten an Google (Gemini) gesendet und von der App nicht gespeichert.</p>
@@ -731,8 +784,9 @@ document.addEventListener('click', async e => {
       t.disabled = true; const { error } = await sb.from('feedback').insert({ user_id:D.user.id, kind:$('[data-action=fb-kind][aria-pressed=true]')?.dataset.v || 'idee', message:msg, app_version:VERSION });
       if (error){ t.disabled = false; throw error; } closeSheet(); toast('Danke für dein Feedback! 💚'); break; }
     case 'cook': openCook(id); break;
-    case 'cook-next': UI.cook.step++; buzz(8); renderCook(); break;
-    case 'cook-prev': UI.cook.step = Math.max(0, UI.cook.step - 1); buzz(8); renderCook(); break;
+    case 'cook-next': UI.cook.step++; UI.cook.dir = 1; buzz(8); renderCook(); break;
+    case 'cook-prev': UI.cook.step = Math.max(0, UI.cook.step - 1); UI.cook.dir = -1; buzz(8); renderCook(); break;
+    case 'cook-force': UI.cookForce = true; $('.cook').classList.add('force'); break;
     case 'cook-close': closeCook(); render(); break;
     case 'cook-done': { const cid = UI.cook.id; closeCook(); render(); openRecipe(cid); setTimeout(() => { const b = $('[data-action=cooked]'); if (b) b.click(); }, 350); break; }
     case 'timer': { const m = +t.dataset.v; UI.timer = { end: Date.now() + m*60e3 }; clearInterval(timerT); timerT = setInterval(tickTimer, 500); tickTimer(); beep(); buzz(20); toast(`Timer: ${m} Minuten`); break; }
@@ -741,12 +795,18 @@ document.addEventListener('click', async e => {
   } } catch(err){ UI.err = errText(err); toast(UI.err); render(); }
 });
 
+/* Kochmodus mit Pfeiltasten steuern (Computer) */
+document.addEventListener('keydown', e => { if (!UI.cook) return;
+  if (e.key === 'ArrowRight'){ const b = $('[data-action=cook-next]') || $('[data-action=cook-done]'); b && b.click(); }
+  if (e.key === 'ArrowLeft'){ const b = $('[data-action=cook-prev]'); b && !b.disabled && b.click(); }
+  if (e.key === 'Escape'){ closeCook(); render(); } });
+
 /* Wischen zwischen den Tabs */
 let tx=0, ty=0;
 $('#views').addEventListener('touchstart', e=>{ tx=e.touches[0].clientX; ty=e.touches[0].clientY; }, {passive:true});
 $('#overlay').addEventListener('touchstart', e=>{ tx=e.touches[0].clientX; ty=e.touches[0].clientY; }, {passive:true});
 $('#overlay').addEventListener('touchend', e=>{ if (!UI.cook) return; const dx=e.changedTouches[0].clientX-tx, dy=e.changedTouches[0].clientY-ty;
-  if (Math.abs(dx)>70 && Math.abs(dx)>Math.abs(dy)*1.6){ const r = rec(UI.cook.id); const k = UI.cook.step + (dx<0?1:-1); if (k>=0 && k<r.s.length){ UI.cook.step=k; buzz(8); renderCook(); } } }, {passive:true});
+  if (Math.abs(dx)>70 && Math.abs(dx)>Math.abs(dy)*1.6){ const r = rec(UI.cook.id); const k = UI.cook.step + (dx<0?1:-1); if (k>=0 && k<r.s.length){ UI.cook.dir = dx<0?1:-1; UI.cook.step=k; buzz(8); renderCook(); } } }, {passive:true});
 $('#views').addEventListener('touchend', e=>{ if(!D.user || !isActive()) return;
   const dx=e.changedTouches[0].clientX-tx, dy=e.changedTouches[0].clientY-ty;
   if (Math.abs(dx)>70 && Math.abs(dx)>Math.abs(dy)*1.6){ const k=ORDER.indexOf(UI.tab)+(dx<0?1:-1); if(k>=0&&k<ORDER.length) go(ORDER[k]); } }, {passive:true});
@@ -759,7 +819,8 @@ const mq = window.matchMedia('(min-width: 820px) and (pointer: fine)');
 function layout(){
   const framed = mq.matches; document.documentElement.classList.toggle('framed', framed);
   const w=$('#phoneWrap'), p=$('#phone');
-  if (framed){ const s=Math.min(1,(window.innerHeight-40)/874); w.style.width=(420*s)+'px'; w.style.height=(874*s)+'px'; p.style.transform=`scale(${s})`; }
+  const land = document.documentElement.classList.contains('cooking'), W = land ? 874 : 420, H = land ? 420 : 874;
+  if (framed){ const s=Math.min(1,(window.innerHeight-40)/H,(window.innerWidth-40)/W); w.style.width=(W*s)+'px'; w.style.height=(H*s)+'px'; p.style.transform=`scale(${s})`; }
   else { w.style.width=''; w.style.height=''; p.style.transform=''; }
 }
 try { mq.addEventListener('change', layout); } catch(e){ mq.addListener && mq.addListener(layout); }
