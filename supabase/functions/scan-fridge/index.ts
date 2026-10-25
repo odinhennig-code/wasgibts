@@ -1,10 +1,17 @@
 // =====================================================================
 // WAS GIBT'S? – Server-Funktion: Kühlschrank-Foto erkennen
-// Läuft als Supabase Edge Function. Der KI-Schlüssel bleibt auf dem Server.
+// Läuft als Supabase Edge Function. Die KI-Schlüssel bleiben auf dem Server.
 //
-// Schlüssel setzen (einer reicht):
-//   GEMINI_API_KEY     – Google Gemini (hat einen kostenlosen Einstieg)
-//   ANTHROPIC_API_KEY  – Claude (kostenpflichtig, sehr zuverlässig)
+// Schlüssel (Secrets in Supabase):
+//   GEMINI_API_KEY      – Google Gemini, kostenloser Bereich mit Tageslimit (Hauptweg)
+//   OPENROUTER_API_KEY  – optional: kostenlose OpenRouter-Modelle als Ersatz
+//   OPENROUTER_MODEL    – optional: anderes Ersatz-Modell
+//
+// Antwortet immer mit Status 200 und entweder { items: [...] } oder { error: "<code>" }.
+//   error: "limit"   → Tageslimit aufgebraucht, App zeigt eine Pause-Meldung
+//   error: "nokey"   → kein Schlüssel eingerichtet
+//   error: "auth"    → nicht angemeldet
+//   error: "failed"  → KI hat nicht geantwortet (detail enthält den Grund)
 // =====================================================================
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
 
@@ -16,65 +23,77 @@ const CORS = {
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
   try {
-    // Nur angemeldete Nutzer dürfen die (kostenpflichtige) KI benutzen
+    // Nur angemeldete Nutzer dürfen die KI benutzen
     const supabase = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_ANON_KEY")!, {
       global: { headers: { Authorization: req.headers.get("Authorization") ?? "" } },
     });
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return json({ error: "Nicht angemeldet" }, 401);
+    if (!user) return json({ error: "auth" });
 
     const { image, mediaType, keys } = await req.json();
-    if (!image || !Array.isArray(keys)) return json({ error: "Bild fehlt" }, 400);
-    if (image.length > 6_000_000) return json({ error: "Bild zu groß" }, 413);
+    if (!image || !Array.isArray(keys)) return json({ error: "failed", detail: "Bild fehlt" });
+    if (image.length > 6_000_000) return json({ error: "failed", detail: "Bild zu groß" });
 
     const prompt =
-      "Das Bild zeigt einen Kühlschrank oder Vorräte. Welche dieser Zutaten sind sichtbar? " +
+      "Das Bild zeigt einen Kühlschrank, Vorräte oder Lebensmittel. Welche dieser Zutaten sind sichtbar? " +
       "Antworte NUR mit einem JSON-Array der passenden Schlüssel aus dieser Liste: " + JSON.stringify(keys) +
       '. Beispiel: ["eier","milch"]. Wenn nichts erkennbar ist: []';
+    const mime = mediaType || "image/jpeg";
 
-    let text = "";
     const gemini = Deno.env.get("GEMINI_API_KEY");
-    const claude = Deno.env.get("ANTHROPIC_API_KEY");
+    const openrouter = Deno.env.get("OPENROUTER_API_KEY");
+    if (!gemini && !openrouter) return json({ error: "nokey" });
 
-    if (claude) {
-      const r = await fetch("https://api.anthropic.com/v1/messages", {
+    let limited = false, lastDetail = "";
+
+    // 1) Gemini – mehrere Modelle der Reihe nach, falls eins nicht verfügbar ist
+    if (gemini) {
+      const models = [Deno.env.get("GEMINI_MODEL"), "gemini-2.5-flash", "gemini-flash-latest", "gemini-2.5-flash-lite"].filter(Boolean) as string[];
+      for (const model of [...new Set(models)]) {
+        const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
+          method: "POST",
+          headers: { "content-type": "application/json", "x-goog-api-key": gemini },
+          body: JSON.stringify({ contents: [{ parts: [{ inline_data: { mime_type: mime, data: image } }, { text: prompt }] }] }),
+        });
+        if (r.status === 429) { limited = true; lastDetail = "Gemini-Limit erreicht"; break; }
+        const d = await r.json().catch(() => ({}));
+        if (!r.ok) { lastDetail = `Gemini ${model}: ${r.status} ${d?.error?.message ?? ""}`; continue; }
+        const text = (d?.candidates?.[0]?.content?.parts ?? []).map((p: { text?: string }) => p.text ?? "").join("");
+        return json({ items: parse(text, keys), via: model });
+      }
+    }
+
+    // 2) Ersatz: kostenloses OpenRouter-Modell
+    if (openrouter) {
+      const r = await fetch("https://openrouter.ai/api/v1/chat/completions", {
         method: "POST",
-        headers: { "x-api-key": claude, "anthropic-version": "2023-06-01", "content-type": "application/json" },
+        headers: { "content-type": "application/json", Authorization: `Bearer ${openrouter}` },
         body: JSON.stringify({
-          model: Deno.env.get("ANTHROPIC_MODEL") ?? "claude-haiku-5-5",
-          max_tokens: 400,
+          model: Deno.env.get("OPENROUTER_MODEL") ?? "google/gemma-3-27b-it:free",
           messages: [{ role: "user", content: [
-            { type: "image", source: { type: "base64", media_type: mediaType || "image/jpeg", data: image } },
             { type: "text", text: prompt },
+            { type: "image_url", image_url: { url: `data:${mime};base64,${image}` } },
           ] }],
         }),
       });
-      const d = await r.json();
-      text = d?.content?.[0]?.text ?? "";
-    } else if (gemini) {
-      const model = Deno.env.get("GEMINI_MODEL") ?? "gemini-2.5-flash";
-      const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${gemini}`, {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ contents: [{ parts: [
-          { inline_data: { mime_type: mediaType || "image/jpeg", data: image } },
-          { text: prompt },
-        ] }] }),
-      });
-      const d = await r.json();
-      text = d?.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
-    } else {
-      return json({ error: "Kein KI-Schlüssel eingerichtet" }, 503);
+      if (r.status === 429) limited = true;
+      const d = await r.json().catch(() => ({}));
+      if (r.ok) return json({ items: parse(d?.choices?.[0]?.message?.content ?? "", keys), via: "openrouter" });
+      lastDetail = `OpenRouter: ${r.status} ${d?.error?.message ?? ""}`;
     }
 
-    const match = text.match(/\[[\s\S]*\]/);
-    const found: string[] = match ? JSON.parse(match[0]) : [];
-    return json({ items: found.filter((k) => keys.includes(k)) });
+    return json({ error: limited ? "limit" : "failed", detail: lastDetail });
   } catch (e) {
-    return json({ error: String(e) }, 500);
+    return json({ error: "failed", detail: String(e) });
   }
 });
 
-function json(body: unknown, status = 200) {
-  return new Response(JSON.stringify(body), { status, headers: { ...CORS, "content-type": "application/json" } });
+function parse(text: string, keys: string[]): string[] {
+  const m = text.match(/\[[\s\S]*?\]/);
+  if (!m) return [];
+  try { return (JSON.parse(m[0]) as unknown[]).map(String).filter((k) => keys.includes(k)); } catch { return []; }
+}
+
+function json(body: unknown) {
+  return new Response(JSON.stringify(body), { status: 200, headers: { ...CORS, "content-type": "application/json" } });
 }

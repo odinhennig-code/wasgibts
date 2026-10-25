@@ -74,7 +74,7 @@ button{cursor:pointer}
 .stack>*:nth-child(2){animation-delay:.05s}.stack>*:nth-child(3){animation-delay:.1s}.stack>*:nth-child(4){animation-delay:.15s}.stack>*:nth-child(n+5){animation-delay:.2s}
 @keyframes rise{from{opacity:.35;transform:translateY(16px) scale(.97)}}
 
-#tabbar{flex:none;display:grid;grid-template-columns:repeat(4,1fr);background:color-mix(in srgb,var(--surface) 92%,transparent);backdrop-filter:blur(12px);border-top:1px solid var(--line);padding:6px 6px 8px}
+#tabbar{flex:none;display:grid;grid-template-columns:repeat(5,1fr);background:color-mix(in srgb,var(--surface) 92%,transparent);backdrop-filter:blur(12px);border-top:1px solid var(--line);padding:6px 6px 8px}
 .framed #tabbar{padding-bottom:28px}
 .tab{background:none;border:0;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px;font-weight:700;color:var(--muted);padding:6px 0;min-height:50px;position:relative}
 .tab[aria-current="page"]{color:var(--herb)}
@@ -215,3 +215,16 @@ button{cursor:pointer}
 .logo-big span{color:var(--tomato)}
 .err{background:var(--tomato-soft);color:var(--tomato);border-radius:14px;padding:10px 14px;font-weight:700;font-size:14px}
 .linkbtn{background:none;border:0;color:var(--herb);font-weight:800;padding:8px;min-height:40px}
+
+/* Mehr-Reiter */
+.log{display:flex;gap:12px;padding:12px 0}
+.log+.log{border-top:1px solid var(--line)}
+.log .v{flex:none;font-family:var(--f-display);font-weight:800;color:var(--herb);min-width:44px}
+.log ul{margin:4px 0 0;padding-left:18px;color:var(--muted);font-size:14px}
+details.faq{background:var(--surface);border-radius:16px;box-shadow:var(--shadow);padding:0 14px}
+details.faq+details.faq{margin-top:8px}
+details.faq summary{cursor:pointer;font-weight:800;padding:14px 0;list-style:none;display:flex;justify-content:space-between;gap:10px}
+details.faq summary::after{content:"+";color:var(--muted);font-size:20px;line-height:1;transition:transform .2s}
+details.faq[open] summary::after{transform:rotate(45deg)}
+details.faq p{margin:0 0 14px;color:var(--muted);font-size:14px}
+.new-badge{background:var(--tomato);color:#fff;border-radius:6px;font-size:10px;font-weight:800;padding:2px 6px;letter-spacing:.05em}

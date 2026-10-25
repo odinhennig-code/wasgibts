@@ -145,3 +145,7 @@ do $$ begin
   begin alter publication supabase_realtime add table public.fridges;     exception when others then null; end;
   begin alter publication supabase_realtime add table public.profiles;    exception when others then null; end;
 end $$;
+
+-- ---------- Version 1.2: Wählerische Esser ----------
+alter table public.profiles add column if not exists picky boolean not null default false;
+alter table public.profiles add column if not exists likes text[] not null default '{}';
