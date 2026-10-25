@@ -80,6 +80,8 @@ end $$;
 create extension if not exists pg_net with schema extensions;
 create extension if not exists pg_cron;
 
+-- Öffentlicher anon-Schlüssel für den Aufruf (derselbe wie in config.js):
+--   insert into public.app_secrets (name, value) values ('anon_key', '<anon key aus config.js>');
 -- Geheimer Schlüssel nur für den Zeitplaner (wird hier zufällig erzeugt, niemand muss ihn kennen)
 insert into public.app_secrets (name, value) values ('cron_secret', gen_random_uuid()::text)
 on conflict (name) do nothing;
@@ -93,6 +95,7 @@ begin
       body    := '{"action":"cron"}'::jsonb,
       headers := jsonb_build_object(
         'Content-Type', 'application/json',
+        'Authorization', 'Bearer ' || (select value from app_secrets where name = 'anon_key'),
         'x-cron-secret', (select value from app_secrets where name = 'cron_secret'))
     );
   end if;
