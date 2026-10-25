@@ -1,7 +1,7 @@
 // Service Worker: macht die App installierbar und offline startbar.
 // Bei jeder neuen Version die Zahl erhöhen, damit Handys das Update laden.
-const CACHE = 'wasgibts-v5';
-const FILES = ['./', './index.html', './styles.css', './app.js', './data.js', './config.js', './manifest.webmanifest', './icon.svg'];
+const CACHE = 'wasgibts-v6';
+const FILES = ['./', './index.html', './styles.css', './app.js', './data.js', './config.js', './manifest.webmanifest', './icon.svg', './fonts/Figtree.woff', './fonts/Bricolage.woff', './lib/qrcode.min.js'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES)).then(() => self.skipWaiting()));

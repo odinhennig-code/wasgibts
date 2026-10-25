@@ -12,8 +12,6 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icon-192.png">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600;700;800&display=swap">
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -44,12 +42,24 @@
         <div id="overlay"></div>
         <canvas id="fx" aria-hidden="true"></canvas>
         <div id="toast" role="status" aria-live="polite"></div>
+        <div id="splash" aria-hidden="true">
+          <div class="sp-glow"></div>
+          <div class="sp-food"><span>🍅</span><span>🥕</span><span>🧀</span><span>🥚</span><span>🌽</span><span>🥦</span></div>
+          <div class="sp-logo">
+            <svg viewBox="0 0 512 512" class="sp-icon"><rect width="512" height="512" rx="112" fill="#fff"/>
+              <g class="sp-steam" fill="none" stroke="#2F7A4C" stroke-width="18" stroke-linecap="round"><path d="M200 150c-20-25 20-40 0-65"/><path d="M256 140c-20-25 20-40 0-65"/><path d="M312 150c-20-25 20-40 0-65"/></g>
+              <path class="sp-pot" d="M120 250c0-0 0-0 0 0h272v0zM100 250h312v26H100zM150 300h212l-18 88a20 20 0 0 1-20 16H188a20 20 0 0 1-20-16z" fill="#2F7A4C"/>
+              <path class="sp-lid" d="M120 238c0-60 61-100 136-100s136 40 136 100z" fill="#2F7A4C"/></svg>
+            <div class="sp-word"><span>W</span><span>a</span><span>s</span>&nbsp;<span>g</span><span>i</span><span>b</span><span>t</span><span>'</span><span>s</span><span class="sp-q">?</span></div>
+            <div class="sp-claim">Ein Essen, das allen schmeckt.</div>
+          </div>
+        </div>
         <div id="homebar"></div>
       </div>
     </div>
   </div>
 <input id="photoInput" type="file" accept="image/*" capture="environment" hidden>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="lib/qrcode.min.js"></script>
 <script type="module" src="app.js"></script>
 </body>
 </html>
