@@ -5,7 +5,7 @@
    ========================================================================= */
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/+esm';
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from './config.js';
-import { ING, ingName, ingEmoji, R, recipe, ALLERGENS, TRAITS, allergensOf } from './data.js';
+import { ING, ingName, ingEmoji, R, recipe, ALLERGENS, TRAITS, allergensOf, MEAT, FISH } from './data.js';
 
 const configured = !!(SUPABASE_URL && SUPABASE_ANON_KEY);
 const sb = configured ? createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
@@ -129,20 +129,24 @@ function conflicts(r, p){
   return out;
 }
 function softNotes(r, people){
-  const n=[]; people.forEach(p => { (p.dislikes||[]).forEach(d => { if (r.o.includes(d)) n.push(`${ingName(d)} bei ${p.name} weglassen`); }); if (p.veg && r.o.includes('schinken')) n.push(`Schinken bei ${p.name} weglassen`);
+  const n=[]; people.forEach(p => { (p.dislikes||[]).forEach(d => { if (r.o.includes(d)) n.push(`${ingName(d)} bei ${p.name} weglassen`); }); if (p.veg) r.o.filter(k => MEAT.includes(k) || FISH.includes(k)).forEach(k => n.push(`${ingName(k)} bei ${p.name} weglassen`));
+    (p.allergies||[]).forEach(a => r.o.filter(k => ((ING[k]&&ING[k][3])||[]).includes(a)).forEach(k => n.push(`${ingName(k)} bei ${p.name} weglassen`)));
     if (p.picky) r.o.filter(k => !(p.likes||[]).includes(k)).forEach(k => n.push(`${ingName(k)} bei ${p.name} weglassen`)); });
   return [...new Set(n)];
 }
 const wishersOf = rid => [...new Set(D.wishes.filter(w=>w.recipe_id===rid).map(w=>w.user_id))].filter(id => active().some(m=>m.user_id===id));
 function suggest(){
   const people = eatersNow().map(prof), fr = new Set(D.fridge);
+  /* Tageszeit: morgens Frühstück nach oben, Süßes nie als Hauptgericht */
+  const h = new Date().getHours(), morning = h >= 5 && h < 11;
+  const mealAdj = r => r.meal === 'fruehstueck' ? (morning ? 35 : -25) : r.meal === 'suess' ? -45 : (morning ? -10 : 0);
   return RX().filter(r => r.t <= UI.time && (UI.mood==='egal' || r.m===UI.mood))
     .filter(r => people.every(p => conflicts(r,p).length===0))
     .map(r => {
       const missing = r.i.filter(k=>!fr.has(k)), wishers = wishersOf(r.id), favs = people.filter(p=>(p.favs||[]).includes(r.id));
       const cover = r.i.length ? (r.i.length-missing.length)/r.i.length : 1;
       const uses = [...r.i, ...r.o].filter(k => fr.has(k) && (d => d !== null && d >= 0 && d <= 3)(daysLeft(k)));
-      return { r, missing, wishers, favs, cover, uses, score: wishers.length*40 + favs.length*14 + cover*60 - missing.length*8 + uses.length*30 };
+      return { r, missing, wishers, favs, cover, uses, score: wishers.length*40 + favs.length*14 + cover*60 - missing.length*8 + uses.length*30 + mealAdj(r) };
     }).sort((a,b)=>b.score-a.score);
 }
 function whyLines(s){
@@ -241,7 +245,8 @@ function suggestionCard(s){
 function viewHome(){
   const eat = eatersNow(), all = suggest();
   /* Nur zeigen, was mit dem Kühlschrank wirklich geht – plus Ideen mit genau einem Einkauf */
-  const ready = all.filter(s => s.missing.length===0), almost = all.filter(s => s.missing.length===1), top = ready[0];
+  const ready0 = all.filter(s => s.missing.length===0), almost = all.filter(s => s.missing.length===1);
+  const top = ready0.find(s => s.r.meal !== 'suess'), ready = top ? [top, ...ready0.filter(s => s !== top)] : [];
   const h = new Date().getHours(), greet = h<11?'Guten Morgen':h<17?'Hallo':'Guten Abend';
   const p = isAdmin() ? pendingReq() : [];
   return header(`Was gibt's heute, ${esc(D.profile.name)}?`, greet) + annBanner() +
@@ -290,9 +295,18 @@ function viewRecipes(){
       : `<div class="card empty"><div class="g">🙋</div><b>Noch keine Wünsche</b>Öffne ein Rezept unter „Alle" und tippe auf „Wünschen".</div>`;
   } else {
     const q = UI.q.trim().toLowerCase();
-    const list = RX().filter(r => (t==='all' || (t==='favs' && favs.includes(r.id)) || (t==='fam' && r.custom)) && (!q || r.n.toLowerCase().includes(q)));
-    body = (t==='fam' ? `<button class="btn btn-herb btn-block" style="margin-bottom:12px" data-action="new-recipe">📖 Eigenes Rezept eintragen</button>` : '') + (t==='all' ? `<input id="search" class="input" type="search" placeholder="Rezept suchen" value="${esc(UI.q)}" aria-label="Rezept suchen" style="margin-bottom:12px">` : '') +
-      (list.length ? `<div class="stack">${list.map(r=>`<button class="rc" data-action="open-recipe" data-id="${r.id}"><div class="em">${r.e}</div><div class="main"><div class="t">${esc(r.n)}</div><div class="s"><span>⏱ ${r.t} Min</span>${r.custom?'<span class="chip c-herb">Familie</span>':''}${favs.includes(r.id)?'<span class="chip c-tomato">❤️</span>':''}</div></div>${I.chev}</button>`).join('')}</div>`
+    let list = RX().filter(r => (t==='all' || (t==='favs' && favs.includes(r.id)) || (t==='fam' && r.custom)) && (!q || r.n.toLowerCase().includes(q)));
+    let more = 0, hint = '';
+    if (t==='all'){
+      /* Nicht alle 600+ Rezepte auf einmal: nur was zu allen passt, sortiert nach dem Kühlschrank */
+      const people = eatersNow().map(prof), fr = new Set(D.fridge), have = r => r.i.filter(k => fr.has(k)).length / (r.i.length || 1);
+      if (!q) list = list.filter(r => people.every(p => conflicts(r,p).length===0));
+      list = list.map(r => [r, have(r)]).sort((a,b) => b[1]-a[1] || a[0].n.localeCompare(b[0].n, 'de')).map(x => x[0]);
+      const lim = UI.rlimit || 30; more = Math.max(0, list.length - lim); list = list.slice(0, lim);
+      hint = q ? '' : `<div style="color:var(--muted);font-size:13px;margin:-4px 2px 10px">Passt zu allen, die mitessen · Was ihr schon da habt, steht oben</div>`;
+    }
+    body = (t==='fam' ? `<button class="btn btn-herb btn-block" style="margin-bottom:12px" data-action="new-recipe">📖 Eigenes Rezept eintragen</button>` : '') + (t==='all' ? `<input id="search" class="input" type="search" placeholder="In allen ${RX().length} Rezepten suchen" value="${esc(UI.q)}" aria-label="Rezept suchen" style="margin-bottom:12px">` + hint : '') +
+      (list.length ? `<div class="stack">${list.map(r=>`<button class="rc" data-action="open-recipe" data-id="${r.id}"><div class="em">${r.e}</div><div class="main"><div class="t">${esc(r.n)}</div><div class="s"><span>⏱ ${r.t} Min</span>${r.custom?'<span class="chip c-herb">Familie</span>':''}${favs.includes(r.id)?'<span class="chip c-tomato">❤️</span>':''}${t==='all'&&D.fridge.length?(m => m===0?'<span class="chip c-herb">✅ alles da</span>':m===1?'<span class="chip c-yolk">🛒 1 fehlt</span>':'')(r.i.filter(k=>!D.fridge.includes(k)).length):''}</div></div>${I.chev}</button>`).join('')}</div>${more?`<button class="btn btn-line btn-block" style="margin-top:12px" data-action="more-recipes">Weitere ${Math.min(30, more)} anzeigen</button>`:''}`
       : t==='fam' ? `<div class="card empty"><div class="g">📖</div><b>Noch keine Familienrezepte</b>Tragt eure eigenen Lieblingsgerichte ein, zum Beispiel Omas Gulasch.</div>`
       : `<div class="card empty"><div class="g">${t==='favs'?'❤️':'🔍'}</div><b>${t==='favs'?'Noch keine Lieblingsessen':'Nichts gefunden'}</b>${t==='favs'?'Tippe in einem Rezept auf das Herz.':'Versuch es mit einem anderen Wort.'}</div>`);
   }
@@ -316,8 +330,9 @@ function viewFamily(){
 }
 
 /* ---------- Reiter „Mehr" ---------- */
-const VERSION = '1.6';
+const VERSION = '1.7';
 const CHANGELOG = [
+  { v:'1.7', d:'25. Oktober 2026', items:['Neu: über 580 neue Rezepte – jetzt mehr als 600 insgesamt','45 neue Zutaten, z. B. Rind, Pute, Garnelen, Kürbis, Gnocchi, Blätterteig und Pesto','Vorschläge zeigen weiterhin nur, was zu euch und eurem Kühlschrank passt','Morgens kommen Frühstücksideen zuerst, Desserts werden nie zum Hauptvorschlag','„Alle" zeigt zuerst die passendsten 30 Rezepte, die Suche durchsucht alle','Hinweis „weglassen" jetzt auch für Fleisch, Fisch und Allergene bei optionalen Zutaten'] },
   { v:'1.6', d:'25. Oktober 2026', items:['Neu: Push-Benachrichtigungen – unter „Mehr" einschalten','Neu: Ankündigungen oben auf „Heute" (lassen sich mit ✕ ausblenden)','Am iPhone: kurze Anleitung, wie die App für Benachrichtigungen auf den Home-Bildschirm kommt','Beim Abmelden bekommt das Handy keine Benachrichtigungen mehr'] },
   { v:'1.5', d:'25. Oktober 2026', items:['Neu: „Was gibt\'s? Plus" unter „Mehr" – alles Bisherige bleibt kostenlos','Hinweise auf Plus nur ganz selten: kleines Widget höchstens alle paar Tage, Pop-up höchstens alle 3 Wochen','Jeder Hinweis lässt sich mit ✕, „Nein danke", Tippen daneben oder Escape schließen'] },
   { v:'1.4', d:'25. Oktober 2026', items:['Neu: Kochmodus im Querformat mit „Bitte Handy drehen"-Hinweis','Neu: Große Uhr oben rechts, Fortschrittsbalken und große Weiter/Zurück-Knöpfe','Neu: Animation für jeden Schritt (Schneiden, Braten, Kochen, Backen, Rühren …)','Neu: „Jetzt kochen" direkt unter dem Vorschlag auf „Heute"','Neu: Die App nutzt den ganzen Bildschirm bis zum Rand','Impressum mit Namen ergänzt'] },
@@ -447,7 +462,7 @@ function render(){
   $('#views').innerHTML = `<div class="view${same?' still':''}" data-tab="${UI.tab}" style="${slideDx?`--dx:${slideDx}px;--dy:0px`:''}">${v}</div>`;
   if (same) $('#views .view').scrollTop = top;
   slideDx = 0;
-  const s = $('#search'); if (s) s.addEventListener('input', e=>{ UI.q=e.target.value; const pos=e.target.selectionStart; render(); const n=$('#search'); n.focus(); n.setSelectionRange(pos,pos); });
+  const s = $('#search'); if (s) s.addEventListener('input', e=>{ UI.q=e.target.value; UI.rlimit=30; const pos=e.target.selectionStart; render(); const n=$('#search'); n.focus(); n.setSelectionRange(pos,pos); });
   const f = $('#authForm'); if (f) f.addEventListener('submit', onAuth);
 }
 function go(tab){ if (tab===UI.tab) return; const a=ORDER.indexOf(UI.tab), b=ORDER.indexOf(tab); slideDx=b>a?36:-36; UI.tab=tab; UI.confirmLeave=false; buzz(8); closeSheet(); render(); }
@@ -859,7 +874,7 @@ document.addEventListener('click', async e => {
       document.querySelectorAll('[data-count]').forEach(c=>{ const g=c.dataset.count; c.textContent = Object.keys(ING).filter(x=>ING[x][2]===g&&D.fridge.includes(x)).length+' da'; }); break; }
     case 'clear-fridge': D.fridge=[]; saveFridgeSoon(); render(); toast('Alles abgewählt'); break;
     case 'photo': $('#photoInput').click(); break;
-    case 'rtab': UI.rtab=t.dataset.v; buzz(6); render(); break;
+    case 'rtab': UI.rtab=t.dataset.v; UI.rlimit=30; buzz(6); render(); break;
     case 'edit-prefs': if (id===D.user.id) openPrefs(); else toast(`Nur ${prof(id).name} kann das eigene Profil ändern`); break;
     case 'set-av': document.querySelectorAll('[data-action=set-av]').forEach(b=>b.setAttribute('aria-pressed', b===t)); buzz(6); await updateProfile({ avatar:t.dataset.v }); break;
     case 'veg': t.setAttribute('aria-checked', !D.profile.veg); buzz(); await updateProfile({ veg: !D.profile.veg }); break;
@@ -928,6 +943,7 @@ document.addEventListener('click', async e => {
       else if (UI.push === 'install') openPushHelp();
       else if (UI.push === 'denied') toast('Bitte erlaube Benachrichtigungen in den Einstellungen deines Handys');
       render(); break; }
+    case 'more-recipes': UI.rlimit = (UI.rlimit || 30) + 30; render(); break;
     case 'ann-hide': L.annHidden = D.ann && D.ann.id; saveLocal(); render(); break;
   } } catch(err){ UI.err = errText(err); toast(UI.err); render(); }
 });

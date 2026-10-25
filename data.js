@@ -12,7 +12,21 @@ export const ING = {
   tortillas:['Tortillas','🌯','v',['gluten']], brot:['Brot','🍞','v',['gluten']], broetchen:['Burger-Brötchen','🍔','v',['gluten']],
   passierte:['Passierte Tomaten','🥫','v'], kokosmilch:['Kokosmilch','🥥','v'], linsen:['Linsen','🫘','v'], kichererbsen:['Kichererbsen','🫘','v'],
   kidney:['Kidneybohnen','🫘','v'], mais:['Mais','🌽','v'], thunfisch:['Thunfisch','🐟','v'], sojasosse:['Sojasoße','🍶','v',['gluten']],
+  // Erweiterung für die große Rezeptsammlung
+  rind:['Rindfleisch','🥩','k'], schwein:['Schweinefleisch','🥩','k'], pute:['Putenfleisch','🍗','k'], speck:['Speck','🥓','k'],
+  garnelen:['Garnelen','🦐','k'], fischfilet:['Fischfilet','🐟','k'], parmesan:['Parmesan','🧀','k',['laktose']], schmand:['Schmand','🥛','k',['laktose']],
+  aubergine:['Aubergine','🍆','k'], blumenkohl:['Blumenkohl','🥦','k'], lauch:['Lauch','🥬','k'], sellerie:['Sellerie','🥬','k'], kuerbis:['Kürbis','🎃','k'],
+  erbsen:['Erbsen','🫛','k'], gruenebohnen:['Grüne Bohnen','🫛','k'], kohl:['Weißkohl','🥬','k'], rotkohl:['Rotkohl','🥬','k'], suesskartoffel:['Süßkartoffel','🍠','k'],
+  fruehlingszwiebeln:['Frühlingszwiebeln','🧅','k'], chili:['Chili','🌶️','k'], ingwer:['Ingwer','🫚','k'], kraeuter:['Frische Kräuter','🌿','k'],
+  apfel:['Äpfel','🍎','k'], banane:['Bananen','🍌','k'], beeren:['Beeren','🍓','k'], blaetterteig:['Blätterteig','🥐','k',['gluten']], gnocchi:['Gnocchi','🥟','k',['gluten']],
+  haferflocken:['Haferflocken','🥣','v',['gluten']], backpulver:['Backpulver','🧂','v'], honig:['Honig','🍯','v'], tomatenmark:['Tomatenmark','🥫','v'],
+  paniermehl:['Paniermehl','🍞','v',['gluten']], couscous:['Couscous','🌾','v',['gluten']], lasagne:['Lasagneplatten','🍝','v',['gluten']], quinoa:['Quinoa','🌾','v'],
+  nuesse:['Nüsse','🥜','v',['nuesse']], erdnussbutter:['Erdnussbutter','🥜','v',['nuesse']], schokolade:['Schokolade','🍫','v',['laktose']], currypaste:['Currypaste','🥫','v'],
+  pesto:['Pesto','🌿','v',['laktose']], senf:['Senf','🟡','v'], reisnudeln:['Reisnudeln','🍜','v'], weissebohnen:['Weiße Bohnen','🫘','v'], oliven:['Oliven','🫒','v'], ananas:['Ananas (Dose)','🍍','v'],
 };
+/* Fleisch und Fisch werden automatisch erkannt (für vegetarische Familienmitglieder) */
+export const MEAT = ['hackfleisch','haehnchen','schinken','salami','wuerstchen','rind','schwein','pute','speck'];
+export const FISH = ['lachs','thunfisch','garnelen','fischfilet'];
 export const ingName = k => ING[k] ? ING[k][0] : k;
 export const ingEmoji = k => ING[k] ? ING[k][1] : '•';
 
@@ -58,8 +72,26 @@ export const R = [
   {id:'frischbrot',n:'Frischkäse-Brot mit Gurke',e:'🥒',t:5,m:'gesund',i:['brot','frischkaese'],o:['gurke','tomaten'],x:[],s:['Brot mit Frischkäse bestreichen.','Mit Gurken- oder Tomatenscheiben belegen.','Mit Salz und Pfeffer würzen.']},
   {id:'quarkkart',n:'Pellkartoffeln mit Kräuterquark',e:'🥔',t:30,m:'gesund',i:['kartoffeln','quark'],o:['zwiebeln','gurke'],x:[],s:['Kartoffeln mit Schale 20 Minuten kochen.','Quark mit Salz, Pfeffer, Kräutern und etwas Milch glatt rühren.','Zusammen servieren.']},
 ];
+/* ---------- Große Sammlung (rezepte/*.js) ----------
+   Eine Zeile pro Rezept: Name|Emoji|Minuten|Art|Pflicht-Zutaten|optionale Zutaten|Merkmale|Schritt 1;Schritt 2;…
+   Art: g = gesund, n = normal, f = Fastfood   Merkmale: s = scharf, - = keine */
+import B1 from './rezepte/1.js'; import B2 from './rezepte/2.js'; import B3 from './rezepte/3.js'; import B4 from './rezepte/4.js'; import B5 from './rezepte/5.js';
+import B6 from './rezepte/6.js'; import B7 from './rezepte/7.js'; import B8 from './rezepte/8.js'; import B9 from './rezepte/9.js'; import B10 from './rezepte/10.js';
+const MOOD = { g:'gesund', n:'normal', f:'fast' };
+function parseBatch(prefix, text){
+  return text.trim().split('\n').filter(l => l.trim()).map((line, n) => {
+    const [name, e, t, m, req, opt, x, steps] = line.split('|');
+    const i = req.trim().split(/\s+/).filter(Boolean), o = (opt||'').trim().split(/\s+/).filter(k => k && k !== '-');
+    const traits = (x||'').includes('s') ? ['scharf'] : [];
+    if (i.some(k => MEAT.includes(k))) traits.push('fleisch');
+    if (i.some(k => FISH.includes(k))) traits.push('fisch');
+    const meal = (x||'').includes('m') ? 'fruehstueck' : (x||'').includes('z') ? 'suess' : 'haupt';
+    return { id: prefix + (n + 1), n: name.trim(), e: e.trim(), t: +t, m: MOOD[m.trim()] || 'normal', i, o, x: traits, meal, s: steps.split(';').map(s => s.trim()).filter(Boolean) };
+  });
+}
+[B1,B2,B3,B4,B5,B6,B7,B8,B9,B10].forEach((b, k) => R.push(...parseBatch('b' + (k + 1) + '_', b)));
 export const recipe = id => R.find(r=>r.id===id);
-export const ALLERGENS = {laktose:'Laktose', gluten:'Gluten'};
+export const ALLERGENS = {laktose:'Laktose', gluten:'Gluten', nuesse:'Nüsse'};
 export const TRAITS = {scharf:'Scharfes', fisch:'Fisch', fleisch:'Fleisch'};
 export const allergensOf = r => [...new Set(r.i.flatMap(k => (ING[k]&&ING[k][3])||[]))];
 
