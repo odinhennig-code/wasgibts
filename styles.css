@@ -417,3 +417,20 @@ details.faq p{margin:0 0 14px;color:var(--muted);font-size:14px}
 .icon-btn.sm{width:32px;height:32px;border-radius:10px;background:transparent}
 .icon-btn.sm svg{width:16px;height:16px}
 .steps{margin:0;padding-left:22px;display:grid;gap:10px;line-height:1.45}
+
+/* ---------- 1.8: etwas ruhiger und minimalistischer ---------- */
+:root{ --shadow:0 1px 2px rgba(22,32,26,.05) }
+.card,.rc{box-shadow:none;border:1px solid var(--line)}
+.rc .em{background:var(--surface-2);width:50px;height:50px;font-size:26px;border-radius:14px}
+.banner{animation:rise .4s both;border:1px solid transparent}
+.pick{background:var(--herb);box-shadow:none}
+.pick .big{animation:none;font-size:80px;filter:none;opacity:.95}
+.pick .name{font-size:24px}
+.photo-card{background:var(--surface);color:var(--fg);border:1px solid var(--line);box-shadow:none}
+.photo-card .cam{background:var(--tomato-soft);color:var(--tomato);animation:none}
+.photo-card small,.photo-card p{color:var(--muted)}
+.h2{letter-spacing:.06em;margin:20px 0 9px}
+.seg button[aria-pressed="true"]{box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.btn:active{transform:scale(.98)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .pick{background:#1E5A38}}
+:root[data-theme="dark"] .pick{background:#1E5A38}

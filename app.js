@@ -18,6 +18,8 @@ const LOCAL = 'wasgibts.local';
 let L = (() => { try { return JSON.parse(localStorage.getItem(LOCAL)) || {}; } catch(e){ return {}; } })();
 const saveLocal = () => { try { localStorage.setItem(LOCAL, JSON.stringify(L)); } catch(e){} };
 if (UI.joinCode) { L.joinCode = UI.joinCode; saveLocal(); history.replaceState(null, '', location.pathname); }
+/* Aus einer Benachrichtigung geöffnet: direkt zum passenden Reiter */
+{ const t = new URLSearchParams(location.search).get('tab'); if (['home','fridge','recipes','family','more'].includes(t)){ UI.tab = t; history.replaceState(null, '', location.pathname); } }
 
 /* ---------- Hilfen ---------- */
 const $ = s => document.querySelector(s);
@@ -42,50 +44,79 @@ function errText(e){
   return 'Etwas ist schiefgelaufen: ' + m;
 }
 
-/* ---------- Daten laden ---------- */
-async function loadAll(){
-  const uid = D.user.id;
+/* ---------- Daten laden ----------
+   Wichtig gegen „springt zurück" und „wird nicht gespeichert":
+   Jede eigene Änderung erhöht `gen`. Ein Neuladen, das vor dieser Änderung
+   gestartet ist, wird verworfen und später wiederholt. So überschreibt ein
+   altes Ergebnis aus der Datenbank nie, was du gerade angetippt hast. */
+let gen = 0;
+const bump = () => { gen++; };
+async function loadAll(force){
+  const g = gen, uid = D.user.id, N = { profiles:{} };
   let { data: p } = await sb.from('profiles').select('*').eq('id', uid).maybeSingle();
   if (!p){ // Profil beim ersten Login aus den Registrierungsdaten anlegen
     const meta = D.user.user_metadata || {};
     const ins = await sb.from('profiles').insert({ id: uid, name: (meta.name || 'Ich').slice(0,30), avatar: meta.avatar || '🧑' }).select().single();
     p = ins.data;
   }
-  D.profile = p; D.profiles = { [uid]: p };
-  sb.rpc('touch_seen').then(()=>{}, ()=>{});
-  const [an, adm] = await Promise.all([
+  N.profile = p; N.profiles[uid] = p;
+  // „Zuletzt aktiv" höchstens alle 6 Stunden melden – sonst lädt bei allen in der Familie ständig alles neu
+  if (!L.seenAt || Date.now() - L.seenAt > 6*36e5){ L.seenAt = Date.now(); saveLocal(); sb.rpc('touch_seen').then(()=>{}, ()=>{}); }
+  const [an, adm, ms] = await Promise.all([
     sb.from('announcements').select('*').eq('active', true).order('created_at', { ascending:false }).limit(1),
     sb.rpc('is_app_admin'),
+    sb.from('memberships').select('*').eq('user_id', uid).order('created_at').limit(1),
   ]);
-  D.ann = (an.data && an.data[0]) || null; D.appAdmin = adm.data === true;
-  const { data: ms } = await sb.from('memberships').select('*').eq('user_id', uid).order('created_at').limit(1);
-  D.membership = ms && ms[0] || null;
-  D.family = null; D.members = []; D.wishes = []; D.fridge = []; D.expiries = {}; D.custom = []; D.poll = null; D.votes = [];
-  if (!D.membership) return;
-  const { data: fam } = await sb.from('families').select('*').eq('id', D.membership.family_id).maybeSingle();
-  D.family = fam;
-  if (!isActive()) return;
-  const fid = D.membership.family_id;
-  const [mem, wis, fr, cus, pol] = await Promise.all([
-    sb.from('memberships').select('*').eq('family_id', fid).order('created_at'),
-    sb.from('wishes').select('*').eq('family_id', fid),
-    sb.from('fridges').select('*').eq('family_id', fid).maybeSingle(),
-    sb.from('custom_recipes').select('*').eq('family_id', fid).order('created_at'),
-    sb.from('polls').select('*').eq('family_id', fid).order('created_at', { ascending:false }).limit(1),
-  ]);
-  D.members = mem.data || []; D.wishes = wis.data || []; D.fridge = (fr.data && fr.data.items) || [];
-  D.expiries = (fr.data && fr.data.expiries) || {};
-  D.custom = (cus.data || []).map(c => ({ id:'c_'+c.id, dbid:c.id, n:c.name, e:c.emoji, t:c.minutes, m:c.mood, i:c.ingredients||[], o:c.optional||[], x:c.traits||[], s:c.steps||[], custom:true, by:c.created_by }));
-  D.poll = (pol.data && pol.data[0]) || null;
-  if (D.poll){ const { data: vs } = await sb.from('votes').select('*').eq('poll_id', D.poll.id); D.votes = vs || []; }
-  const ids = D.members.map(m=>m.user_id);
-  const { data: ps } = await sb.from('profiles').select('*').in('id', ids);
-  (ps||[]).forEach(x => D.profiles[x.id] = x);
+  N.ann = (an.data && an.data[0]) || null; N.appAdmin = adm.data === true;
+  N.membership = (ms.data && ms.data[0]) || null;
+  Object.assign(N, { family:null, members:[], wishes:[], fridge:[], expiries:{}, custom:[], poll:null, votes:[] });
+  if (N.membership){
+    const fid = N.membership.family_id;
+    const { data: fam } = await sb.from('families').select('*').eq('id', fid).maybeSingle();
+    N.family = fam;
+    if (N.membership.status === 'active'){
+      const [mem, wis, fr, cus, pol] = await Promise.all([
+        sb.from('memberships').select('*').eq('family_id', fid).order('created_at'),
+        sb.from('wishes').select('*').eq('family_id', fid),
+        sb.from('fridges').select('*').eq('family_id', fid).maybeSingle(),
+        sb.from('custom_recipes').select('*').eq('family_id', fid).order('created_at'),
+        sb.from('polls').select('*').eq('family_id', fid).order('created_at', { ascending:false }).limit(1),
+      ]);
+      N.members = mem.data || []; N.wishes = wis.data || []; N.fridge = (fr.data && fr.data.items) || [];
+      N.expiries = (fr.data && fr.data.expiries) || {};
+      N.custom = (cus.data || []).map(c => ({ id:'c_'+c.id, dbid:c.id, n:c.name, e:c.emoji, t:c.minutes, m:c.mood, i:c.ingredients||[], o:c.optional||[], x:c.traits||[], s:c.steps||[], custom:true, by:c.created_by }));
+      N.poll = (pol.data && pol.data[0]) || null;
+      const ids = N.members.map(m=>m.user_id);
+      const [vs, ps] = await Promise.all([
+        N.poll ? sb.from('votes').select('*').eq('poll_id', N.poll.id) : Promise.resolve({ data:[] }),
+        sb.from('profiles').select('*').in('id', ids),
+      ]);
+      N.votes = vs.data || [];
+      (ps.data||[]).forEach(x => { if (x.id !== uid) N.profiles[x.id] = x; });
+    }
+  }
+  if (!force && (g !== gen || busyWriting())) return false;   // in der Zwischenzeit selbst etwas geändert: verwerfen
+  Object.assign(D, N);
+  return true;
 }
 let reloadT = null, writing = 0;
-function scheduleReload(){ clearTimeout(reloadT); reloadT = setTimeout(async () => {
-  if (writing > 0 || fridgeT){ scheduleReload(); return; }   // eigene Änderung läuft noch: nicht überschreiben
-  await loadAll().catch(()=>{}); if (!$('.sheet')) render(); else refreshSheet(); }, 450); }
+const busyWriting = () => writing > 0 || !!fridgeT || !!profT;
+function scheduleReload(delay = 600){ clearTimeout(reloadT); reloadT = setTimeout(async () => {
+  if (busyWriting()){ scheduleReload(); return; }
+  let ok = false; try { ok = await loadAll(true); } catch(e){}
+  if (!ok){ scheduleReload(900); return; }
+  paint(); }, delay); }
+/* Nach dem Laden nur das Nötige neu zeichnen – Eingaben in offenen Fenstern bleiben erhalten */
+function paint(){ if (UI.cook) return; render(); if ($('.sheet')) refreshSheet(); }
+
+/* Speichern: alle Schreibvorgänge laufen nacheinander, damit nichts in falscher Reihenfolge ankommt */
+let chain = Promise.resolve();
+function save(fn){
+  bump(); writing++;
+  const run = chain.then(async () => { const r = await fn(); if (r && r.error) throw r.error; return r; });
+  chain = run.catch(() => {});
+  return run.finally(() => { writing--; bump(); });
+}
 
 /* Live-Updates: Änderungen der Familie sofort auf allen Handys zeigen */
 let channel = null;
@@ -264,7 +295,7 @@ function viewHome(){
         <div class="lbl">UNSER VORSCHLAG</div><div class="name">${esc(top.r.n)}</div>
         <div class="why">${whyLines(top).map(l=>`<span>${l}</span>`).join('')}</div>
         <div class="meta"><span class="chip">⏱ ${top.r.t} Min</span><span class="chip">Passt für ${eat.length===active().length?'alle':eat.length+' Personen'}</span></div></button>
-      <button class="btn btn-tomato btn-block" style="margin-top:10px" data-action="cook" data-id="${top.r.id}">👨‍🍳 Jetzt kochen – Kochmodus starten</button>
+      <button class="btn btn-tomato btn-block" style="margin-top:10px" data-action="cook" data-id="${top.r.id}">👨‍🍳 Jetzt kochen</button>
       ${ready.length>1?`<div class="h2">Geht auch <span class="chip c-muted">${ready.length-1}</span></div><div class="stack">${ready.slice(1,8).map(suggestionCard).join('')}</div>`:''}`
     : `<div class="card empty"><div class="g">🧊</div><b>Mit dem, was da ist, passt noch kein Rezept</b>Trag im Kühlschrank ein, was du hast, oder schau unten, was mit einem Einkauf geht.<button class="btn btn-line btn-block" style="margin-top:12px" data-tab="fridge">Kühlschrank öffnen</button></div>`}
     ${almost.length?`<div class="h2">Mit einem kleinen Einkauf <span class="chip c-muted">${almost.length}</span></div><div class="stack">${almost.slice(0,6).map(suggestionCard).join('')}</div>`:''}
@@ -330,8 +361,9 @@ function viewFamily(){
 }
 
 /* ---------- Reiter „Mehr" ---------- */
-const VERSION = '1.7';
+const VERSION = '1.8';
 const CHANGELOG = [
+  { v:'1.8', d:'25. Oktober 2026', items:['Behoben: Antippen sprang manchmal zurück und wurde nicht gespeichert, wenn gleichzeitig jemand aus der Familie etwas geändert hat','Behoben: Die Seite scrollte nach Änderungen wieder nach oben','Behoben: Halb getippte Texte (z. B. Feedback, Name) gingen verloren','Behoben: Aufgeklappte Hilfe-Fragen klappten von selbst wieder zu','Behoben: Schnelles Antippen von „Wünschen" konnte doppelte Wünsche anlegen','Behoben: Name im Profil wurde beim Schließen mit ✕ nicht gespeichert','Behoben: Suche reagierte nach einiger Zeit mehrfach pro Buchstabe','„Abmelden" fragt jetzt nach, damit man nicht aus Versehen abgemeldet wird','Beim Zurückkehren in die App wird nicht mehr alles neu aufgebaut','Neu: Benachrichtigungen bei neuen Wünschen, Abstimmungen und Beitrittsanfragen','Antippen einer Benachrichtigung öffnet direkt den passenden Reiter','Etwas ruhigeres, schlichteres Design'] },
   { v:'1.7', d:'25. Oktober 2026', items:['Neu: über 580 neue Rezepte – jetzt mehr als 600 insgesamt','45 neue Zutaten, z. B. Rind, Pute, Garnelen, Kürbis, Gnocchi, Blätterteig und Pesto','Vorschläge zeigen weiterhin nur, was zu euch und eurem Kühlschrank passt','Morgens kommen Frühstücksideen zuerst, Desserts werden nie zum Hauptvorschlag','„Alle" zeigt zuerst die passendsten 30 Rezepte, die Suche durchsucht alle','Hinweis „weglassen" jetzt auch für Fleisch, Fisch und Allergene bei optionalen Zutaten'] },
   { v:'1.6', d:'25. Oktober 2026', items:['Neu: Push-Benachrichtigungen – unter „Mehr" einschalten','Neu: Ankündigungen oben auf „Heute" (lassen sich mit ✕ ausblenden)','Am iPhone: kurze Anleitung, wie die App für Benachrichtigungen auf den Home-Bildschirm kommt','Beim Abmelden bekommt das Handy keine Benachrichtigungen mehr'] },
   { v:'1.5', d:'25. Oktober 2026', items:['Neu: „Was gibt\'s? Plus" unter „Mehr" – alles Bisherige bleibt kostenlos','Hinweise auf Plus nur ganz selten: kleines Widget höchstens alle paar Tage, Pop-up höchstens alle 3 Wochen','Jeder Hinweis lässt sich mit ✕, „Nein danke", Tippen daneben oder Escape schließen'] },
@@ -365,7 +397,7 @@ function viewMore(){
     <div class="h2">Konto</div>
     <div class="list">
       <button class="row" data-action="edit-prefs" data-id="${D.user.id}"><span class="avatar sm">${D.profile.avatar}</span><span class="grow"><b>Mein Profil</b><small>${esc(prefText(D.profile))}</small></span>${I.chev}</button>
-      <button class="row" data-action="logout"><span class="grow"><b style="color:var(--tomato)">Abmelden</b><small>${esc(D.user.email||'')}</small></span></button>
+      <button class="row" data-action="logout"><span class="grow"><b style="color:var(--tomato)">${UI.confirmLogout ? 'Wirklich abmelden? Nochmal tippen' : 'Abmelden'}</b><small>${esc(D.user.email||'')}</small></span></button>
     </div>
     ${D.appAdmin ? `<div class="h2">Betreiber</div><div class="list"><a class="row" href="admin.html" style="color:inherit;text-decoration:none"><span style="font-size:22px">🛠️</span><span class="grow"><b>Admin-Panel</b><small>Nur für dich sichtbar</small></span>${I.chev}</a></div>` : ''}
     <div class="h2">Rechtliches</div>
@@ -446,6 +478,49 @@ function openPushHelp(){
     <button class="btn btn-herb btn-block" style="margin-top:14px" data-action="close">Verstanden</button>`);
 }
 
+/* ---------- Sanftes Neuzeichnen ----------
+   Statt alles wegzuwerfen, werden nur geänderte Stellen angepasst.
+   Dadurch bleiben Scroll-Position, aufgeklappte Fragen, Fokus und
+   halb getippte Texte erhalten, und nichts animiert erneut. */
+function morph(from, html){
+  const tpl = document.createElement('template'); tpl.innerHTML = html;
+  patchChildren(from, tpl.content);
+}
+function sameNode(a, b){
+  if (a.nodeType !== b.nodeType) return false;
+  if (a.nodeType !== 1) return true;
+  if (a.tagName !== b.tagName) return false;
+  // Unterschiedliche Elemente (z. B. anderes Rezept) nicht ineinander umbauen
+  const ka = a.getAttribute('data-id') || a.id || '', kb = b.getAttribute('data-id') || b.id || '';
+  return ka === kb;
+}
+function patchChildren(from, to){
+  const a = [...from.childNodes], b = [...to.childNodes];
+  b.forEach((nb, i) => {
+    const na = a[i];
+    if (!na){ from.appendChild(nb); return; }
+    if (!sameNode(na, nb)){ from.replaceChild(nb, na); return; }
+    if (na.nodeType === 3 || na.nodeType === 8){ if (na.nodeValue !== nb.nodeValue) na.nodeValue = nb.nodeValue; return; }
+    patchEl(na, nb);
+  });
+  for (let i = b.length; i < a.length; i++) a[i].remove();
+}
+function patchEl(a, b){
+  for (const { name, value } of [...b.attributes]) if (a.getAttribute(name) !== value) a.setAttribute(name, value);
+  for (const { name } of [...a.attributes]) if (!b.hasAttribute(name) && !(name === 'open' && a.tagName === 'DETAILS') && name !== 'disabled') a.removeAttribute(name);
+  if (b.hasAttribute('disabled') !== a.hasAttribute('disabled')) a.disabled = b.hasAttribute('disabled');
+  const tag = a.tagName;
+  if (tag === 'INPUT' || tag === 'SELECT'){
+    // Was gerade getippt wird, nicht überschreiben
+    if (document.activeElement !== a && b.hasAttribute('value') && a.value !== b.getAttribute('value') && a.dataset.v0 !== b.getAttribute('value')){ a.value = b.getAttribute('value'); }
+    a.dataset.v0 = b.getAttribute('value') ?? '';
+    return;
+  }
+  if (tag === 'TEXTAREA' || a.id === 'qr' || a.id === 'scanArea') return;   // Inhalt gehört dem Nutzer bzw. wird separat gefüllt
+  if (tag === 'svg' || a instanceof SVGElement){ if (a.innerHTML !== b.innerHTML) a.innerHTML = b.innerHTML; return; }
+  patchChildren(a, b);
+}
+
 /* ---------- Haupt-Render ---------- */
 const ORDER = ['home','fridge','recipes','family','more'];
 let slideDx = 0;
@@ -458,13 +533,15 @@ function render(){
   else if (D.profile && D.profile.banned) v = viewBanned();
   else if (!isActive() || !D.family) v = viewNoFamily();
   else v = ({home:viewHome, fridge:viewFridge, recipes:viewRecipes, family:viewFamily, more:viewMore}[UI.tab])();
-  const prev = $('#views .view'), same = !slideDx && prev && prev.dataset.tab === UI.tab, top = same ? prev.scrollTop : 0;
-  $('#views').innerHTML = `<div class="view${same?' still':''}" data-tab="${UI.tab}" style="${slideDx?`--dx:${slideDx}px;--dy:0px`:''}">${v}</div>`;
-  if (same) $('#views .view').scrollTop = top;
+  const key = UI.tab + '|' + (!configured ? 'setup' : UI.loading ? 'load' : !D.user ? 'auth' : D.profile?.banned ? 'ban' : (!isActive() || !D.family) ? 'nofam' : 'app');
+  const prev = $('#views .view');
+  if (!slideDx && prev && prev.dataset.key === key){ const top = prev.scrollTop; morph(prev, v); if (prev.scrollTop !== top) prev.scrollTop = top; }
+  else $('#views').innerHTML = `<div class="view" data-tab="${UI.tab}" data-key="${key}" style="${slideDx?`--dx:${slideDx}px;--dy:0px`:''}">${v}</div>`;
   slideDx = 0;
-  const s = $('#search'); if (s) s.addEventListener('input', e=>{ UI.q=e.target.value; UI.rlimit=30; const pos=e.target.selectionStart; render(); const n=$('#search'); n.focus(); n.setSelectionRange(pos,pos); });
-  const f = $('#authForm'); if (f) f.addEventListener('submit', onAuth);
 }
+/* Eingaben einmal zentral abfangen (nicht bei jedem Zeichnen neu anhängen) */
+document.addEventListener('input', e => { if (e.target.id === 'search'){ UI.q = e.target.value; UI.rlimit = 30; render(); } });
+document.addEventListener('submit', e => { if (e.target.id === 'authForm') onAuth(e); });
 function go(tab){ if (tab===UI.tab) return; const a=ORDER.indexOf(UI.tab), b=ORDER.indexOf(tab); slideDx=b>a?36:-36; UI.tab=tab; UI.confirmLeave=false; buzz(8); closeSheet(); render(); }
 
 /* ---------- Anmeldung ---------- */
@@ -486,7 +563,7 @@ async function onAuth(e){
 }
 async function onSession(session){
   D.user = session ? session.user : null; UI.busy=false;
-  if (D.user){ try { await loadAll(); subscribe(); } catch(e){ UI.err = errText(e); } }
+  if (D.user){ try { await loadAll(true); subscribe(); } catch(e){ UI.err = errText(e); } }
   else { UI.auth = UI.auth==='check' ? 'check' : 'login'; D.profile=null; D.membership=null; if (channel){ sb.removeChannel(channel); channel=null; } }
   UI.loading=false; render();
   if (D.user && !D.profile?.banned) syncPush();
@@ -497,7 +574,7 @@ async function onSession(session){
 let sheetFn = null;
 function openSheet(html, keep){
   const old = $('.sheet');
-  if (keep && old){ const top = old.scrollTop; old.classList.add('still'); old.innerHTML = `<div class="grabber"></div>${html}`; old.scrollTop = top; return; }
+  if (keep && old){ const top = old.scrollTop; morph(old, `<div class="grabber"></div>${html}`); if (old.scrollTop !== top) old.scrollTop = top; return; }
   $('#overlay').innerHTML = `<div class="scrim" data-action="close"></div><div class="sheet" role="dialog" aria-modal="true"><div class="grabber"></div>${html}</div>`; }
 function closeSheet(){ $('#overlay').innerHTML=''; sheetFn=null; }
 function refreshSheet(){ if (sheetFn) sheetFn(true); }
@@ -766,17 +843,31 @@ function openPlus(popup){
 }
 
 /* ---------- Speichern in der Datenbank ---------- */
-async function updateProfile(patch){
-  Object.assign(D.profile, patch); D.profiles[D.profile.id] = D.profile;
-  writing++;
-  try { const { error } = await sb.from('profiles').update(patch).eq('id', D.profile.id); if (error) toast(errText(error)); }
-  finally { writing--; }
+/* Profil: schnelle Tipps werden gesammelt und als ein Paket gespeichert */
+let profT = null, profPatch = {};
+function updateProfile(patch){
+  Object.assign(D.profile, patch); D.profiles[D.profile.id] = D.profile; Object.assign(profPatch, patch); bump();
+  clearTimeout(profT); profT = setTimeout(flushProfile, 350);
 }
+function flushProfile(){
+  clearTimeout(profT); profT = null;
+  const p = profPatch; profPatch = {};
+  if (!Object.keys(p).length) return Promise.resolve();
+  return save(() => sb.from('profiles').update(p).eq('id', D.profile.id)).catch(e => toast(errText(e)));
+}
+/* Kühlschrank: kurz sammeln, dann den aktuellen Stand speichern */
 let fridgeT = null;
-function saveFridgeSoon(){ clearTimeout(fridgeT); fridgeT = setTimeout(async () => {
-  writing++; Object.keys(D.expiries).forEach(k => { if (!D.fridge.includes(k)) delete D.expiries[k]; });
-  try { const { error } = await sb.from('fridges').update({ items: D.fridge, expiries: D.expiries, updated_at: new Date().toISOString() }).eq('family_id', D.family.id); if (error) toast(errText(error)); }
-  finally { writing--; fridgeT = null; } }, 500); }
+function saveFridgeSoon(){ bump(); clearTimeout(fridgeT); fridgeT = setTimeout(flushFridge, 450); }
+function flushFridge(){
+  clearTimeout(fridgeT); fridgeT = null;
+  if (!D.family) return Promise.resolve();
+  Object.keys(D.expiries).forEach(k => { if (!D.fridge.includes(k)) delete D.expiries[k]; });
+  const items = [...D.fridge], expiries = { ...D.expiries };
+  return save(() => sb.from('fridges').update({ items, expiries, updated_at: new Date().toISOString() }).eq('family_id', D.family.id)).catch(e => toast(errText(e)));
+}
+/* Beim Verlassen der App noch offene Änderungen sofort speichern */
+document.addEventListener('visibilitychange', () => { if (document.hidden){ if (fridgeT) flushFridge(); if (profT) flushProfile(); } });
+window.addEventListener('pagehide', () => { if (fridgeT) flushFridge(); if (profT) flushProfile(); });
 
 /* ---------- Kühlschrank-Foto ---------- */
 function shrink(file){ // Bild verkleinern, damit es schnell hochlädt
@@ -829,30 +920,36 @@ function burst(cx, cy){
     requestAnimationFrame(f); })(t0);
 }
 
+/* Namen im Profil-Fenster übernehmen, auch wenn nur mit ✕ geschlossen wird */
+function keepName(){ const i = $('#p-name'); if (!i) return; const n = i.value.trim().slice(0,30); if (n && n !== D.profile.name) updateProfile({ name:n }); }
+/* Familie per Push informieren (Wunsch, Abstimmung, Beitritt) – Server prüft Einstellungen und Missbrauch */
+function notifyFamily(type, ref, label){ try { sb.functions.invoke('send-push', { body:{ action:'event', type, ref: ref || '', label: label || '' } }).catch(()=>{}); } catch(e){} }
+
 /* ---------- Ereignisse ---------- */
 document.addEventListener('click', async e => {
   const t = e.target.closest('[data-tab],[data-action]'); if (!t) return;
   if (t.dataset.tab){ go(t.dataset.tab); return; }
   const a = t.dataset.action, id = t.dataset.id;
   try { switch(a){
-    case 'close': closeSheet(); render(); break;
+    case 'close': keepName(); closeSheet(); render(); break;
     case 'auth-mode': UI.auth=t.dataset.v; UI.err=''; render(); break;
     case 'pick-av': L.av=t.dataset.v; saveLocal(); document.querySelectorAll('[data-action=pick-av]').forEach(b=>b.setAttribute('aria-pressed', b.dataset.v===L.av)); buzz(6); break;
-    case 'logout': UI.auth='login'; UI.err=''; await pushOff(true); await sb.auth.signOut(); UI.tab='home'; break;
+    case 'logout': if (!UI.confirmLogout && D.profile && !D.profile.banned){ UI.confirmLogout = true; render(); setTimeout(() => { if (UI.confirmLogout){ UI.confirmLogout = false; render(); } }, 5000); break; }
+      UI.confirmLogout = false; UI.auth='login'; UI.err=''; await pushOff(true); await sb.auth.signOut(); UI.tab='home'; break;
     case 'join': { const c=$('#join-code').value.trim(); if(!c){ UI.err='Bitte gib den Familien-Code ein.'; render(); break; }
-      UI.err=''; t.disabled=true; const { error } = await sb.rpc('request_join', { join_code:c }); if (error) throw error;
-      L.joinCode=''; saveLocal(); await loadAll(); subscribe(); render(); toast('Anfrage gesendet'); buzz(20); break; }
+      UI.err=''; t.disabled=true; const { error } = await sb.rpc('request_join', { join_code:c }); if (error){ t.disabled=false; throw error; }
+      L.joinCode=''; saveLocal(); await loadAll(true); subscribe(); render(); toast('Anfrage gesendet'); buzz(20); notifyFamily('join'); break; }
     case 'create-family': { const n=$('#fam-name').value.trim(); if(!n){ UI.err='Bitte gib einen Namen für die Familie ein.'; render(); break; }
       UI.err=''; t.disabled=true; const { error } = await sb.rpc('create_family', { fam_name:n }); if (error) throw error;
-      await loadAll(); subscribe(); render(); burstAt($('.pick')||$('.h1')); toast('Familie gegründet 🎉'); break; }
-    case 'accept': { const { error } = await sb.from('memberships').update({ status:'active' }).eq('family_id', D.family.id).eq('user_id', id); if (error) throw error;
-      burstAt(t); buzz(30); toast(`${prof(id).name} ist jetzt in der Familie 🎉`); await loadAll(); render(); break; }
+      await loadAll(true); subscribe(); render(); burstAt($('.pick')||$('.h1')); toast('Familie gegründet 🎉'); break; }
+    case 'accept': { t.disabled = true; await save(() => sb.from('memberships').update({ status:'active' }).eq('family_id', D.family.id).eq('user_id', id)); notifyFamily('accept', id);
+      burstAt(t); buzz(30); toast(`${prof(id).name} ist jetzt in der Familie 🎉`); await loadAll(true); render(); break; }
     case 'decline': { const { error } = await sb.from('memberships').delete().eq('family_id', D.family.id).eq('user_id', id); if (error) throw error;
-      toast(`Anfrage von ${prof(id).name} abgelehnt`); await loadAll(); render(); break; }
+      toast(`Anfrage von ${prof(id).name} abgelehnt`); await loadAll(true); render(); break; }
     case 'ask-leave': UI.confirmLeave=true; render(); break;
     case 'cancel-leave': UI.confirmLeave=false; render(); break;
     case 'leave': { const { error } = await sb.from('memberships').delete().eq('family_id', D.membership.family_id).eq('user_id', D.user.id); if (error) throw error;
-      UI.confirmLeave=false; UI.tab='home'; await loadAll(); subscribe(); render(); break; }
+      UI.confirmLeave=false; UI.tab='home'; await loadAll(true); subscribe(); render(); break; }
     case 'invite': openInvite(); break;
     case 'copy': try { await navigator.clipboard.writeText(t.dataset.text); toast('Kopiert'); } catch(err){ toast(t.dataset.text); } break;
     case 'share-link': if (navigator.share){ navigator.share({ title:"Was gibt's?", text:'Komm in unsere Familie bei „Was gibt\'s?"', url:t.dataset.text }).catch(()=>{}); }
@@ -862,27 +959,29 @@ document.addEventListener('click', async e => {
     case 'mood': UI.mood=t.dataset.v; buzz(6); render(); break;
     case 'open-recipe': openRecipe(id); break;
     case 'wish': { const mine = D.wishes.find(w=>w.recipe_id===id && w.user_id===D.user.id);
-      if (mine){ D.wishes = D.wishes.filter(w=>w!==mine); openRecipe(id, true); const { error } = await sb.from('wishes').delete().eq('id', mine.id); if (error) throw error; toast('Wunsch zurückgenommen'); }
-      else { burstAt(t); buzz(25); writing++; let res; try { res = await sb.from('wishes').insert({ family_id:D.family.id, user_id:D.user.id, recipe_id:id }).select().single(); } finally { writing--; } if (res.error) throw res.error;
-        D.wishes.push(res.data); openRecipe(id, true); toast('Gewünscht! Die Familie sieht es jetzt.'); } break; }
-    case 'fav': { const f = new Set(D.profile.favs||[]); f.has(id) ? f.delete(id) : (f.add(id), buzz(20)); D.profile.favs=[...f]; openRecipe(id, true); await updateProfile({ favs:[...f] }); break; }
+      if (mine){ D.wishes = D.wishes.filter(w=>w!==mine); openRecipe(id, true); render(); toast('Wunsch zurückgenommen');
+        try { await save(() => String(mine.id).startsWith('tmp') ? null : sb.from('wishes').delete().eq('id', mine.id)); } catch(err){ D.wishes.push(mine); openRecipe(id, true); render(); throw err; } }
+      else { burstAt(t); buzz(25); const tmp = { id:'tmp'+Date.now(), family_id:D.family.id, user_id:D.user.id, recipe_id:id }; D.wishes.push(tmp); openRecipe(id, true); render(); toast('Gewünscht! Die Familie sieht es jetzt.');
+        try { await save(async () => { const r = await sb.from('wishes').insert({ family_id:D.family.id, user_id:D.user.id, recipe_id:id }).select().single(); if (r.data) Object.assign(tmp, r.data); return r; }); notifyFamily('wish', id, rec(id) && rec(id).n); }
+        catch(err){ D.wishes = D.wishes.filter(w => w !== tmp); openRecipe(id, true); render(); throw err; } } break; }
+    case 'fav': { const f = new Set(D.profile.favs||[]); f.has(id) ? f.delete(id) : (f.add(id), buzz(20)); updateProfile({ favs:[...f] }); openRecipe(id, true); render(); break; }
     case 'cooked': { const r=rec(id); burstAt(t); buzz([20,50,20]); D.wishes = D.wishes.filter(w=>w.recipe_id!==id);
-      const { error } = await sb.from('wishes').delete().eq('family_id', D.family.id).eq('recipe_id', id); if (error) throw error;
-      setTimeout(()=>{ closeSheet(); render(); }, 450); toast(`Guten Appetit! ${r.e}`); break; }
+      setTimeout(()=>{ closeSheet(); render(); }, 450); toast(`Guten Appetit! ${r.e}`);
+      await save(() => sb.from('wishes').delete().eq('family_id', D.family.id).eq('recipe_id', id)); break; }
     case 'ing': { const k=t.dataset.k; D.fridge = D.fridge.includes(k) ? D.fridge.filter(x=>x!==k) : [...D.fridge,k]; saveFridgeSoon(); buzz(6);
       t.setAttribute('aria-pressed', D.fridge.includes(k)); t.classList.remove('just'); void t.offsetWidth; if (D.fridge.includes(k)) t.classList.add('just');
       document.querySelectorAll('[data-count]').forEach(c=>{ const g=c.dataset.count; c.textContent = Object.keys(ING).filter(x=>ING[x][2]===g&&D.fridge.includes(x)).length+' da'; }); break; }
-    case 'clear-fridge': D.fridge=[]; saveFridgeSoon(); render(); toast('Alles abgewählt'); break;
+    case 'clear-fridge': D.fridge=[]; D.expiries={}; saveFridgeSoon(); render(); toast('Alles abgewählt'); break;
     case 'photo': $('#photoInput').click(); break;
     case 'rtab': UI.rtab=t.dataset.v; UI.rlimit=30; buzz(6); render(); break;
     case 'edit-prefs': if (id===D.user.id) openPrefs(); else toast(`Nur ${prof(id).name} kann das eigene Profil ändern`); break;
-    case 'set-av': document.querySelectorAll('[data-action=set-av]').forEach(b=>b.setAttribute('aria-pressed', b===t)); buzz(6); await updateProfile({ avatar:t.dataset.v }); break;
-    case 'veg': t.setAttribute('aria-checked', !D.profile.veg); buzz(); await updateProfile({ veg: !D.profile.veg }); break;
-    case 'picky': { const n=$('#p-name').value.trim(); if (n) D.profile.name=n.slice(0,30); buzz(); const pr = updateProfile({ picky: !D.profile.picky }); openPrefs(true); await pr; break; }
-    case 'like': { const k=t.dataset.k, s=new Set(D.profile.likes||[]); s.has(k)?s.delete(k):s.add(k); t.setAttribute('aria-pressed', s.has(k)); const c=$('[data-count=likes]'); if (c) c.textContent = s.size+' gewählt'; buzz(6); await updateProfile({ likes:[...s] }); break; }
-    case 'dis': { const k=t.dataset.k, s=new Set(D.profile.dislikes||[]); s.has(k)?s.delete(k):s.add(k); t.setAttribute('aria-pressed', s.has(k)); buzz(6); await updateProfile({ dislikes:[...s] }); break; }
-    case 'alg': { const k=t.dataset.k, s=new Set(D.profile.allergies||[]); s.has(k)?s.delete(k):s.add(k); t.setAttribute('aria-pressed', s.has(k)); buzz(6); await updateProfile({ allergies:[...s] }); break; }
-    case 'save-prefs': { const n=$('#p-name').value.trim(); if (n && n!==D.profile.name) await updateProfile({ name:n.slice(0,30) }); closeSheet(); render(); toast('Gespeichert'); break; }
+    case 'set-av': document.querySelectorAll('[data-action=set-av]').forEach(b=>b.setAttribute('aria-pressed', b===t)); buzz(6); updateProfile({ avatar:t.dataset.v }); render(); break;
+    case 'veg': updateProfile({ veg: !D.profile.veg }); t.setAttribute('aria-checked', D.profile.veg); buzz(); render(); break;
+    case 'picky': { keepName(); buzz(); updateProfile({ picky: !D.profile.picky }); openPrefs(true); render(); break; }
+    case 'like': { const k=t.dataset.k, s=new Set(D.profile.likes||[]); s.has(k)?s.delete(k):s.add(k); updateProfile({ likes:[...s] }); t.setAttribute('aria-pressed', s.has(k)); const c=$('[data-count=likes]'); if (c) c.textContent = s.size+' gewählt'; buzz(6); break; }
+    case 'dis': { const k=t.dataset.k, s=new Set(D.profile.dislikes||[]); s.has(k)?s.delete(k):s.add(k); updateProfile({ dislikes:[...s] }); t.setAttribute('aria-pressed', s.has(k)); buzz(6); break; }
+    case 'alg': { const k=t.dataset.k, s=new Set(D.profile.allergies||[]); s.has(k)?s.delete(k):s.add(k); updateProfile({ allergies:[...s] }); t.setAttribute('aria-pressed', s.has(k)); buzz(6); break; }
+    case 'save-prefs': { keepName(); await flushProfile(); closeSheet(); render(); toast('Gespeichert ✓'); break; }
     case 'changelog': L.seenVersion = VERSION; saveLocal();
       openSheet(`${sheetHead('Update-Log')}<div class="card" style="padding:4px 16px">${CHANGELOG.map((c,n)=>`<div class="log"><span class="v">${c.v}</span><div><b>${n===0?'<span class="new-badge">NEU</span> ':''}${c.d}</b><ul>${c.items.map(i=>`<li>${esc(i)}</li>`).join('')}</ul></div></div>`).join('')}</div>`);
       $('[data-action=changelog] .new-badge')?.remove(); break;
@@ -895,15 +994,15 @@ document.addEventListener('click', async e => {
     case 'start-poll': { const ids = [...document.querySelectorAll('.pick-opt[aria-pressed=true]')].map(b => b.dataset.id);
       if (ids.length < 2){ toast('Bitte mindestens 2 Gerichte wählen'); break; }
       if (D.poll && D.poll.status === 'open' && (D.poll.created_by === D.user.id || isAdmin())) await sb.from('polls').update({ status:'closed' }).eq('id', D.poll.id);
-      writing++; let res; try { res = await sb.from('polls').insert({ family_id:D.family.id, created_by:D.user.id, options:ids, status:'open' }).select().single(); } finally { writing--; }
-      if (res.error) throw res.error; D.poll = res.data; D.votes = []; closeSheet(); render(); buzz(25); toast('Abstimmung gestartet 🗳️'); break; }
+      t.disabled = true; let res; try { res = await save(() => sb.from('polls').insert({ family_id:D.family.id, created_by:D.user.id, options:ids, status:'open' }).select().single()); } catch(err){ t.disabled = false; throw err; }
+      D.poll = res.data; D.votes = []; closeSheet(); render(); buzz(25); toast('Abstimmung gestartet 🗳️'); notifyFamily('poll'); break; }
     case 'vote': { if (!D.poll || D.poll.status !== 'open') break;
       D.votes = D.votes.filter(v => v.user_id !== D.user.id).concat({ poll_id:D.poll.id, family_id:D.family.id, user_id:D.user.id, recipe_id:id });
-      buzz(15); render(); writing++;
-      try { const { error } = await sb.from('votes').upsert({ poll_id:D.poll.id, family_id:D.family.id, user_id:D.user.id, recipe_id:id }, { onConflict:'poll_id,user_id' }); if (error) throw error; } finally { writing--; } break; }
+      buzz(15); render();
+      await save(() => sb.from('votes').upsert({ poll_id:D.poll.id, family_id:D.family.id, user_id:D.user.id, recipe_id:id }, { onConflict:'poll_id,user_id' })); break; }
     case 'end-poll': { const counts = {}; D.votes.forEach(v => counts[v.recipe_id] = (counts[v.recipe_id]||0) + 1);
       const winner = D.poll.options.slice().sort((a,b) => (counts[b]||0) - (counts[a]||0))[0];
-      writing++; try { const { error } = await sb.from('polls').update({ status:'closed', winner }).eq('id', D.poll.id); if (error) throw error; } finally { writing--; }
+      await save(() => sb.from('polls').update({ status:'closed', winner }).eq('id', D.poll.id));
       D.poll.status = 'closed'; D.poll.winner = winner; render(); burstAt($('.poll-win')); buzz([30,60,30]); toast(`🏆 Gewonnen: ${rec(winner).n}`); break; }
     case 'expiry': openExpiry(); break;
     case 'save-expiry': { document.querySelectorAll('input.date').forEach(inp => { const k = inp.id.slice(4); if (inp.value) D.expiries[k] = inp.value; else delete D.expiries[k]; });
@@ -918,13 +1017,12 @@ document.addEventListener('click', async e => {
       if (!steps.length){ toast('Bitte beschreib die Zubereitung'); $('#r-steps').focus(); break; }
       const row = { family_id:D.family.id, created_by:D.user.id, name, emoji:$('[data-action=r-emoji][aria-pressed=true]')?.dataset.v || '🍽️', minutes:+$('#r-time').value,
         mood:$('[data-action=r-mood][aria-pressed=true]')?.dataset.v || 'normal', ingredients:ings, optional:[], traits:[...document.querySelectorAll('[data-action=r-trait][aria-pressed=true]')].map(b => b.dataset.k), steps };
-      t.disabled = true; writing++; let res; try { res = await sb.from('custom_recipes').insert(row).select().single(); } finally { writing--; }
-      if (res.error){ t.disabled = false; throw res.error; }
-      await loadAll(); closeSheet(); UI.rtab = 'fam'; render(); burstAt($('.rc')); toast('Rezept gespeichert 📖'); break; }
+      t.disabled = true; try { await save(() => sb.from('custom_recipes').insert(row).select().single()); } catch(err){ t.disabled = false; throw err; }
+      await loadAll(true); closeSheet(); UI.rtab = 'fam'; render(); burstAt($('.rc')); toast('Rezept gespeichert 📖'); break; }
     case 'ask-del': UI.confirmDel = id; openRecipe(id, true); break;
     case 'cancel-del': UI.confirmDel = null; openRecipe(id, true); break;
     case 'del-recipe': { const r = rec(id); const { error } = await sb.from('custom_recipes').delete().eq('id', r.dbid); if (error) throw error;
-      UI.confirmDel = null; await loadAll(); closeSheet(); render(); toast('Rezept gelöscht'); break; }
+      UI.confirmDel = null; await loadAll(true); closeSheet(); render(); toast('Rezept gelöscht'); break; }
     case 'feedback': openFeedback(); break;
     case 'send-feedback': { const msg = $('#fb-text').value.trim(); if (!msg){ toast('Bitte schreib kurz etwas'); $('#fb-text').focus(); break; }
       t.disabled = true; const { error } = await sb.from('feedback').insert({ user_id:D.user.id, kind:$('[data-action=fb-kind][aria-pressed=true]')?.dataset.v || 'idee', message:msg, app_version:VERSION });
@@ -945,7 +1043,7 @@ document.addEventListener('click', async e => {
       render(); break; }
     case 'more-recipes': UI.rlimit = (UI.rlimit || 30) + 30; render(); break;
     case 'ann-hide': L.annHidden = D.ann && D.ann.id; saveLocal(); render(); break;
-  } } catch(err){ UI.err = errText(err); toast(UI.err); render(); }
+  } } catch(err){ toast(errText(err)); if (t) t.disabled = false; render(); }
 });
 
 /* Kochmodus mit Pfeiltasten steuern (Computer) */
@@ -991,6 +1089,7 @@ setInterval(tickClock, 1000); tickClock();
 
 /* ---------- Start ---------- */
 /* Neue Versionen automatisch laden: sobald ein neuer Service Worker übernimmt, einmal neu laden */
+if ('serviceWorker' in navigator) navigator.serviceWorker.addEventListener('message', e => { const t = e.data && e.data.tab; if (t && D.user && ORDER.includes(t)){ closeSheet(); go(t); scheduleReload(50); } });
 if ('serviceWorker' in navigator && location.protocol === 'https:'){
   const hadController = !!navigator.serviceWorker.controller; let reloaded = false;
   navigator.serviceWorker.addEventListener('controllerchange', () => { if (hadController && !reloaded){ reloaded = true; location.reload(); } });
@@ -999,5 +1098,8 @@ if ('serviceWorker' in navigator && location.protocol === 'https:'){
 layout(); render();
 if (configured){
   sb.auth.getSession().then(({ data }) => onSession(data.session));
-  sb.auth.onAuthStateChange((ev, session) => { if (ev === 'SIGNED_IN' || ev === 'SIGNED_OUT') onSession(session); });
+  sb.auth.onAuthStateChange((ev, session) => {
+    if (ev === 'SIGNED_IN' && session && D.user && D.user.id === session.user.id){ D.user = session.user; return; }   // gleiche Person: nur Token aufgefrischt
+    if (ev === 'SIGNED_IN' || ev === 'SIGNED_OUT') onSession(session);
+  });
 } else { UI.loading=false; render(); }
