@@ -228,3 +228,6 @@ details.faq summary::after{content:"+";color:var(--muted);font-size:20px;line-he
 details.faq[open] summary::after{transform:rotate(45deg)}
 details.faq p{margin:0 0 14px;color:var(--muted);font-size:14px}
 .new-badge{background:var(--tomato);color:#fff;border-radius:6px;font-size:10px;font-weight:800;padding:2px 6px;letter-spacing:.05em}
+
+/* Beim Aktualisieren nichts neu animieren (kein Springen/Ruckeln) */
+.view.still,.view.still *,.sheet.still,.sheet.still *{animation:none!important}

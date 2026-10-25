@@ -70,8 +70,10 @@ async function loadAll(){
   const { data: ps } = await sb.from('profiles').select('*').in('id', ids);
   (ps||[]).forEach(x => D.profiles[x.id] = x);
 }
-let reloadT = null;
-function scheduleReload(){ clearTimeout(reloadT); reloadT = setTimeout(async () => { await loadAll().catch(()=>{}); if (!$('.sheet')) render(); else refreshSheet(); }, 350); }
+let reloadT = null, writing = 0;
+function scheduleReload(){ clearTimeout(reloadT); reloadT = setTimeout(async () => {
+  if (writing > 0 || fridgeT){ scheduleReload(); return; }   // eigene Änderung läuft noch: nicht überschreiben
+  await loadAll().catch(()=>{}); if (!$('.sheet')) render(); else refreshSheet(); }, 450); }
 
 /* Live-Updates: Änderungen der Familie sofort auf allen Handys zeigen */
 let channel = null;
@@ -141,7 +143,7 @@ function renderTabbar(){
   $('#tabbar').hidden = !show; if (!show) return;
   const p = isAdmin() ? pendingReq().length : 0;
   const tabs = [['home','Heute',I.home],['fridge','Kühlschrank',I.fridge],['recipes','Wünsche',I.book],['family','Familie',I.family],['more','Mehr',I.more]];
-  $('#tabbar').innerHTML = tabs.map(([id,l,ic]) => `<button class="tab" data-tab="${id}" ${UI.tab===id?'aria-current="page"':''}>${ic}<span>${l}</span>${id==='family'&&p?`<span class="dot">${p}</span>`:''}${id==='more'&&L.seenVersion!==VERSION?'<span class="dot">!</span>':''}</button>`).join('');
+  $('#tabbar').innerHTML = tabs.map(([id,l,ic]) => `<button class="tab" data-tab="${id}" ${UI.tab===id?'aria-current="page"':''}>${ic}<span>${l}</span>${id==='family'&&p?`<span class="dot">${p}</span>`:''}</button>`).join('');
 }
 
 /* ---------- Ansichten: Start & Anmeldung ---------- */
@@ -275,8 +277,9 @@ function viewFamily(){
 }
 
 /* ---------- Reiter „Mehr" ---------- */
-const VERSION = '1.2';
+const VERSION = '1.2.1';
 const CHANGELOG = [
+  { v:'1.2.1', d:'25. Oktober 2026', items:['Behoben: Zutaten und Profil-Auswahl sprangen beim Antippen zurück und wurden teils nicht gespeichert','Behoben: Seite scrollte nach jedem Antippen wieder nach oben','Behoben: Fenster ruckelte beim Antippen von unten neu rein','Update-Log ist jetzt ein kleiner Knopf unten unter „Mehr"'] },
   { v:'1.2', d:'25. Oktober 2026', items:['Neu: Knopf „Wählerischer Esser" im Profil','Neu: Reiter „Mehr" mit Neuigkeiten und Hilfe','Foto-Erkennung mit Ersatz-KI und Pause-Hinweis'] },
   { v:'1.1', d:'25. Oktober 2026', items:['Vorschläge nur noch, wenn wirklich alles da ist','Neuer Bereich „Mit einem kleinen Einkauf"','Neue Zutaten: Salami, Würstchen, Frischkäse, Quark','6 neue Rezepte, z. B. Pizza-Toast und Hot Dogs'] },
   { v:'1.0', d:'25. Oktober 2026', items:['Erste Version: Familie per QR-Code, Wünsche, Kühlschrank, 32 Rezepte'] },
@@ -289,11 +292,8 @@ const FAQ = [
   ['Wie installiere ich die App?','iPhone: in Safari auf „Teilen" und dann „Zum Home-Bildschirm". Android: im Chrome-Menü auf „App installieren".'],
 ];
 function viewMore(){
-  if (L.seenVersion !== VERSION){ L.seenVersion = VERSION; saveLocal(); setTimeout(renderTabbar, 0); }
   return header('Mehr', `Version ${VERSION}`) +
-    `<div class="h2">Neuigkeiten</div>
-    <div class="card" style="padding:4px 16px">${CHANGELOG.map((c,n)=>`<div class="log"><span class="v">${c.v}</span><div><b>${n===0?'<span class="new-badge">NEU</span> ':''}${c.d}</b><ul>${c.items.map(i=>`<li>${esc(i)}</li>`).join('')}</ul></div></div>`).join('')}</div>
-    <div class="h2">Hilfe</div>
+    `<div class="h2">Hilfe</div>
     ${FAQ.map(([q,a])=>`<details class="faq"><summary>${esc(q)}</summary><p>${esc(a)}</p></details>`).join('')}
     <div class="h2">Darstellung</div>
     <div class="seg" role="group" aria-label="Farbschema">${[['system','System'],['light','Hell'],['dark','Dunkel']].map(([k,l])=>`<button data-action="theme" data-v="${k}" aria-pressed="${(L.theme||'system')===k}">${l}</button>`).join('')}</div>
@@ -302,7 +302,7 @@ function viewMore(){
       <button class="row" data-action="edit-prefs" data-id="${D.user.id}"><span class="avatar sm">${D.profile.avatar}</span><span class="grow"><b>Mein Profil</b><small>${esc(prefText(D.profile))}</small></span>${I.chev}</button>
       <button class="row" data-action="logout"><span class="grow"><b style="color:var(--tomato)">Abmelden</b><small>${esc(D.user.email||'')}</small></span></button>
     </div>
-    <p class="muted" style="text-align:center;font-size:12px;margin-top:20px">Was gibt's? ${VERSION} · Mit Liebe gekocht 🍳</p>`;
+    <div style="text-align:center;margin-top:22px"><button class="linkbtn" style="color:var(--muted);font-size:12px;font-weight:700" data-action="changelog">Version ${VERSION} · Update-Log${L.seenVersion!==VERSION?' <span class="new-badge">NEU</span>':''}</button></div>`;
 }
 
 /* ---------- Haupt-Render ---------- */
@@ -316,7 +316,9 @@ function render(){
   else if (!D.user) v = viewAuth();
   else if (!isActive() || !D.family) v = viewNoFamily();
   else v = ({home:viewHome, fridge:viewFridge, recipes:viewRecipes, family:viewFamily, more:viewMore}[UI.tab])();
-  $('#views').innerHTML = `<div class="view" style="${slideDx?`--dx:${slideDx}px;--dy:0px`:''}">${v}</div>`;
+  const prev = $('#views .view'), same = !slideDx && prev && prev.dataset.tab === UI.tab, top = same ? prev.scrollTop : 0;
+  $('#views').innerHTML = `<div class="view${same?' still':''}" data-tab="${UI.tab}" style="${slideDx?`--dx:${slideDx}px;--dy:0px`:''}">${v}</div>`;
+  if (same) $('#views .view').scrollTop = top;
   slideDx = 0;
   const s = $('#search'); if (s) s.addEventListener('input', e=>{ UI.q=e.target.value; const pos=e.target.selectionStart; render(); const n=$('#search'); n.focus(); n.setSelectionRange(pos,pos); });
   const f = $('#authForm'); if (f) f.addEventListener('submit', onAuth);
@@ -349,13 +351,16 @@ async function onSession(session){
 
 /* ---------- Sheets ---------- */
 let sheetFn = null;
-function openSheet(html){ $('#overlay').innerHTML = `<div class="scrim" data-action="close"></div><div class="sheet" role="dialog" aria-modal="true"><div class="grabber"></div>${html}</div>`; }
+function openSheet(html, keep){
+  const old = $('.sheet');
+  if (keep && old){ const top = old.scrollTop; old.classList.add('still'); old.innerHTML = `<div class="grabber"></div>${html}`; old.scrollTop = top; return; }
+  $('#overlay').innerHTML = `<div class="scrim" data-action="close"></div><div class="sheet" role="dialog" aria-modal="true"><div class="grabber"></div>${html}</div>`; }
 function closeSheet(){ $('#overlay').innerHTML=''; sheetFn=null; }
-function refreshSheet(){ if (sheetFn) sheetFn(); }
+function refreshSheet(){ if (sheetFn) sheetFn(true); }
 const sheetHead = t => `<div class="top" style="padding-top:0"><div class="h1" style="font-size:22px">${t}</div><button class="icon-btn" data-action="close" aria-label="Schließen">${I.x}</button></div>`;
 
-function openRecipe(id){
-  sheetFn = () => openRecipe(id);
+function openRecipe(id, keep){
+  sheetFn = (k) => openRecipe(id, k);
   const r = recipe(id), me = D.profile, fr = new Set(D.fridge), favs = me.favs||[];
   const fav = favs.includes(id), wished = D.wishes.some(w=>w.recipe_id===id && w.user_id===me.id), who = wishersOf(id);
   const people = eatersNow().map(prof), notes = softNotes(r, people), blocked = people.map(p=>({p, c:conflicts(r,p)})).filter(x=>x.c.length);
@@ -373,7 +378,7 @@ function openRecipe(id){
       ${r.o.map(k=>`<div class="ing-line muted"><span class="ok" style="background:var(--surface-2)">+</span>${ingEmoji(k)} ${ingName(k)} <span style="font-size:13px">optional</span></div>`).join('')}</div>
     <div class="h2">So geht's</div>
     <div class="card" style="padding:6px 16px">${r.s.map((s,n)=>`<div class="step"><b>${n+1}</b><span>${esc(s)}</span></div>`).join('')}</div>
-    <button class="btn btn-herb btn-block" style="margin-top:16px" data-action="cooked" data-id="${id}">🍽️ Heute gekocht</button>`);
+    <button class="btn btn-herb btn-block" style="margin-top:16px" data-action="cooked" data-id="${id}">🍽️ Heute gekocht</button>`, keep);
 }
 function openInvite(){
   sheetFn = null;
@@ -386,34 +391,36 @@ function openInvite(){
   try { new QRCode($('#qr'), { text: link, width:180, height:180, colorDark:'#16201A', colorLight:'#ffffff' }); }
   catch(e){ $('#qr').innerHTML = `<div style="width:180px;height:180px;display:grid;place-items:center;color:#16201A;font-weight:800">${esc(D.family.code)}</div>`; }
 }
-function openPrefs(){
-  sheetFn = openPrefs;
+function openPrefs(keep){
+  sheetFn = null;   // Profil nicht von außen neu aufbauen, sonst gehen Eingaben verloren
   const a = D.profile, dis = ['champignons','zwiebeln','brokkoli','paprika','tomaten','spinat','zucchini','knoblauch','fisch','scharf','fleisch'];
   openSheet(`${sheetHead('Mein Profil')}
     <div class="field"><label for="p-name">Name</label><input id="p-name" class="input" maxlength="30" value="${esc(a.name)}"></div>
     <div class="field"><span class="lbl2">Bild</span><div class="emoji-pick">${AVS.map(x=>`<button type="button" data-action="set-av" data-v="${x}" aria-pressed="${a.avatar===x}">${x}</button>`).join('')}</div></div>
     <div class="list"><div class="row"><span class="grow"><b>Vegetarisch</b><small>Kein Fleisch und kein Fisch</small></span><button class="switch" role="switch" aria-checked="${a.veg}" data-action="veg" aria-label="Vegetarisch"></button></div></div>
     <div class="list" style="margin-top:10px"><div class="row"><span class="grow"><b>Wählerischer Esser</b><small>Statt „mag ich nicht" wählst du aus, was du isst</small></span><button class="switch" role="switch" aria-checked="${!!a.picky}" data-action="picky" aria-label="Wählerischer Esser"></button></div></div>
-    ${a.picky ? `<div class="h2">Das esse ich <span class="chip c-muted">${(a.likes||[]).length} gewählt</span></div>
+    ${a.picky ? `<div class="h2">Das esse ich <span class="chip c-muted" data-count="likes">${(a.likes||[]).length} gewählt</span></div>
       ${[['k','Kühlschrank'],['v','Vorrat']].map(([g,t])=>`<div class="lbl2" style="margin:10px 0 8px">${t}</div><div class="chips">${Object.keys(ING).filter(k=>ING[k][2]===g).map(k=>`<button class="ing" data-action="like" data-k="${k}" aria-pressed="${(a.likes||[]).includes(k)}">${ING[k][1]} ${ING[k][0]}</button>`).join('')}</div>`).join('')}
       <p class="muted" style="font-size:13px">Du bekommst nur Gerichte vorgeschlagen, bei denen du alle Hauptzutaten isst.</p>` : `
     <div class="h2">Das mag ich nicht</div>
     <div class="chips">${dis.map(k=>`<button class="ing" data-action="dis" data-k="${k}" aria-pressed="${(a.dislikes||[]).includes(k)}">${TRAITS[k]?(k==='scharf'?'🌶️ ':k==='fisch'?'🐟 ':'🥩 ')+TRAITS[k]:ingEmoji(k)+' '+ingName(k)}</button>`).join('')}</div>`}
     <div class="h2">Unverträglichkeiten</div>
     <div class="chips">${Object.entries(ALLERGENS).map(([k,l])=>`<button class="ing" data-action="alg" data-k="${k}" aria-pressed="${(a.allergies||[]).includes(k)}">${l}</button>`).join('')}</div>
-    <button class="btn btn-herb btn-block" style="margin-top:18px" data-action="save-prefs">Fertig</button>`);
+    <button class="btn btn-herb btn-block" style="margin-top:18px" data-action="save-prefs">Fertig</button>`, keep);
 }
 
 /* ---------- Speichern in der Datenbank ---------- */
 async function updateProfile(patch){
   Object.assign(D.profile, patch); D.profiles[D.profile.id] = D.profile;
-  const { error } = await sb.from('profiles').update(patch).eq('id', D.profile.id);
-  if (error) toast(errText(error));
+  writing++;
+  try { const { error } = await sb.from('profiles').update(patch).eq('id', D.profile.id); if (error) toast(errText(error)); }
+  finally { writing--; }
 }
 let fridgeT = null;
 function saveFridgeSoon(){ clearTimeout(fridgeT); fridgeT = setTimeout(async () => {
-  const { error } = await sb.from('fridges').update({ items: D.fridge, updated_at: new Date().toISOString() }).eq('family_id', D.family.id);
-  if (error) toast(errText(error)); }, 500); }
+  writing++;
+  try { const { error } = await sb.from('fridges').update({ items: D.fridge, updated_at: new Date().toISOString() }).eq('family_id', D.family.id); if (error) toast(errText(error)); }
+  finally { writing--; fridgeT = null; } }, 500); }
 
 /* ---------- Kühlschrank-Foto ---------- */
 function shrink(file){ // Bild verkleinern, damit es schnell hochlädt
@@ -499,10 +506,10 @@ document.addEventListener('click', async e => {
     case 'mood': UI.mood=t.dataset.v; buzz(6); render(); break;
     case 'open-recipe': openRecipe(id); break;
     case 'wish': { const mine = D.wishes.find(w=>w.recipe_id===id && w.user_id===D.user.id);
-      if (mine){ D.wishes = D.wishes.filter(w=>w!==mine); openRecipe(id); const { error } = await sb.from('wishes').delete().eq('id', mine.id); if (error) throw error; toast('Wunsch zurückgenommen'); }
-      else { burstAt(t); buzz(25); const { data, error } = await sb.from('wishes').insert({ family_id:D.family.id, user_id:D.user.id, recipe_id:id }).select().single(); if (error) throw error;
-        D.wishes.push(data); openRecipe(id); toast('Gewünscht! Die Familie sieht es jetzt.'); } break; }
-    case 'fav': { const f = new Set(D.profile.favs||[]); f.has(id) ? f.delete(id) : (f.add(id), buzz(20)); await updateProfile({ favs:[...f] }); openRecipe(id); break; }
+      if (mine){ D.wishes = D.wishes.filter(w=>w!==mine); openRecipe(id, true); const { error } = await sb.from('wishes').delete().eq('id', mine.id); if (error) throw error; toast('Wunsch zurückgenommen'); }
+      else { burstAt(t); buzz(25); writing++; let res; try { res = await sb.from('wishes').insert({ family_id:D.family.id, user_id:D.user.id, recipe_id:id }).select().single(); } finally { writing--; } if (res.error) throw res.error;
+        D.wishes.push(res.data); openRecipe(id, true); toast('Gewünscht! Die Familie sieht es jetzt.'); } break; }
+    case 'fav': { const f = new Set(D.profile.favs||[]); f.has(id) ? f.delete(id) : (f.add(id), buzz(20)); D.profile.favs=[...f]; openRecipe(id, true); await updateProfile({ favs:[...f] }); break; }
     case 'cooked': { const r=recipe(id); burstAt(t); buzz([20,50,20]); D.wishes = D.wishes.filter(w=>w.recipe_id!==id);
       const { error } = await sb.from('wishes').delete().eq('family_id', D.family.id).eq('recipe_id', id); if (error) throw error;
       setTimeout(()=>{ closeSheet(); render(); }, 450); toast(`Guten Appetit! ${r.e}`); break; }
@@ -513,13 +520,16 @@ document.addEventListener('click', async e => {
     case 'photo': $('#photoInput').click(); break;
     case 'rtab': UI.rtab=t.dataset.v; buzz(6); render(); break;
     case 'edit-prefs': if (id===D.user.id) openPrefs(); else toast(`Nur ${prof(id).name} kann das eigene Profil ändern`); break;
-    case 'set-av': await updateProfile({ avatar:t.dataset.v, name: ($('#p-name').value.trim()||D.profile.name).slice(0,30) }); buzz(6); openPrefs(); break;
-    case 'veg': await updateProfile({ veg: !D.profile.veg, name: ($('#p-name').value.trim()||D.profile.name).slice(0,30) }); buzz(); openPrefs(); break;
-    case 'picky': await updateProfile({ picky: !D.profile.picky, name: ($('#p-name').value.trim()||D.profile.name).slice(0,30) }); buzz(); openPrefs(); break;
-    case 'like': { const k=t.dataset.k, s=new Set(D.profile.likes||[]); s.has(k)?s.delete(k):s.add(k); await updateProfile({ likes:[...s], name: ($('#p-name').value.trim()||D.profile.name).slice(0,30) }); buzz(6); const y=$('.sheet').scrollTop; openPrefs(); $('.sheet').scrollTop=y; break; }
-    case 'dis': { const k=t.dataset.k, s=new Set(D.profile.dislikes||[]); s.has(k)?s.delete(k):s.add(k); await updateProfile({ dislikes:[...s], name: ($('#p-name').value.trim()||D.profile.name).slice(0,30) }); buzz(6); openPrefs(); break; }
-    case 'alg': { const k=t.dataset.k, s=new Set(D.profile.allergies||[]); s.has(k)?s.delete(k):s.add(k); await updateProfile({ allergies:[...s], name: ($('#p-name').value.trim()||D.profile.name).slice(0,30) }); buzz(6); openPrefs(); break; }
+    case 'set-av': document.querySelectorAll('[data-action=set-av]').forEach(b=>b.setAttribute('aria-pressed', b===t)); buzz(6); await updateProfile({ avatar:t.dataset.v }); break;
+    case 'veg': t.setAttribute('aria-checked', !D.profile.veg); buzz(); await updateProfile({ veg: !D.profile.veg }); break;
+    case 'picky': { const n=$('#p-name').value.trim(); if (n) D.profile.name=n.slice(0,30); buzz(); const pr = updateProfile({ picky: !D.profile.picky }); openPrefs(true); await pr; break; }
+    case 'like': { const k=t.dataset.k, s=new Set(D.profile.likes||[]); s.has(k)?s.delete(k):s.add(k); t.setAttribute('aria-pressed', s.has(k)); const c=$('[data-count=likes]'); if (c) c.textContent = s.size+' gewählt'; buzz(6); await updateProfile({ likes:[...s] }); break; }
+    case 'dis': { const k=t.dataset.k, s=new Set(D.profile.dislikes||[]); s.has(k)?s.delete(k):s.add(k); t.setAttribute('aria-pressed', s.has(k)); buzz(6); await updateProfile({ dislikes:[...s] }); break; }
+    case 'alg': { const k=t.dataset.k, s=new Set(D.profile.allergies||[]); s.has(k)?s.delete(k):s.add(k); t.setAttribute('aria-pressed', s.has(k)); buzz(6); await updateProfile({ allergies:[...s] }); break; }
     case 'save-prefs': { const n=$('#p-name').value.trim(); if (n && n!==D.profile.name) await updateProfile({ name:n.slice(0,30) }); closeSheet(); render(); toast('Gespeichert'); break; }
+    case 'changelog': L.seenVersion = VERSION; saveLocal();
+      openSheet(`${sheetHead('Update-Log')}<div class="card" style="padding:4px 16px">${CHANGELOG.map((c,n)=>`<div class="log"><span class="v">${c.v}</span><div><b>${n===0?'<span class="new-badge">NEU</span> ':''}${c.d}</b><ul>${c.items.map(i=>`<li>${esc(i)}</li>`).join('')}</ul></div></div>`).join('')}</div>`);
+      $('[data-action=changelog] .new-badge')?.remove(); break;
     case 'theme': L.theme=t.dataset.v; saveLocal(); render(); break;
   } } catch(err){ UI.err = errText(err); toast(UI.err); render(); }
 });
