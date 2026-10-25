@@ -255,7 +255,8 @@ function viewHome(){
       <button class="btn btn-tomato btn-block" style="margin-top:10px" data-action="cook" data-id="${top.r.id}">👨‍🍳 Jetzt kochen – Kochmodus starten</button>
       ${ready.length>1?`<div class="h2">Geht auch <span class="chip c-muted">${ready.length-1}</span></div><div class="stack">${ready.slice(1,8).map(suggestionCard).join('')}</div>`:''}`
     : `<div class="card empty"><div class="g">🧊</div><b>Mit dem, was da ist, passt noch kein Rezept</b>Trag im Kühlschrank ein, was du hast, oder schau unten, was mit einem Einkauf geht.<button class="btn btn-line btn-block" style="margin-top:12px" data-tab="fridge">Kühlschrank öffnen</button></div>`}
-    ${almost.length?`<div class="h2">Mit einem kleinen Einkauf <span class="chip c-muted">${almost.length}</span></div><div class="stack">${almost.slice(0,6).map(suggestionCard).join('')}</div>`:''}`;
+    ${almost.length?`<div class="h2">Mit einem kleinen Einkauf <span class="chip c-muted">${almost.length}</span></div><div class="stack">${almost.slice(0,6).map(suggestionCard).join('')}</div>`:''}
+    ${showPlusWidget() ? plusWidget() : ''}`;
 }
 function expTag(k){ const d = daysLeft(k); if (d === null) return ''; return ` <span class="exp ${d<=1?'hot':''}">${d<0?'abgelaufen':d===0?'heute':d+' T'}</span>`; }
 function viewFridge(){
@@ -308,8 +309,9 @@ function viewFamily(){
 }
 
 /* ---------- Reiter „Mehr" ---------- */
-const VERSION = '1.4';
+const VERSION = '1.5';
 const CHANGELOG = [
+  { v:'1.5', d:'25. Oktober 2026', items:['Neu: „Was gibt\'s? Plus" unter „Mehr" – alles Bisherige bleibt kostenlos','Hinweise auf Plus nur ganz selten: kleines Widget höchstens alle paar Tage, Pop-up höchstens alle 3 Wochen','Jeder Hinweis lässt sich mit ✕, „Nein danke", Tippen daneben oder Escape schließen'] },
   { v:'1.4', d:'25. Oktober 2026', items:['Neu: Kochmodus im Querformat mit „Bitte Handy drehen"-Hinweis','Neu: Große Uhr oben rechts, Fortschrittsbalken und große Weiter/Zurück-Knöpfe','Neu: Animation für jeden Schritt (Schneiden, Braten, Kochen, Backen, Rühren …)','Neu: „Jetzt kochen" direkt unter dem Vorschlag auf „Heute"','Neu: Die App nutzt den ganzen Bildschirm bis zum Rand','Impressum mit Namen ergänzt'] },
   { v:'1.3', d:'25. Oktober 2026', items:['Neu: Start-Intro mit Logo-Animation','Neu: Abstimmung „Was essen wir heute?" für die ganze Familie','Neu: Haltbarkeit im Kühlschrank – Gerichte, die Zutaten aufbrauchen, kommen zuerst','Neu: Eigene Familienrezepte eintragen','Neu: Kochmodus mit großen Schritten und Timer','Neu: Feedback senden, Impressum und Datenschutz','Schriften und QR-Code liegen jetzt direkt in der App (kein Laden bei Google mehr)','Behoben: Updates kamen teilweise erst nach mehrmaligem Öffnen an','Neu: Die App lädt neue Versionen ab jetzt automatisch'] },
   { v:'1.2.1', d:'25. Oktober 2026', items:['Behoben: Zutaten und Profil-Auswahl sprangen beim Antippen zurück und wurden teils nicht gespeichert','Behoben: Seite scrollte nach jedem Antippen wieder nach oben','Behoben: Fenster ruckelte beim Antippen von unten neu rein','Update-Log ist jetzt ein kleiner Knopf unten unter „Mehr"'] },
@@ -331,6 +333,8 @@ function viewMore(){
     ${FAQ.map(([q,a])=>`<details class="faq"><summary>${esc(q)}</summary><p>${esc(a)}</p></details>`).join('')}
     <div class="h2">Darstellung</div>
     <div class="seg" role="group" aria-label="Farbschema">${[['system','System'],['light','Hell'],['dark','Dunkel']].map(([k,l])=>`<button data-action="theme" data-v="${k}" aria-pressed="${(L.theme||'system')===k}">${l}</button>`).join('')}</div>
+    <div class="h2">Was gibt's? Plus</div>
+    <div class="list"><button class="row" data-action="plus"><span style="font-size:22px">✨</span><span class="grow"><b>Plus ansehen</b><small>Bald verfügbar · Alles Bisherige bleibt kostenlos</small></span>${I.chev}</button></div>
     <div class="h2">Kontakt</div>
     <div class="list"><button class="row" data-action="feedback"><span style="font-size:22px">💬</span><span class="grow"><b>Feedback senden</b><small>Fehler melden, Ideen oder Lob</small></span>${I.chev}</button></div>
     <div class="h2">Konto</div>
@@ -388,6 +392,7 @@ async function onSession(session){
   if (D.user){ try { await loadAll(); subscribe(); } catch(e){ UI.err = errText(e); } }
   else { UI.auth = UI.auth==='check' ? 'check' : 'login'; D.profile=null; D.membership=null; if (channel){ sb.removeChannel(channel); channel=null; } }
   UI.loading=false; render();
+  if (D.user && !UI.counted){ UI.counted = true; trackOpen(); setTimeout(maybePlusPopup, 6000); }
 }
 
 /* ---------- Sheets ---------- */
@@ -623,6 +628,45 @@ const LEGAL = {
     <h3>Deine Rechte</h3><p>Du hast das Recht auf Auskunft, Berichtigung und Löschung deiner Daten. Schreib uns dazu an die E-Mail-Adresse im Impressum. Du kannst die Familie jederzeit verlassen.</p>`],
 };
 
+/* ---------- „Was gibt's? Plus" – Hinweise, aber bewusst nicht nervig ----------
+   Regeln:
+   - Kleines Widget auf „Heute": frühestens ab dem 3. Öffnen, höchstens alle 3 Tage, mit ✕ für 14 Tage weg
+   - Pop-up: frühestens ab dem 5. Öffnen an mindestens 3 verschiedenen Tagen, höchstens alle 21 Tage,
+     nie beim ersten Öffnen eines Tages-Intros, nie im Kochmodus, nie über einem anderen Fenster
+   - Schließen geht immer: großes ✕, „Nein danke", Tippen daneben oder Escape                      */
+const DAY = 864e5;
+function trackOpen(){
+  const today = new Date().toISOString().slice(0,10);
+  L.opens = (L.opens||0) + 1; L.days = [...new Set([...(L.days||[]), today])].slice(-30); saveLocal();
+}
+function showPlusWidget(){
+  const now = Date.now();
+  if ((L.opens||0) < 3 || (L.plusHideUntil||0) > now) return false;
+  if (!L.plusWidgetDay || now - L.plusWidgetDay > 3*DAY){ L.plusWidgetDay = now; saveLocal(); }
+  return now - L.plusWidgetDay < DAY;   // an diesem einen Tag sichtbar, dann wieder 2 Tage Pause
+}
+function plusWidget(){
+  return `<div class="plus-widget"><span class="pw-ic">✨</span><button class="pw-main" data-action="plus"><b>Was gibt's? Plus</b><small>KI-Rezepte, Wochenplan und mehr für die ganze Familie</small></button><button class="pw-x" data-action="plus-hide" aria-label="Hinweis für 14 Tage ausblenden">✕</button></div>`;
+}
+function maybePlusPopup(){
+  const now = Date.now();
+  if (UI.cook || $('.sheet') || !D.user || !isActive()) return;
+  if ((L.opens||0) < 5 || (L.days||[]).length < 3) return;
+  if (L.lastPlusPopup && now - L.lastPlusPopup < 21*DAY) return;
+  L.lastPlusPopup = now; saveLocal(); openPlus(true);
+}
+function openPlus(popup){
+  sheetFn = null;
+  const perks = [['📸','Kühlschrank-Foto ohne Tageslimit'],['🤖','KI-Rezepte aus genau euren Zutaten'],['📅','Wochenplan mit automatischer Einkaufsliste'],['📖','Unbegrenzt eigene Familienrezepte'],['🎨','Eigene Farbthemen für die App']];
+  openSheet(`<div class="plus-head"><button class="plus-x" data-action="close" aria-label="Schließen">✕</button><div class="plus-badge">✨ PLUS</div><div class="h1" style="color:#fff">Mehr für deine Familie</div><p>Alles, was du jetzt nutzt, bleibt kostenlos. Plus ist ein Extra obendrauf.</p></div>
+    <div class="stack" style="margin-top:16px">${perks.map(([e,t])=>`<div class="perk-row"><span>${e}</span>${t}</div>`).join('')}</div>
+    <div class="plus-prices"><div><b>3,99 €</b><small>pro Monat</small></div><div class="best"><b>29,99 €</b><small>pro Jahr · spart 37 %</small></div></div>
+    <p class="muted" style="font-size:13px;text-align:center;margin:4px 0 12px">Ein Abo gilt für die ganze Familie. Plus startet bald.</p>
+    ${L.plusInterest ? `<div class="card" style="text-align:center;background:var(--herb-soft);font-weight:800">💚 Danke! Wir sagen dir Bescheid, sobald Plus startet.</div>`
+      : `<button class="btn btn-herb btn-block" data-action="plus-interest">Ich hätte Interesse</button>`}
+    <button class="btn btn-block" style="background:none;color:var(--muted);margin-top:6px" data-action="close">${popup ? 'Nein danke' : 'Schließen'}</button>`);
+}
+
 /* ---------- Speichern in der Datenbank ---------- */
 async function updateProfile(patch){
   Object.assign(D.profile, patch); D.profiles[D.profile.id] = D.profile;
@@ -744,6 +788,10 @@ document.addEventListener('click', async e => {
     case 'changelog': L.seenVersion = VERSION; saveLocal();
       openSheet(`${sheetHead('Update-Log')}<div class="card" style="padding:4px 16px">${CHANGELOG.map((c,n)=>`<div class="log"><span class="v">${c.v}</span><div><b>${n===0?'<span class="new-badge">NEU</span> ':''}${c.d}</b><ul>${c.items.map(i=>`<li>${esc(i)}</li>`).join('')}</ul></div></div>`).join('')}</div>`);
       $('[data-action=changelog] .new-badge')?.remove(); break;
+    case 'plus': openPlus(false); break;
+    case 'plus-hide': L.plusHideUntil = Date.now() + 14*DAY; saveLocal(); render(); toast('Ausgeblendet für 14 Tage'); break;
+    case 'plus-interest': { L.plusInterest = true; saveLocal(); openPlus(false); buzz(20);
+      try { await sb.from('feedback').insert({ user_id:D.user.id, kind:'idee', message:'Interesse an Was gibt\'s? Plus', app_version:VERSION }); } catch(err){} break; }
     case 'new-poll': openPollSetup(); break;
     case 'poll-pick': { const on = t.getAttribute('aria-pressed') !== 'true'; if (on && document.querySelectorAll('.pick-opt[aria-pressed=true]').length >= 4){ toast('Höchstens 4 Gerichte'); break; } t.setAttribute('aria-pressed', on); buzz(6); break; }
     case 'start-poll': { const ids = [...document.querySelectorAll('.pick-opt[aria-pressed=true]')].map(b => b.dataset.id);
@@ -796,7 +844,8 @@ document.addEventListener('click', async e => {
 });
 
 /* Kochmodus mit Pfeiltasten steuern (Computer) */
-document.addEventListener('keydown', e => { if (!UI.cook) return;
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && !UI.cook && $('.sheet')){ closeSheet(); render(); return; }
+  if (!UI.cook) return;
   if (e.key === 'ArrowRight'){ const b = $('[data-action=cook-next]') || $('[data-action=cook-done]'); b && b.click(); }
   if (e.key === 'ArrowLeft'){ const b = $('[data-action=cook-prev]'); b && !b.disabled && b.click(); }
   if (e.key === 'Escape'){ closeCook(); render(); } });

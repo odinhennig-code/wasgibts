@@ -392,3 +392,22 @@ details.faq p{margin:0 0 14px;color:var(--muted);font-size:14px}
 .framed.cooking #island{top:50%;left:12px;transform:translateY(-50%);width:36px;height:124px}
 .framed.cooking .cook{padding-left:62px;padding-top:16px}
 .framed.cooking .b1,.framed.cooking .b2,.framed.cooking .b3,.framed.cooking .b4{display:none}
+
+/* ---------- Was gibt's? Plus ---------- */
+.plus-widget{display:flex;align-items:center;gap:10px;margin-top:22px;padding:10px 8px 10px 14px;border-radius:18px;background:linear-gradient(135deg,var(--yolk-soft),var(--surface));border:1px solid var(--line)}
+.pw-ic{font-size:22px}
+.pw-main{flex:1;border:0;background:none;text-align:left;padding:0;display:flex;flex-direction:column;min-width:0}
+.pw-main small{color:var(--muted);font-size:12.5px}
+.pw-x{width:36px;height:36px;border-radius:12px;border:0;background:var(--surface-2);color:var(--muted);font-weight:800;flex:none}
+.plus-head{position:relative;margin:-10px -18px 0;padding:26px 22px 22px;border-radius:30px 30px 0 0;background:linear-gradient(140deg,#2F7A4C,#1f5a37 60%,#3a2a10);color:#fff}
+.plus-head p{margin:6px 0 0;opacity:.85}
+.plus-x{position:absolute;top:14px;right:14px;width:44px;height:44px;border-radius:50%;border:0;background:rgba(255,255,255,.18);color:#fff;font-size:18px;font-weight:800}
+.plus-badge{display:inline-block;font-size:12px;font-weight:800;letter-spacing:.12em;background:rgba(255,255,255,.18);padding:4px 10px;border-radius:999px;margin-bottom:10px}
+.perk-row{display:flex;gap:12px;align-items:center;font-weight:700;background:var(--surface);border-radius:14px;padding:12px 14px;box-shadow:var(--shadow)}
+.perk-row span{font-size:22px}
+.plus-prices{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:16px 0 8px}
+.plus-prices div{border:1.5px solid var(--line);border-radius:16px;padding:12px;text-align:center;background:var(--surface)}
+.plus-prices b{display:block;font-family:var(--f-display);font-size:22px}
+.plus-prices small{color:var(--muted);font-size:12px}
+.plus-prices .best{border-color:var(--herb);background:var(--herb-soft)}
+.sheet:has(.plus-head) .grabber{display:none}
