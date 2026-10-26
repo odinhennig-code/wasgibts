@@ -541,3 +541,73 @@ html:not(.framed) #splash{position:fixed}
 @media (max-height:520px){ .ck-orb{--orb:140px;--s:.66} .ck-text{font-size:clamp(19px,3vw,26px)} }
 @media (orientation:portrait){ .cook.force .ck-orb{--orb:170px;--s:.8} }
 .cook .ck-next.tint.gold{background:linear-gradient(140deg,rgba(255,214,120,.78),rgba(255,170,95,.42))}
+
+/* ---------- 2.0: Einkaufsliste, Wochenplan, Fotos, aufgeräumte Startseite ---------- */
+.seg-n{display:inline-grid;place-items:center;min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:var(--surface-2);font-size:11px;margin-left:4px;color:var(--muted)}
+.seg button[aria-pressed="true"] .seg-n{background:var(--herb-soft);color:var(--herb)}
+.seg-n.hot{background:var(--tomato);color:#fff!important}
+.seg.mini{flex:none}
+.seg.mini button{min-height:34px;padding:6px 11px;font-size:13px}
+
+/* Startseite: alle Filter in einer kompakten Karte */
+.filters{padding:12px;display:grid;gap:10px;margin-top:4px}
+.who.sm{gap:6px;padding:0;flex-wrap:nowrap}
+.who.sm button{flex-direction:row;width:auto;gap:6px;padding:4px 10px 4px 4px;border-radius:999px;background:var(--surface-2);font-size:13px;transition:background .2s,color .2s}
+.who.sm button[aria-pressed="true"]{background:var(--herb-soft);color:var(--herb)}
+.who.sm .avatar{width:28px;height:28px;font-size:16px;box-shadow:none!important;transform:none!important}
+.frow{display:flex;gap:8px;justify-content:space-between}
+.frow .seg.mini{flex:1}
+.frow .seg.mini button{flex:1}
+
+/* Kühlschrank */
+.fbar{display:flex;gap:8px;align-items:center;margin-top:14px}
+.fbar .input{flex:1;min-width:0;min-height:42px}
+
+/* Einkaufsliste */
+.shop-add{display:flex;gap:8px}
+.shop-add .input{flex:1;min-width:0}
+.shop-add .btn{width:52px;padding:0;font-size:24px}
+.list-card{padding:4px 6px}
+.shop-row{display:flex;align-items:center;gap:10px;padding:8px 6px;min-height:52px}
+.shop-row+.shop-row{border-top:1px solid var(--line)}
+.shop-row .grow{flex:1;min-width:0;font-weight:700}
+.shop-row .tick{width:30px;height:30px;border-radius:50%;border:2px solid var(--line);background:none;color:transparent;font-weight:900;display:grid;place-items:center;flex:none;transition:background .2s,border-color .2s,transform .25s cubic-bezier(.3,1.6,.5,1)}
+.shop-row .tick[aria-pressed="true"]{background:var(--herb);border-color:var(--herb);color:#fff;transform:scale(1.05)}
+.shop-row.done .grow{text-decoration:line-through;color:var(--muted);font-weight:600}
+.shop-row .x{width:34px;height:34px;border:0;background:none;color:var(--muted);display:grid;place-items:center;border-radius:10px;flex:none}
+.shop-row .x svg{width:16px;height:16px}
+.banner.soft{background:var(--herb-soft);margin:12px 0}
+
+/* Wochenplan */
+.week{display:grid;gap:8px}
+.week-row{display:grid;grid-template-columns:62px 1fr;gap:10px;align-items:center}
+.wd{display:flex;flex-direction:column;line-height:1.15}
+.wd b{font-size:14px}
+.wd small{color:var(--muted);font-size:12px}
+.week-row.today .wd b{color:var(--herb)}
+.week-row .rc{padding:8px}
+.week-empty{border:1.5px dashed var(--line);background:none;border-radius:20px;min-height:66px;color:var(--muted);font-weight:700;font-size:14px}
+.week-actions{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+.week-actions .btn{flex:1;min-width:150px}
+
+/* Fotos */
+.rc .em.ph{padding:0;overflow:hidden;background:var(--surface-2)}
+.rc .em.ph img,.pick .big.ph img{width:100%;height:100%;object-fit:cover;display:block;animation:fade .4s both}
+.pick .big.ph{right:14px;top:14px;width:104px;height:104px;border-radius:24px;overflow:hidden;font-size:0;box-shadow:0 8px 20px rgba(0,0,0,.25);border:2px solid rgba(255,255,255,.25)}
+.pick.planned{background:color-mix(in srgb,var(--herb) 70%,#0b2a18)}
+.r-photo{margin:0 -18px 14px;position:relative;aspect-ratio:16/10;max-height:260px;overflow:hidden;border-radius:0 0 26px 26px;margin-top:-6px}
+.r-photo img{width:100%;height:100%;object-fit:cover;display:block;animation:fade .5s both}
+.r-photo figcaption{position:absolute;right:8px;bottom:8px;max-width:80%}
+.r-photo figcaption a{display:block;font-size:10px;font-weight:600;color:#fff;background:rgba(0,0,0,.45);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);padding:3px 8px;border-radius:999px;text-decoration:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* Kochmodus: Sprachsteuerung */
+.ck-tool{background:rgba(255,255,255,.1)}
+.ck-tool[aria-pressed="true"]{background:rgba(123,227,166,.35);box-shadow:0 0 0 1px rgba(190,255,215,.5),0 0 18px rgba(123,227,166,.45)}
+#ckMic[aria-pressed="true"]{animation:micPulse 1.6s ease-in-out infinite}
+@keyframes micPulse{50%{box-shadow:0 0 0 6px rgba(123,227,166,.12),0 0 22px rgba(123,227,166,.5)}}
+.ck-voice{position:absolute;left:50%;bottom:calc(92px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);display:flex;align-items:center;gap:10px;padding:8px 16px;border-radius:999px;font-size:14px;font-weight:600;white-space:nowrap;max-width:calc(100% - 40px);overflow:hidden;text-overflow:ellipsis;animation:fade .3s both;z-index:3}
+.ck-voice[hidden]{display:none}
+.ck-mic-dot{width:9px;height:9px;border-radius:50%;background:#7be3a6;box-shadow:0 0 10px #7be3a6;animation:tick 1.2s ease-in-out infinite;flex:none}
+@media (max-height:520px){ .ck-voice{bottom:calc(84px + env(safe-area-inset-bottom,0px));font-size:13px} }
+.week-row{grid-template-columns:58px minmax(0,1fr)}
+.week-row .rc{min-width:0}

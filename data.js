@@ -27,6 +27,18 @@ export const ING = {
 /* Fleisch und Fisch werden automatisch erkannt (für vegetarische Familienmitglieder) */
 export const MEAT = ['hackfleisch','haehnchen','schinken','salami','wuerstchen','rind','schwein','pute','speck'];
 export const FISH = ['lachs','thunfisch','garnelen','fischfilet'];
+/* Kategorien für den Kühlschrank (Reihenfolge = Anzeige) */
+export const CATS = [
+  ['gemuese','🥦','Gemüse',['paprika', 'tomaten', 'zucchini', 'brokkoli', 'spinat', 'champignons', 'zwiebeln', 'knoblauch', 'karotten', 'kartoffeln', 'gurke', 'salat', 'avocado', 'aubergine', 'blumenkohl', 'lauch', 'sellerie', 'kuerbis', 'erbsen', 'gruenebohnen', 'kohl', 'rotkohl', 'suesskartoffel', 'fruehlingszwiebeln', 'chili', 'ingwer', 'kraeuter']],
+  ['obst','🍎','Obst',['zitrone', 'apfel', 'banane', 'beeren']],
+  ['fleisch','🥩','Fleisch & Fisch',['hackfleisch', 'haehnchen', 'pute', 'rind', 'schwein', 'schinken', 'speck', 'salami', 'wuerstchen', 'lachs', 'fischfilet', 'garnelen']],
+  ['milch','🥛','Milch, Käse & Eier',['eier', 'milch', 'butter', 'sahne', 'schmand', 'joghurt', 'quark', 'frischkaese', 'kaese', 'mozzarella', 'feta', 'parmesan']],
+  ['kuehl','🧊','Kühlregal',['tofu', 'gnocchi', 'blaetterteig']],
+  ['getreide','🍝','Nudeln, Reis & Brot',['nudeln', 'reisnudeln', 'lasagne', 'reis', 'couscous', 'quinoa', 'haferflocken', 'brot', 'broetchen', 'tortillas']],
+  ['dose','🥫','Dosen & Gläser',['passierte', 'tomatenmark', 'kokosmilch', 'linsen', 'kichererbsen', 'kidney', 'weissebohnen', 'mais', 'thunfisch', 'oliven', 'ananas']],
+  ['backen','🧁','Backen & Süßes',['mehl', 'hefe', 'backpulver', 'paniermehl', 'honig', 'schokolade', 'nuesse', 'erdnussbutter']],
+  ['wuerz','🧂','Soßen & Würzen',['sojasosse', 'currypaste', 'pesto', 'senf']],
+];
 export const ingName = k => ING[k] ? ING[k][0] : k;
 export const ingEmoji = k => ING[k] ? ING[k][1] : '•';
 
