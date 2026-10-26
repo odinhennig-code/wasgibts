@@ -383,7 +383,7 @@ function viewFridge(){
       <div class="seg mini" role="group"><button data-action="fonly" data-v="all" aria-pressed="${!onlyHave}">Alle</button><button data-action="fonly" data-v="have" aria-pressed="${onlyHave}">Da</button></div></div>
     ${recent.length && !onlyHave ? `<div class="h2">🕘 Zuletzt benutzt</div><div class="chips">${recent.map(chip).join('')}</div>` : ''}
     ${cats || `<div class="card empty"><div class="g">🔍</div><b>Nichts gefunden</b>${q ? `<button class="btn btn-line btn-block" style="margin-top:12px" data-action="shop-free" data-v="${esc(UI.fq)}">„${esc(UI.fq)}" auf die Einkaufsliste</button>` : 'Tipp oben auf „Alle".'}</div>`}
-    <button class="btn btn-line btn-block" style="margin-top:16px" data-action="expiry">📅 Haltbarkeit eintragen</button>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:16px"><button class="btn btn-line" data-action="exp-photo">📷 MHD fotografieren</button><button class="btn btn-line" data-action="expiry">📅 Haltbarkeit</button></div>
     <p class="muted" style="font-size:13px;margin-top:12px">Salz, Pfeffer, Öl, Zucker und Gewürze setzen wir als vorhanden voraus.</p>
     <button class="btn btn-line btn-block" style="margin-top:6px" data-action="clear-fridge">Alles abwählen</button>`;
   UI.justAdded = null; return html;
@@ -532,8 +532,9 @@ function viewFamily(){
 }
 
 /* ---------- Reiter „Mehr" ---------- */
-const VERSION = '2.1';
+const VERSION = '2.2';
 const CHANGELOG = [
+  { v:'2.2', d:'26. Oktober 2026', items:['Neu: Haltbarkeitsdatum fotografieren – die App liest Datum und Produkt von der Verpackung und trägt beides ein','Erkanntes Produkt lässt sich mit einem Tipp ändern oder selbst eintippen','Die App sagt direkt, wo es hingehört: Kühlschrank, Vorrat oder kühl & dunkel','Ist das Produkt noch nicht im Kühlschrank, wird es automatisch hinzugefügt','Warnung, wenn etwas bald oder schon abgelaufen ist'] },
   { v:'2.1', d:'26. Oktober 2026', items:['Behoben: Kühlschrank-Foto gab auf, sobald bei einem KI-Modell das Tageslimit voll war – jetzt werden automatisch weitere Modelle versucht','Behoben: Foto aus der Einkaufsliste heraus führte zu keinem Ergebnis','Bei Problemen mit dem Foto zeigt die App jetzt einen genauen Hinweis und meldet den Fehler automatisch','Oberer Rand: farbiger Kopfbereich reicht jetzt bis ganz nach oben hinter Uhrzeit und Dynamic Island','Neu: Plus-Karte unter „Mehr" und Plus-Tipps im Kühlschrank, in der Einkaufsliste und im Wochenplan'] },
   { v:'2.0', d:'26. Oktober 2026', items:['Neu: Einkaufsliste für die ganze Familie – live, mit Vorschlägen beim Tippen; Abgehaktes landet automatisch im Kühlschrank','Neu: Im Rezept „Fehlende Zutaten auf die Einkaufsliste" mit einem Tipp','Neu: Wochenplan unter „Planen" – die App füllt die Woche abwechslungsreich, alles lässt sich tauschen','Neu: „Heute auf dem Plan" steht ganz oben auf der Startseite','Neu: Kühlschrank mit Suche, 9 Kategorien, „Zuletzt benutzt" und Filter „Nur was da ist"','Neu: Echte Food-Fotos von Wikipedia mit Urheberangabe – ohne passendes Foto bleibt das Emoji','Neu: Sprachsteuerung im Kochmodus („Weiter", „Zurück", „Nochmal", „Timer zehn Minuten") und Schritte vorlesen','Startseite aufgeräumt: Wer isst mit, Zeit und Lust in einer kompakten Karte'] },
   { v:'1.9', d:'26. Oktober 2026', items:['Neu: Kochmodus im Liquid-Glass-Design – klare Glasflächen, große Schrift, ruhige Uhr','Der Hintergrund leuchtet passend zum Schritt: orange beim Braten, blau beim Kochen, rot beim Backen','Weiche Übergänge zwischen den Schritten statt hartem Springen','Schlanker Fortschrittsbalken und Timer mit pulsierendem Punkt'] },
@@ -783,6 +784,8 @@ document.addEventListener('input', e => {
   else if (id === 'fsearch'){ UI.fq = e.target.value; render(); }
   else if (id === 'shopIn'){ UI.sq = e.target.value; render(); }
   else if (id === 'planSearch'){ UI.pq = e.target.value; refreshSheet(); }
+  else if (id === 'expQ'){ UI.expQ = e.target.value; refreshSheet(); }
+  else if (id === 'expDate' && UI.expScan){ UI.expScan.date = e.target.value; refreshSheet(); }
 });
 document.addEventListener('submit', async e => {
   if (e.target.id === 'authForm') onAuth(e);
@@ -922,7 +925,8 @@ function openExpiry(){
   sheetFn = null;
   const items = D.fridge.filter(k => ING[k]);
   openSheet(`${sheetHead('Haltbarkeit')}
-    <p class="muted" style="margin-top:-6px">Trag ein, bis wann etwas haltbar ist. Die App schlägt dann zuerst Gerichte vor, die es aufbrauchen.</p>
+    <button class="photo-card" data-action="exp-photo" style="margin-bottom:12px"><span class="cam">${I.cam}</span><span style="flex:1"><b style="font-size:17px">Datum fotografieren</b><br><span style="opacity:.9;font-size:14px">Foto vom Haltbarkeitsdatum – Produkt und Datum werden automatisch eingetragen</span></span></button>
+    <p class="muted" style="margin-top:-2px">Oder trag es selbst ein. Die App schlägt dann zuerst Gerichte vor, die es aufbrauchen.</p>
     ${items.length ? `<div class="list">${items.map(k => `<label class="row" for="exp-${k}"><span style="font-size:22px">${ingEmoji(k)}</span><span class="grow"><b>${ingName(k)}</b></span><input id="exp-${k}" class="input date" type="date" value="${esc(D.expiries[k]||'')}"></label>`).join('')}</div>
     <button class="btn btn-herb btn-block" style="margin-top:16px" data-action="save-expiry">Speichern</button>` : `<div class="card empty"><div class="g">🧊</div><b>Kühlschrank ist leer</b>Wähle zuerst aus, was da ist.</div>`}`);
 }
@@ -1231,6 +1235,76 @@ async function handlePhoto(file){
   }
 }
 $('#photoInput').addEventListener('change', e => { const f = e.target.files[0]; e.target.value=''; if (f) handlePhoto(f); });
+$('#expInput').addEventListener('change', e => { const f = e.target.files[0]; e.target.value=''; if (f) handleExpiryPhoto(f); });
+
+/* ---------- Haltbarkeitsdatum per Foto ----------
+   Die KI liest Datum und Produkt von der Verpackung. Danach kann man das Produkt
+   korrigieren, und die App sagt, wo es hingehört (Kühlschrank oder Vorrat). */
+const NOT_COLD = ['kartoffeln','zwiebeln','knoblauch','banane','suesskartoffel','kuerbis','brot','broetchen','tortillas'];
+function storageOf(k){
+  if (!ING[k]) return null;
+  if (ING[k][2] === 'v') return ['🗄️', 'Vorrat', 'Gehört in den Vorratsschrank'];
+  if (NOT_COLD.includes(k)) return ['🧺', 'Kühl & dunkel', 'Nicht in den Kühlschrank – kühl und dunkel lagern'];
+  return ['🧊', 'Kühlschrank', 'Gehört in den Kühlschrank'];
+}
+const fmtDate = iso => { const d = new Date(iso + 'T12:00:00'); return d.toLocaleDateString('de-DE', { day:'numeric', month:'long', year:'numeric' }); };
+function guessKey(text){
+  const q = String(text || '').toLowerCase(); if (!q) return null;
+  return Object.keys(ING).find(k => q.includes(ING[k][0].toLowerCase())) || Object.keys(ING).find(k => ING[k][0].toLowerCase().includes(q.split(/\s+/)[0])) || null;
+}
+async function handleExpiryPhoto(file){
+  sheetFn = null; const url = URL.createObjectURL(file);
+  UI.expScan = { url, loading:true }; UI.expQ = '';
+  openSheet(`${sheetHead('Haltbarkeit erkennen')}<div class="exp-photo"><img src="${url}" alt="Foto der Verpackung"><div class="exp-scanline"></div></div>
+    <p class="muted" style="display:flex;gap:8px;align-items:center;justify-content:center;margin-top:14px"><span class="spin"></span> Datum und Produkt werden gelesen …</p>`);
+  try {
+    let image; try { image = await shrink(file); } catch(err){ throw { code:'failed', detail:'Bild konnte nicht gelesen werden' }; }
+    const { data, error } = await sb.functions.invoke('scan-fridge', { body: { image, mediaType:'image/jpeg', keys:Object.keys(ING), mode:'expiry', today:isoDay(new Date()) } });
+    if (error || !data) throw { code:'failed', detail: error && error.message };
+    if (data.error) throw { code:data.error, detail:data.detail };
+    const ex = data.expiry || {};
+    const product = ex.product || guessKey(ex.label);
+    UI.expScan = { url, date: ex.date, raw: ex.raw, label: ex.label, product, editing: !product };
+    UI.expQ = product ? '' : (ex.label || '');
+    buzz([15,30,15]); openExpScan();
+  } catch(e){
+    const msg = { limit:'😴 Die Foto-Erkennung macht für heute Pause. Trag das Datum bis morgen bitte von Hand ein.', auth:'Bitte melde dich neu an.' }[e && e.code] || 'Das hat nicht geklappt. Achte darauf, dass das Datum scharf und gut beleuchtet im Bild ist.';
+    UI.expScan = { url, date:null, product:null, editing:true, failed:msg }; openExpScan();
+  }
+}
+function openExpScan(keep){
+  sheetFn = k => openExpScan(k);
+  const x = UI.expScan || {}, k = x.product, st = storageOf(k), q = (UI.expQ || '').trim().toLowerCase();
+  const left = x.date ? Math.round((new Date(x.date + 'T12:00:00') - new Date(isoDay(new Date()) + 'T12:00:00')) / 864e5) : null;
+  const sugg = q ? Object.keys(ING).filter(key => ING[key][0].toLowerCase().includes(q)).slice(0, 8)
+                 : Object.keys(ING).filter(key => D.fridge.includes(key) && !D.expiries[key]).slice(0, 8);
+  openSheet(`${sheetHead('Haltbarkeit')}
+    <div class="exp-photo sm"><img src="${esc(x.url||'')}" alt="Foto der Verpackung">${x.raw ? `<span class="exp-raw">📷 „${esc(x.raw)}"</span>` : ''}</div>
+    ${x.failed ? `<div class="card" style="margin:12px 0;background:var(--yolk-soft)">${esc(x.failed)}</div>` : ''}
+    <div class="h2">Was ist das?</div>
+    ${k && !x.editing ? `<div class="exp-prod"><span class="exp-em">${ingEmoji(k)}</span><span class="grow"><b>${esc(ingName(k))}</b>${x.label && x.label.toLowerCase() !== ingName(k).toLowerCase() ? `<small>Auf der Packung: ${esc(x.label)}</small>` : ''}</span><button class="btn btn-ghost btn-sm" data-action="exp-edit">Ändern</button></div>
+      <div class="exp-store"><span>${st[0]}</span><span><b>${st[1]}</b><small>${st[2]}${D.fridge.includes(k) ? '' : ' · wird beim Eintragen hinzugefügt'}</small></span></div>`
+    : `<input id="expQ" class="input" placeholder="Produkt eingeben, z. B. Joghurt" value="${esc(UI.expQ||'')}" autocomplete="off">
+      <div class="chips" style="margin-top:10px">${sugg.map(key => `<button class="ing" data-action="exp-pick" data-k="${key}" aria-pressed="${key===k}">${ING[key][1]} ${ING[key][0]}</button>`).join('') || `<span class="muted" style="font-size:13px">Nichts gefunden – versuch einen allgemeineren Begriff, z. B. „Käse" statt „Gouda".</span>`}</div>`}
+    <div class="h2">Haltbar bis</div>
+    <input id="expDate" class="input date" type="date" value="${esc(x.date||'')}">
+    ${left !== null ? `<div class="exp-left ${left < 0 ? 'bad' : left <= 2 ? 'warn' : ''}">${left < 0 ? `⚠️ Seit ${-left} ${-left===1?'Tag':'Tagen'} abgelaufen – lieber prüfen` : left === 0 ? '⏰ Läuft heute ab – heute verbrauchen!' : left === 1 ? '⏰ Läuft morgen ab' : `✓ Noch ${left} Tage haltbar · ${fmtDate(x.date)}`}</div>`
+      : `<div class="exp-left warn">${x.loading ? '' : 'Kein Datum erkannt – bitte selbst eintragen.'}</div>`}
+    <button class="btn btn-herb btn-block" style="margin-top:16px" data-action="exp-save" ${k ? '' : 'disabled'}>✓ Eintragen</button>
+    <button class="btn btn-block" style="background:none;color:var(--muted);margin-top:4px" data-action="exp-photo">📷 Neues Foto</button>`, keep);
+}
+function saveExpScan(){
+  const x = UI.expScan || {}, k = x.product, date = ($('#expDate') && $('#expDate').value) || x.date;
+  if (!k){ toast('Bitte wähle zuerst, was es ist'); return; }
+  if (!date){ toast('Bitte trag das Datum ein'); $('#expDate') && $('#expDate').focus(); return; }
+  const added = !D.fridge.includes(k);
+  if (added) D.fridge = [...D.fridge, k];
+  D.expiries[k] = date; saveFridgeSoon();
+  L.recentIng = [k, ...(L.recentIng||[]).filter(y => y !== k)].slice(0, 12); saveLocal();
+  const st = storageOf(k);
+  UI.expScan = null; closeSheet(); if (UI.tab === 'fridge') render(); else go('fridge');
+  buzz([20,40,20]); toast(`${ingEmoji(k)} ${ingName(k)} bis ${fmtDate(date)} · ${st[1]}${added ? ' – hinzugefügt' : ''}`);
+}
 
 /* ---------- Effekte ---------- */
 const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -1303,6 +1377,10 @@ document.addEventListener('click', async e => {
       render(); break; }
     case 'clear-fridge': D.fridge=[]; D.expiries={}; saveFridgeSoon(); render(); toast('Alles abgewählt'); break;
     case 'photo': $('#photoInput').click(); break;
+    case 'exp-photo': $('#expInput').click(); break;
+    case 'exp-pick': UI.expScan.product = t.dataset.k; UI.expScan.editing = false; UI.expQ = ''; buzz(8); openExpScan(true); break;
+    case 'exp-edit': UI.expScan.editing = true; UI.expQ = UI.expScan.label || ''; openExpScan(true); setTimeout(() => { const i = $('#expQ'); if (i){ i.focus(); i.select(); } }, 50); break;
+    case 'exp-save': saveExpScan(); break;
     case 'rtab': UI.rtab=t.dataset.v; UI.rlimit=30; buzz(6); render(); break;
     case 'edit-prefs': if (id===D.user.id) openPrefs(); else toast(`Nur ${prof(id).name} kann das eigene Profil ändern`); break;
     case 'set-av': document.querySelectorAll('[data-action=set-av]').forEach(b=>b.setAttribute('aria-pressed', b===t)); buzz(6); updateProfile({ avatar:t.dataset.v }); render(); break;

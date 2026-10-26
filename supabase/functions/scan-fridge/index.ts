@@ -30,11 +30,18 @@ Deno.serve(async (req) => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return json({ error: "auth" });
 
-    const { image, mediaType, keys } = await req.json();
+    const { image, mediaType, keys, mode, today } = await req.json();
+    const expiry = mode === "expiry";
     if (!image || !Array.isArray(keys)) return json({ error: "failed", detail: "Bild fehlt" });
     if (image.length > 6_000_000) return json({ error: "failed", detail: "Bild zu groß" });
 
-    const prompt =
+    const prompt = expiry ?
+      "Das Foto zeigt eine Lebensmittel-Verpackung, meistens mit Mindesthaltbarkeitsdatum (MHD, 'mindestens haltbar bis', 'zu verbrauchen bis', 'best before', EXP). " +
+      "Heute ist " + String(today || new Date().toISOString().slice(0, 10)) + ". " +
+      "1) Lies das Haltbarkeitsdatum. Formate wie 12.11.26, 12/11/2026, 12.11. oder nur Monat/Jahr (11/2026 = letzter Tag des Monats) sind möglich. Fehlt das Jahr, nimm das nächste passende Datum ab heute. " +
+      "2) Erkenne das Produkt und ordne es EINEM Schlüssel aus dieser Liste zu, falls passend: " + JSON.stringify(keys) + ". " +
+      "Antworte NUR mit JSON in genau dieser Form: {\"date\":\"JJJJ-MM-TT\" oder null, \"product\":\"schlüssel\" oder null, \"label\":\"kurzer Produktname auf Deutsch\" oder null, \"raw\":\"das Datum genau so, wie es auf der Packung steht\" oder null}"
+      :
       "Das Bild zeigt einen Kühlschrank, Vorräte oder Lebensmittel. Welche dieser Zutaten sind sichtbar? " +
       "Antworte NUR mit einem JSON-Array der passenden Schlüssel aus dieser Liste: " + JSON.stringify(keys) +
       '. Beispiel: ["eier","milch"]. Wenn nichts erkennbar ist: []';
@@ -61,7 +68,7 @@ Deno.serve(async (req) => {
         if (!r.ok) { lastDetail = `Gemini ${model}: ${r.status} ${d?.error?.message ?? ""}`; continue; }
         const text = (d?.candidates?.[0]?.content?.parts ?? []).map((p: { text?: string }) => p.text ?? "").join("");
         if (!text){ lastDetail = `Gemini ${model}: leere Antwort ${d?.promptFeedback?.blockReason ?? ""}`; continue; }
-        return json({ items: parse(text, keys), via: model });
+        return json(expiry ? parseExpiry(text, keys) : { items: parse(text, keys), via: model });
       }
     }
 
@@ -80,7 +87,7 @@ Deno.serve(async (req) => {
       });
       if (r.status === 429) limited = true;
       const d = await r.json().catch(() => ({}));
-      if (r.ok) return json({ items: parse(d?.choices?.[0]?.message?.content ?? "", keys), via: "openrouter" });
+      if (r.ok){ const t = d?.choices?.[0]?.message?.content ?? ""; return json(expiry ? parseExpiry(t, keys) : { items: parse(t, keys), via: "openrouter" }); }
       lastDetail = `OpenRouter: ${r.status} ${d?.error?.message ?? ""}`;
     }
 
@@ -94,6 +101,17 @@ function parse(text: string, keys: string[]): string[] {
   const m = text.match(/\[[\s\S]*?\]/);
   if (!m) return [];
   try { return (JSON.parse(m[0]) as unknown[]).map(String).filter((k) => keys.includes(k)); } catch { return []; }
+}
+
+function parseExpiry(text: string, keys: string[]) {
+  const m = text.match(/\{[\s\S]*\}/);
+  let o: Record<string, unknown> = {};
+  try { o = m ? JSON.parse(m[0]) : {}; } catch { o = {}; }
+  const date = typeof o.date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(o.date) && !isNaN(Date.parse(o.date)) ? o.date : null;
+  const product = typeof o.product === "string" && keys.includes(o.product) ? o.product : null;
+  const label = typeof o.label === "string" ? o.label.slice(0, 40) : null;
+  const raw = typeof o.raw === "string" ? o.raw.slice(0, 40) : null;
+  return { expiry: { date, product, label, raw } };
 }
 
 function json(body: unknown) {
