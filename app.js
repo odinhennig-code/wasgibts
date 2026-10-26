@@ -361,8 +361,9 @@ function viewFamily(){
 }
 
 /* ---------- Reiter „Mehr" ---------- */
-const VERSION = '1.8.1';
+const VERSION = '1.8.2';
 const CHANGELOG = [
+  { v:'1.8.2', d:'26. Oktober 2026', items:['Behoben: Das Start-Intro füllt jetzt den ganzen Bildschirm bis ganz oben, auch hinter Uhrzeit und Dynamic Island','Behoben: Das Intro lief manchmal doppelt, wenn sich die App für ein Update neu geladen hat','Behoben: Ein kurzer andersfarbiger Streifen oben während des Intros','Die App nutzt jetzt sicher die volle Bildschirmhöhe'] },
   { v:'1.8.1', d:'26. Oktober 2026', items:['Oberer Rand am iPhone: die Statusleiste hat jetzt dieselbe Farbe wie die App (vorher grüner Streifen in Safari)','Beim Scrollen läuft der Inhalt unter einem leichten Milchglas-Rand durch – Uhrzeit, Akku und Dynamic Island bleiben gut lesbar','Im Kochmodus färbt sich der obere Rand dunkel passend zum Kochbildschirm'] },
   { v:'1.8', d:'25. Oktober 2026', items:['Behoben: Antippen sprang manchmal zurück und wurde nicht gespeichert, wenn gleichzeitig jemand aus der Familie etwas geändert hat','Behoben: Die Seite scrollte nach Änderungen wieder nach oben','Behoben: Halb getippte Texte (z. B. Feedback, Name) gingen verloren','Behoben: Aufgeklappte Hilfe-Fragen klappten von selbst wieder zu','Behoben: Schnelles Antippen von „Wünschen" konnte doppelte Wünsche anlegen','Behoben: Name im Profil wurde beim Schließen mit ✕ nicht gespeichert','Behoben: Suche reagierte nach einiger Zeit mehrfach pro Buchstabe','„Abmelden" fragt jetzt nach, damit man nicht aus Versehen abgemeldet wird','Beim Zurückkehren in die App wird nicht mehr alles neu aufgebaut','Neu: Benachrichtigungen bei neuen Wünschen, Abstimmungen und Beitrittsanfragen','Antippen einer Benachrichtigung öffnet direkt den passenden Reiter','Etwas ruhigeres, schlichteres Design'] },
   { v:'1.7', d:'25. Oktober 2026', items:['Neu: über 580 neue Rezepte – jetzt mehr als 600 insgesamt','45 neue Zutaten, z. B. Rind, Pute, Garnelen, Kürbis, Gnocchi, Blätterteig und Pesto','Vorschläge zeigen weiterhin nur, was zu euch und eurem Kühlschrank passt','Morgens kommen Frühstücksideen zuerst, Desserts werden nie zum Hauptvorschlag','„Alle" zeigt zuerst die passendsten 30 Rezepte, die Suche durchsucht alle','Hinweis „weglassen" jetzt auch für Fleisch, Fisch und Allergene bei optionalen Zutaten'] },
@@ -1070,7 +1071,7 @@ $('#views').addEventListener('touchend', e=>{ if(!D.user || !isActive()) return;
 /* ---------- Farbschema ---------- */
 function applyTheme(){ const r=document.documentElement, th=L.theme||'system'; if(th==='system') r.removeAttribute('data-theme'); else r.setAttribute('data-theme', th);
   /* Oberer Rand (Statusleiste / Safari-Leiste) in derselben Farbe wie die App */
-  const bg = UI.cook ? '#0f1d14' : getComputedStyle(r).getPropertyValue('--bg').trim();
+  const bg = r.classList.contains('splashing') ? '#1f5a37' : UI.cook ? '#0f1d14' : getComputedStyle(r).getPropertyValue('--bg').trim();
   if (bg && applyTheme.last !== bg){ applyTheme.last = bg; document.querySelectorAll('meta[name=theme-color]').forEach(m => { if (th !== 'system') m.removeAttribute('media'); m.setAttribute('content', bg); }); } }
 window.matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change', () => applyTheme());
 
@@ -1089,11 +1090,15 @@ const tickClock = () => { const d=new Date(); $('#clock').textContent=d.getHours
 setInterval(tickClock, 1000); tickClock();
 
 /* ---------- Start-Intro ---------- */
-(() => { const sp = $('#splash'); if (!sp) return;
-  const hide = () => { sp.classList.add('gone'); };
-  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches){ hide(); return; }
-  sp.addEventListener('animationend', e => { if (e.animationName === 'spOut') hide(); });
-  sp.addEventListener('click', hide); setTimeout(hide, 3200); })();
+(() => { const sp = $('#splash'), root = document.documentElement; if (!sp) return;
+  let done = false;
+  const hide = () => { if (done) return; done = true; sp.classList.add('gone'); root.classList.remove('splashing'); applyTheme.last = null; applyTheme(); };
+  // Nur beim ersten Öffnen zeigen – nicht noch einmal, wenn die App sich für ein Update kurz neu lädt
+  let seen = false; try { seen = !!sessionStorage.getItem('wg.splash'); sessionStorage.setItem('wg.splash', '1'); } catch(e){}
+  if (seen || window.matchMedia('(prefers-reduced-motion: reduce)').matches){ hide(); return; }
+  root.classList.add('splashing'); applyTheme();   // oberer Rand grün wie das Intro
+  sp.addEventListener('animationend', e => { if (e.target === sp && e.animationName === 'spOut') hide(); });
+  sp.addEventListener('click', hide); setTimeout(hide, 3000); })();
 
 /* ---------- Start ---------- */
 /* Neue Versionen automatisch laden: sobald ein neuer Service Worker übernimmt, einmal neu laden */
