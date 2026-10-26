@@ -361,8 +361,9 @@ function viewFamily(){
 }
 
 /* ---------- Reiter „Mehr" ---------- */
-const VERSION = '1.8.2';
+const VERSION = '1.9';
 const CHANGELOG = [
+  { v:'1.9', d:'26. Oktober 2026', items:['Neu: Kochmodus im Liquid-Glass-Design – klare Glasflächen, große Schrift, ruhige Uhr','Der Hintergrund leuchtet passend zum Schritt: orange beim Braten, blau beim Kochen, rot beim Backen','Weiche Übergänge zwischen den Schritten statt hartem Springen','Schlanker Fortschrittsbalken und Timer mit pulsierendem Punkt'] },
   { v:'1.8.2', d:'26. Oktober 2026', items:['Behoben: Das Start-Intro füllt jetzt den ganzen Bildschirm bis ganz oben, auch hinter Uhrzeit und Dynamic Island','Behoben: Das Intro lief manchmal doppelt, wenn sich die App für ein Update neu geladen hat','Behoben: Ein kurzer andersfarbiger Streifen oben während des Intros','Die App nutzt jetzt sicher die volle Bildschirmhöhe'] },
   { v:'1.8.1', d:'26. Oktober 2026', items:['Oberer Rand am iPhone: die Statusleiste hat jetzt dieselbe Farbe wie die App (vorher grüner Streifen in Safari)','Beim Scrollen läuft der Inhalt unter einem leichten Milchglas-Rand durch – Uhrzeit, Akku und Dynamic Island bleiben gut lesbar','Im Kochmodus färbt sich der obere Rand dunkel passend zum Kochbildschirm'] },
   { v:'1.8', d:'25. Oktober 2026', items:['Behoben: Antippen sprang manchmal zurück und wurde nicht gespeichert, wenn gleichzeitig jemand aus der Familie etwas geändert hat','Behoben: Die Seite scrollte nach Änderungen wieder nach oben','Behoben: Halb getippte Texte (z. B. Feedback, Name) gingen verloren','Behoben: Aufgeklappte Hilfe-Fragen klappten von selbst wieder zu','Behoben: Schnelles Antippen von „Wünschen" konnte doppelte Wünsche anlegen','Behoben: Name im Profil wurde beim Schließen mit ✕ nicht gespeichert','Behoben: Suche reagierte nach einiger Zeit mehrfach pro Buchstabe','„Abmelden" fragt jetzt nach, damit man nicht aus Versehen abgemeldet wird','Beim Zurückkehren in die App wird nicht mehr alles neu aufgebaut','Neu: Benachrichtigungen bei neuen Wünschen, Abstimmungen und Beitrittsanfragen','Antippen einer Benachrichtigung öffnet direkt den passenden Reiter','Etwas ruhigeres, schlichteres Design'] },
@@ -733,7 +734,7 @@ function sceneFor(txt, r){
     season: '<span class="sc-grains"><i></i><i></i><i></i><i></i><i></i><i></i></span>',
     knead: '', rest: '', serve: '<span class="sc-sparkle"><i>✨</i><i>✨</i><i>✨</i></span>', idle: '',
   }[kind];
-  return `<div class="scene sc-${kind}"><div class="sc-stage">${extra}<span class="sc-main">${icon}</span>${drop}</div><div class="sc-label">${label}</div></div>`;
+  return { kind, label, html: `<div class="scene sc-${kind}"><div class="sc-stage">${extra}<span class="sc-main">${icon}</span>${drop}</div></div>` };
 }
 
 function openCook(id){
@@ -748,29 +749,43 @@ function openCook(id){
 function tickCookClock(){ const el = $('#cookClock'); if (!el) return; const d = new Date(); el.textContent = d.getHours() + ':' + String(d.getMinutes()).padStart(2,'0'); }
 function renderCook(first){
   const c = UI.cook, r = rec(c.id); if (!r) return;
-  const n = r.s.length, txt = r.s[c.step] || '', mins = stepMinutes(txt), last = c.step === n - 1;
-  $('#overlay').innerHTML = `<div class="cook ${first?'enter':''} ${UI.cookForce?'force':''}" role="dialog" aria-label="Kochmodus">
-    <div class="cook-top">
-      <button class="cook-x" data-action="cook-close" aria-label="Kochmodus beenden">${I.x}</button>
-      <div class="cook-title"><span>KOCHMODUS</span><b>${r.e} ${esc(r.n)}</b></div>
-      <span id="cookTimer" class="cook-timer" ${UI.timer?'':'hidden'}></span>
-      <div id="cookClock" class="cook-clock"></div>
-    </div>
-    <div class="cook-dots">${r.s.map((_,k)=>`<i class="${k<c.step?'done':k===c.step?'now':''}"></i>`).join('')}</div>
-    <div class="cook-main ${c.dir<0?'back':''}" key="${c.step}">
-      ${sceneFor(txt, r)}
-      <div class="cook-copy">
-        <div class="cook-num">Schritt ${c.step+1}<small> / ${n}</small></div>
-        <div class="cook-text">${esc(txt)}</div>
-        ${mins ? `<button class="cook-tbtn" data-action="timer" data-v="${mins}">⏱ ${mins}-Minuten-Timer starten</button>` : ''}
-      </div>
-    </div>
-    <div class="cook-nav">
-      <button class="cook-btn prev" data-action="cook-prev" ${c.step===0?'disabled':''} aria-label="Zurück">◀ Zurück</button>
-      ${last ? `<button class="cook-btn next done" data-action="cook-done">Fertig! 🍽️</button>` : `<button class="cook-btn next" data-action="cook-next">Weiter ▶</button>`}
-    </div>
-    <div class="rotate"><div class="rot-phone"><span></span></div><b>Bitte dreh dein Handy</b><p>Im Querformat siehst du alles groß und hast die Hände frei.</p><button class="linkbtn" data-action="cook-force">Drehen geht nicht? Im Hochformat weiter</button></div>
-  </div>`;
+  const n = r.s.length, txt = r.s[c.step] || '', mins = stepMinutes(txt), last = c.step === n - 1, sc = sceneFor(txt, r);
+  const pct = Math.round((c.step + 1) / n * 100);
+  const stepHTML = `
+      <div class="ck-orb glass">${sc.html}</div>
+      <div class="ck-copy">
+        <div class="ck-kicker"><span class="ck-pill">${sc.label}</span></div>
+        <p class="ck-text">${esc(txt)}</p>
+        ${mins ? `<button class="ck-tbtn glass" data-action="timer" data-v="${mins}"><span class="ck-tdot"></span>${mins}-Minuten-Timer starten</button>` : ''}
+      </div>`;
+  const navHTML = `
+      <button class="ck-prev glass" data-action="cook-prev" ${c.step===0?'disabled':''} aria-label="Zurück">‹<span>Zurück</span></button>
+      ${last ? `<button class="ck-next glass tint gold" data-action="cook-done">Fertig <span>🍽️</span></button>` : `<button class="ck-next glass tint" data-action="cook-next">Weiter <span class="ck-arrow">›</span></button>`}`;
+  const shell = $('.cook');
+  if (first || !shell){
+    $('#overlay').innerHTML = `<div class="cook tone-${sc.kind} ${first?'enter':''} ${UI.cookForce?'force':''}" role="dialog" aria-label="Kochmodus">
+      <div class="ck-aura" aria-hidden="true"><i></i><i></i><i></i></div>
+      <header class="ck-top glass">
+        <button class="ck-icon" data-action="cook-close" aria-label="Kochmodus beenden">${I.x}</button>
+        <div class="ck-title"><b>${r.e} ${esc(r.n)}</b><span id="ckStepTxt">Schritt ${c.step+1} von ${n}</span></div>
+        <span id="cookTimer" class="ck-timer" ${UI.timer?'':'hidden'}></span>
+        <div id="cookClock" class="ck-clock"></div>
+        <div class="ck-bar"><i id="ckBar" style="width:${pct}%"></i></div>
+      </header>
+      <main class="ck-main in" id="ckMain">${stepHTML}</main>
+      <nav class="ck-nav" id="ckNav">${navHTML}</nav>
+      <div class="rotate"><div class="ck-aura" aria-hidden="true"><i></i><i></i><i></i></div><div class="rot-card glass"><div class="rot-phone"><span></span></div><b>Bitte dreh dein Handy</b><p>Im Querformat siehst du alles groß und hast die Hände frei.</p><button class="linkbtn" data-action="cook-force">Drehen geht nicht? Im Hochformat weiter</button></div></div>
+    </div>`;
+  } else {
+    // Weicher Wechsel: alter Schritt gleitet raus, neuer gleitet rein
+    shell.className = shell.className.replace(/tone-\S+/, 'tone-' + sc.kind);
+    $('#ckBar').style.width = pct + '%'; $('#ckStepTxt').textContent = `Schritt ${c.step+1} von ${n}`;
+    $('#ckNav').innerHTML = navHTML;
+    const main = $('#ckMain'), old = main.cloneNode(true);
+    old.removeAttribute('id'); old.className = 'ck-main out ' + (c.dir < 0 ? 'back' : '');
+    main.parentNode.insertBefore(old, main); setTimeout(() => old.remove(), 320);
+    main.innerHTML = stepHTML; main.className = 'ck-main in ' + (c.dir < 0 ? 'back' : ''); void main.offsetWidth;
+  }
   tickCookClock(); tickTimer();
 }
 function beep(){
@@ -781,7 +796,7 @@ function beep(){
 function tickTimer(){
   const el = $('#cookTimer'); if (!UI.timer){ if (el) el.hidden = true; return; }
   const left = Math.max(0, UI.timer.end - Date.now()), m = Math.floor(left/60e3), sec = Math.floor(left%60e3/1e3);
-  if (el){ el.hidden = false; el.textContent = `⏱ ${m}:${String(sec).padStart(2,'0')}`; }
+  if (el){ el.hidden = false; el.innerHTML = `<i></i>${m}:${String(sec).padStart(2,'0')}`; }
   if (left <= 0){ clearInterval(timerT); UI.timer = null; beep(); buzz([300,150,300,150,300]); toast('⏰ Die Zeit ist um!'); if (el) el.hidden = true; }
 }
 function closeCook(){
