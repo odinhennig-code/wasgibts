@@ -378,6 +378,7 @@ function viewFridge(){
   const html = header('Was ist da?', `${D.fridge.length} Zutaten · für alle sichtbar`) + tabs +
     `<button class="photo-card" data-action="photo"><span class="cam">${I.cam}</span><span style="flex:1"><b style="font-size:17px">Kühlschrank fotografieren</b><br><span style="opacity:.9;font-size:14px">Die App erkennt deine Zutaten automatisch</span></span></button>
     <div id="scanArea"></div>
+    ${plusHint('fridge')}
     <div class="fbar"><input id="fsearch" class="input" type="search" placeholder="Zutat suchen …" value="${esc(UI.fq||'')}" aria-label="Zutat suchen" autocomplete="off">
       <div class="seg mini" role="group"><button data-action="fonly" data-v="all" aria-pressed="${!onlyHave}">Alle</button><button data-action="fonly" data-v="have" aria-pressed="${onlyHave}">Da</button></div></div>
     ${recent.length && !onlyHave ? `<div class="h2">🕘 Zuletzt benutzt</div><div class="chips">${recent.map(chip).join('')}</div>` : ''}
@@ -402,7 +403,8 @@ function viewShopping(){
     ${open.length ? `<div class="card list-card">${open.map(row).join('')}</div>`
       : `<div class="card empty"><div class="g">🛒</div><b>Die Liste ist leer</b>Füge oben etwas hinzu – oder tippe in einem Rezept auf „Fehlende Zutaten auf die Einkaufsliste".</div>`}
     ${done.length ? `<div class="h2">Erledigt <button class="linkbtn" data-action="shop-clear">Löschen</button></div><div class="card list-card">${done.map(row).join('')}</div>` : ''}
-    <p class="muted" style="font-size:13px;margin-top:14px">Abgehakte Zutaten landen automatisch im Kühlschrank.</p>`;
+    <p class="muted" style="font-size:13px;margin-top:14px">Abgehakte Zutaten landen automatisch im Kühlschrank.</p>
+    ${plusHint('shop')}`;
 }
 /* Zutaten, die für geplante Gerichte fehlen (nicht im Kühlschrank, nicht auf der Liste) */
 function plannedMissing(){
@@ -460,6 +462,7 @@ function viewWeek(){
       ${empty ? `<button class="btn btn-herb" data-action="plan-fill">✨ ${empty===7?'Woche planen':`${empty} ${empty===1?'Tag':'Tage'} füllen`}</button>` : ''}
       ${miss ? `<button class="btn btn-line" data-action="shop-plan">🛒 ${miss} Zutaten einkaufen</button>` : ''}
     </div>
+    ${plusHint('week')}
     <p class="muted" style="font-size:13px;margin-top:12px">Die App wählt abwechslungsreich: Wünsche zuerst, passend für alle in der Familie, nicht zweimal hintereinander dasselbe Fleisch und höchstens zwei Fastfood-Tage.</p>`;
 }
 function openPlanDay(iso, keep){
@@ -529,8 +532,9 @@ function viewFamily(){
 }
 
 /* ---------- Reiter „Mehr" ---------- */
-const VERSION = '2.0';
+const VERSION = '2.1';
 const CHANGELOG = [
+  { v:'2.1', d:'26. Oktober 2026', items:['Behoben: Kühlschrank-Foto gab auf, sobald bei einem KI-Modell das Tageslimit voll war – jetzt werden automatisch weitere Modelle versucht','Behoben: Foto aus der Einkaufsliste heraus führte zu keinem Ergebnis','Bei Problemen mit dem Foto zeigt die App jetzt einen genauen Hinweis und meldet den Fehler automatisch','Oberer Rand: farbiger Kopfbereich reicht jetzt bis ganz nach oben hinter Uhrzeit und Dynamic Island','Neu: Plus-Karte unter „Mehr" und Plus-Tipps im Kühlschrank, in der Einkaufsliste und im Wochenplan'] },
   { v:'2.0', d:'26. Oktober 2026', items:['Neu: Einkaufsliste für die ganze Familie – live, mit Vorschlägen beim Tippen; Abgehaktes landet automatisch im Kühlschrank','Neu: Im Rezept „Fehlende Zutaten auf die Einkaufsliste" mit einem Tipp','Neu: Wochenplan unter „Planen" – die App füllt die Woche abwechslungsreich, alles lässt sich tauschen','Neu: „Heute auf dem Plan" steht ganz oben auf der Startseite','Neu: Kühlschrank mit Suche, 9 Kategorien, „Zuletzt benutzt" und Filter „Nur was da ist"','Neu: Echte Food-Fotos von Wikipedia mit Urheberangabe – ohne passendes Foto bleibt das Emoji','Neu: Sprachsteuerung im Kochmodus („Weiter", „Zurück", „Nochmal", „Timer zehn Minuten") und Schritte vorlesen','Startseite aufgeräumt: Wer isst mit, Zeit und Lust in einer kompakten Karte'] },
   { v:'1.9', d:'26. Oktober 2026', items:['Neu: Kochmodus im Liquid-Glass-Design – klare Glasflächen, große Schrift, ruhige Uhr','Der Hintergrund leuchtet passend zum Schritt: orange beim Braten, blau beim Kochen, rot beim Backen','Weiche Übergänge zwischen den Schritten statt hartem Springen','Schlanker Fortschrittsbalken und Timer mit pulsierendem Punkt'] },
   { v:'1.8.2', d:'26. Oktober 2026', items:['Behoben: Das Start-Intro füllt jetzt den ganzen Bildschirm bis ganz oben, auch hinter Uhrzeit und Dynamic Island','Behoben: Das Intro lief manchmal doppelt, wenn sich die App für ein Update neu geladen hat','Behoben: Ein kurzer andersfarbiger Streifen oben während des Intros','Die App nutzt jetzt sicher die volle Bildschirmhöhe'] },
@@ -556,14 +560,13 @@ const FAQ = [
 ];
 function viewMore(){
   return header('Mehr', `Version ${VERSION}`) +
+    `<button class="plus-card" data-action="plus"><div class="pc-glow"></div><span class="plus-badge">✨ PLUS</span><b>Mehr für deine Familie</b><span>KI-Rezepte · unbegrenzt Fotos · Wochenplan-Assistent · sortierte Einkaufsliste</span><span class="pc-cta">${L.plusInterest ? '💚 Du bist vorgemerkt' : 'Ansehen und vormerken ›'}</span></button>` +
     `<div class="h2">Hilfe</div>
     ${FAQ.map(([q,a])=>`<details class="faq"><summary>${esc(q)}</summary><p>${esc(a)}</p></details>`).join('')}
     <div class="h2">Darstellung</div>
     <div class="seg" role="group" aria-label="Farbschema">${[['system','System'],['light','Hell'],['dark','Dunkel']].map(([k,l])=>`<button data-action="theme" data-v="${k}" aria-pressed="${(L.theme||'system')===k}">${l}</button>`).join('')}</div>
     <div class="h2">Benachrichtigungen</div>
     <div class="list">${pushRow()}</div>
-    <div class="h2">Was gibt's? Plus</div>
-    <div class="list"><button class="row" data-action="plus"><span style="font-size:22px">✨</span><span class="grow"><b>Plus ansehen</b><small>Bald verfügbar · Alles Bisherige bleibt kostenlos</small></span>${I.chev}</button></div>
     <div class="h2">Kontakt</div>
     <div class="list"><button class="row" data-action="feedback"><span style="font-size:22px">💬</span><span class="grow"><b>Feedback senden</b><small>Fehler melden, Ideen oder Lob</small></span>${I.chev}</button></div>
     <div class="h2">Konto</div>
@@ -815,7 +818,7 @@ async function onSession(session){
   else { UI.auth = UI.auth==='check' ? 'check' : 'login'; D.profile=null; D.membership=null; if (channel){ sb.removeChannel(channel); channel=null; } }
   UI.loading=false; render();
   if (D.user && !D.profile?.banned) syncPush();
-  if (D.user && !UI.counted){ UI.counted = true; trackOpen(); setTimeout(maybePlusPopup, 6000); }
+  if (D.user && !UI.counted){ UI.counted = true; trackOpen(); setTimeout(maybePlusPopup, 8000); }
 }
 
 /* ---------- Sheets ---------- */
@@ -1129,20 +1132,27 @@ function trackOpen(){
   const today = new Date().toISOString().slice(0,10);
   L.opens = (L.opens||0) + 1; L.days = [...new Set([...(L.days||[]), today])].slice(-30); saveLocal();
 }
-function showPlusWidget(){
-  const now = Date.now();
-  if ((L.opens||0) < 3 || (L.plusHideUntil||0) > now) return false;
-  if (!L.plusWidgetDay || now - L.plusWidgetDay > 3*DAY){ L.plusWidgetDay = now; saveLocal(); }
-  return now - L.plusWidgetDay < DAY;   // an diesem einen Tag sichtbar, dann wieder 2 Tage Pause
-}
+function showPlusWidget(){ return !L.plusInterest && (L.plusHideUntil||0) <= Date.now(); }
 function plusWidget(){
-  return `<div class="plus-widget"><span class="pw-ic">✨</span><button class="pw-main" data-action="plus"><b>Was gibt's? Plus</b><small>KI-Rezepte, Wochenplan und mehr für die ganze Familie</small></button><button class="pw-x" data-action="plus-hide" aria-label="Hinweis für 14 Tage ausblenden">✕</button></div>`;
+  return `<div class="plus-widget big"><div class="pw-glow"></div><span class="pw-ic">✨</span><button class="pw-main" data-action="plus"><b>Was gibt's? Plus</b><small>KI-Rezepte, unbegrenzt Fotos, Wochenplan-Assistent – für die ganze Familie</small><span class="pw-cta">Jetzt ansehen ›</span></button><button class="pw-x" data-action="plus-hide" aria-label="Hinweis ausblenden">✕</button></div>`;
+}
+/* Kleine Plus-Hinweise an passenden Stellen */
+const PLUS_HINTS = {
+  fridge: ['📸', 'Mit Plus ohne Tageslimit fotografieren', 'Die KI erkennt beliebig oft, was im Kühlschrank ist.'],
+  week:   ['🤖', 'Mit Plus plant die KI eure Woche', 'Nach eurem Geschmack, mit Resteverwertung und Einkaufsliste nach Gängen im Laden sortiert.'],
+  shop:   ['🧾', 'Plus: Einkaufsliste nach Supermarkt sortiert', 'Gemüse, Kühlregal, Vorrat – so gehst du nur einmal durch den Laden.'],
+  more:   ['👑', 'Hol dir Plus für die ganze Familie', 'Ein Abo für alle. Alles Bisherige bleibt kostenlos.'],
+};
+function plusHint(k){
+  if (!showPlusWidget()) return '';
+  const [e, t, d] = PLUS_HINTS[k];
+  return `<div class="plus-hint"><button class="ph-main" data-action="plus"><span class="ph-ic">${e}</span><span class="grow"><b>${t}</b><small>${d}</small></span><span class="ph-tag">PLUS</span></button><button class="pw-x" data-action="plus-hide" aria-label="Plus-Hinweise ausblenden">✕</button></div>`;
 }
 function maybePlusPopup(){
   const now = Date.now();
   if (UI.cook || $('.sheet') || !D.user || !isActive()) return;
-  if ((L.opens||0) < 5 || (L.days||[]).length < 3) return;
-  if (L.lastPlusPopup && now - L.lastPlusPopup < 21*DAY) return;
+  if ((L.opens||0) < 2 || L.plusInterest) return;
+  if (L.lastPlusPopup && now - L.lastPlusPopup < 4*DAY) return;
   L.lastPlusPopup = now; saveLocal(); openPlus(true);
 }
 function openPlus(popup){
@@ -1192,12 +1202,13 @@ function shrink(file){ // Bild verkleinern, damit es schnell hochlädt
     res(c.toDataURL('image/jpeg', .82).split(',')[1]); }; img.onerror = rej; img.src = URL.createObjectURL(file); });
 }
 async function handlePhoto(file){
-  if (UI.tab!=='fridge'){ UI.tab='fridge'; render(); }
+  if (UI.tab!=='fridge' || UI.ftab==='shop'){ UI.tab='fridge'; UI.ftab='fridge'; render(); }
   const area = $('#scanArea'), url = URL.createObjectURL(file);
+  if (!area) return;
   area.innerHTML = `<div class="scan" style="margin-top:12px"><img src="${url}" alt="Dein Kühlschrank-Foto"></div><p class="muted" style="display:flex;gap:8px;align-items:center;justify-content:center"><span class="spin"></span> Zutaten werden erkannt …</p>`;
   $('#island').classList.add('wide'); const done = () => $('#island').classList.remove('wide');
   try {
-    const image = await shrink(file);
+    let image; try { image = await shrink(file); } catch(err){ throw { code:'failed', detail:'Bild konnte nicht gelesen werden (' + (file.type || 'unbekanntes Format') + ')' }; }
     const { data, error } = await sb.functions.invoke('scan-fridge', { body: { image, mediaType:'image/jpeg', keys: Object.keys(ING) } });
     if (error || !data) throw { code:'failed', detail: error && error.message };
     if (data.error) throw { code: data.error, detail: data.detail };
@@ -1214,7 +1225,9 @@ async function handlePhoto(file){
       nokey: 'Die Foto-Erkennung ist noch nicht eingerichtet. Tipp die Zutaten einfach unten an.',
       auth: 'Bitte melde dich neu an und versuch es dann noch mal.',
     }[e && e.code] || 'Die Erkennung hat gerade nicht geklappt. Probier es noch mal oder tippe die Zutaten unten an.';
-    if (a) a.innerHTML = `<div class="card" style="margin-top:12px">${msg}</div>`;
+    if (a) a.innerHTML = `<div class="card" style="margin-top:12px">${msg}${e && e.detail ? `<div class="muted" style="font-size:11px;margin-top:8px">Technik-Info: ${esc(String(e.detail).slice(0,160))}</div>` : ''}</div>`;
+    // Fehler automatisch im Admin-Panel melden, damit er behoben werden kann
+    if (!e || e.code !== 'limit'){ try { sb.from('feedback').insert({ user_id:D.user.id, kind:'fehler', message:'Automatisch: Foto-Erkennung fehlgeschlagen – ' + ((e && (e.code + ': ' + (e.detail || ''))) || String(e)).slice(0,400), app_version:VERSION }).then(()=>{}, ()=>{}); } catch(err){} }
   }
 }
 $('#photoInput').addEventListener('change', e => { const f = e.target.files[0]; e.target.value=''; if (f) handlePhoto(f); });
@@ -1281,7 +1294,8 @@ document.addEventListener('click', async e => {
         catch(err){ D.wishes = D.wishes.filter(w => w !== tmp); openRecipe(id, true); render(); throw err; } } break; }
     case 'fav': { const f = new Set(D.profile.favs||[]); f.has(id) ? f.delete(id) : (f.add(id), buzz(20)); updateProfile({ favs:[...f] }); openRecipe(id, true); render(); break; }
     case 'cooked': { const r=rec(id); burstAt(t); buzz([20,50,20]); D.wishes = D.wishes.filter(w=>w.recipe_id!==id);
-      setTimeout(()=>{ closeSheet(); render(); }, 450); toast(`Guten Appetit! ${r.e}`);
+      L.cookedCount = (L.cookedCount||0) + 1; saveLocal();
+      setTimeout(()=>{ closeSheet(); render(); if (L.cookedCount % 3 === 0 && !L.plusInterest) setTimeout(() => openPlus(true), 1600); }, 450); toast(`Guten Appetit! ${r.e}`);
       await save(() => sb.from('wishes').delete().eq('family_id', D.family.id).eq('recipe_id', id)); break; }
     case 'ing': { const k=t.dataset.k; D.fridge = D.fridge.includes(k) ? D.fridge.filter(x=>x!==k) : [...D.fridge,k]; saveFridgeSoon(); buzz(6);
       L.recentIng = [k, ...(L.recentIng||[]).filter(x => x !== k)].slice(0, 12); saveLocal();
@@ -1302,7 +1316,7 @@ document.addEventListener('click', async e => {
       openSheet(`${sheetHead('Update-Log')}<div class="card" style="padding:4px 16px">${CHANGELOG.map((c,n)=>`<div class="log"><span class="v">${c.v}</span><div><b>${n===0?'<span class="new-badge">NEU</span> ':''}${c.d}</b><ul>${c.items.map(i=>`<li>${esc(i)}</li>`).join('')}</ul></div></div>`).join('')}</div>`);
       $('[data-action=changelog] .new-badge')?.remove(); break;
     case 'plus': openPlus(false); break;
-    case 'plus-hide': L.plusHideUntil = Date.now() + 14*DAY; saveLocal(); render(); toast('Ausgeblendet für 14 Tage'); break;
+    case 'plus-hide': L.plusHideUntil = Date.now() + 2*DAY; saveLocal(); render(); toast('Plus-Hinweise für 2 Tage ausgeblendet'); break;
     case 'plus-interest': { L.plusInterest = true; saveLocal(); openPlus(false); buzz(20);
       try { await sb.from('feedback').insert({ user_id:D.user.id, kind:'plus', message:'Interesse an Was gibt\'s? Plus', app_version:VERSION }); } catch(err){} break; }
     case 'new-poll': openPollSetup(); break;
@@ -1398,7 +1412,7 @@ $('#views').addEventListener('touchend', e=>{ if(!D.user || !isActive()) return;
 /* ---------- Farbschema ---------- */
 function applyTheme(){ const r=document.documentElement, th=L.theme||'system'; if(th==='system') r.removeAttribute('data-theme'); else r.setAttribute('data-theme', th);
   /* Oberer Rand (Statusleiste / Safari-Leiste) in derselben Farbe wie die App */
-  const bg = r.classList.contains('splashing') ? '#1f5a37' : UI.cook ? '#0f1d14' : getComputedStyle(r).getPropertyValue('--bg').trim();
+  const bg = r.classList.contains('splashing') ? '#1f5a37' : UI.cook ? '#0f1d14' : getComputedStyle(r).getPropertyValue(D.user ? '--band' : '--bg').trim();
   if (bg && applyTheme.last !== bg){ applyTheme.last = bg; document.querySelectorAll('meta[name=theme-color]').forEach(m => { if (th !== 'system') m.removeAttribute('media'); m.setAttribute('content', bg); }); } }
 window.matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change', () => applyTheme());
 

@@ -48,17 +48,19 @@ Deno.serve(async (req) => {
 
     // 1) Gemini – mehrere Modelle der Reihe nach, falls eins nicht verfügbar ist
     if (gemini) {
-      const models = [Deno.env.get("GEMINI_MODEL"), "gemini-2.5-flash", "gemini-flash-latest", "gemini-2.5-flash-lite"].filter(Boolean) as string[];
+      // Jedes Modell hat im kostenlosen Bereich ein EIGENES Tageslimit – deshalb bei 429 das nächste probieren
+      const models = [Deno.env.get("GEMINI_MODEL"), "gemini-2.5-flash", "gemini-2.5-flash-lite", "gemini-flash-latest", "gemini-flash-lite-latest", "gemini-2.0-flash", "gemini-2.0-flash-lite"].filter(Boolean) as string[];
       for (const model of [...new Set(models)]) {
         const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
           method: "POST",
           headers: { "content-type": "application/json", "x-goog-api-key": gemini },
           body: JSON.stringify({ contents: [{ parts: [{ inline_data: { mime_type: mime, data: image } }, { text: prompt }] }] }),
         });
-        if (r.status === 429) { limited = true; lastDetail = "Gemini-Limit erreicht"; break; }
+        if (r.status === 429) { limited = true; lastDetail = `Gemini ${model}: Limit erreicht`; continue; }
         const d = await r.json().catch(() => ({}));
         if (!r.ok) { lastDetail = `Gemini ${model}: ${r.status} ${d?.error?.message ?? ""}`; continue; }
         const text = (d?.candidates?.[0]?.content?.parts ?? []).map((p: { text?: string }) => p.text ?? "").join("");
+        if (!text){ lastDetail = `Gemini ${model}: leere Antwort ${d?.promptFeedback?.blockReason ?? ""}`; continue; }
         return json({ items: parse(text, keys), via: model });
       }
     }
