@@ -434,3 +434,11 @@ details.faq p{margin:0 0 14px;color:var(--muted);font-size:14px}
 .btn:active{transform:scale(.98)}
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .pick{background:#1E5A38}}
 :root[data-theme="dark"] .pick{background:#1E5A38}
+
+/* ---------- Oberer Rand: Inhalt läuft sauber unter Uhrzeit und Dynamic Island durch ---------- */
+#topfade{position:absolute;left:0;right:0;top:0;height:env(safe-area-inset-top,0px);z-index:30;pointer-events:none;
+  background:color-mix(in srgb,var(--bg) 78%,transparent);-webkit-backdrop-filter:blur(14px) saturate(1.4);backdrop-filter:blur(14px) saturate(1.4);
+  opacity:0;transition:opacity .25s}
+#topfade.on{opacity:1}
+.framed #topfade{display:none}
+.cooking #topfade{display:none}

@@ -361,8 +361,9 @@ function viewFamily(){
 }
 
 /* ---------- Reiter „Mehr" ---------- */
-const VERSION = '1.8';
+const VERSION = '1.8.1';
 const CHANGELOG = [
+  { v:'1.8.1', d:'26. Oktober 2026', items:['Oberer Rand am iPhone: die Statusleiste hat jetzt dieselbe Farbe wie die App (vorher grüner Streifen in Safari)','Beim Scrollen läuft der Inhalt unter einem leichten Milchglas-Rand durch – Uhrzeit, Akku und Dynamic Island bleiben gut lesbar','Im Kochmodus färbt sich der obere Rand dunkel passend zum Kochbildschirm'] },
   { v:'1.8', d:'25. Oktober 2026', items:['Behoben: Antippen sprang manchmal zurück und wurde nicht gespeichert, wenn gleichzeitig jemand aus der Familie etwas geändert hat','Behoben: Die Seite scrollte nach Änderungen wieder nach oben','Behoben: Halb getippte Texte (z. B. Feedback, Name) gingen verloren','Behoben: Aufgeklappte Hilfe-Fragen klappten von selbst wieder zu','Behoben: Schnelles Antippen von „Wünschen" konnte doppelte Wünsche anlegen','Behoben: Name im Profil wurde beim Schließen mit ✕ nicht gespeichert','Behoben: Suche reagierte nach einiger Zeit mehrfach pro Buchstabe','„Abmelden" fragt jetzt nach, damit man nicht aus Versehen abgemeldet wird','Beim Zurückkehren in die App wird nicht mehr alles neu aufgebaut','Neu: Benachrichtigungen bei neuen Wünschen, Abstimmungen und Beitrittsanfragen','Antippen einer Benachrichtigung öffnet direkt den passenden Reiter','Etwas ruhigeres, schlichteres Design'] },
   { v:'1.7', d:'25. Oktober 2026', items:['Neu: über 580 neue Rezepte – jetzt mehr als 600 insgesamt','45 neue Zutaten, z. B. Rind, Pute, Garnelen, Kürbis, Gnocchi, Blätterteig und Pesto','Vorschläge zeigen weiterhin nur, was zu euch und eurem Kühlschrank passt','Morgens kommen Frühstücksideen zuerst, Desserts werden nie zum Hauptvorschlag','„Alle" zeigt zuerst die passendsten 30 Rezepte, die Suche durchsucht alle','Hinweis „weglassen" jetzt auch für Fleisch, Fisch und Allergene bei optionalen Zutaten'] },
   { v:'1.6', d:'25. Oktober 2026', items:['Neu: Push-Benachrichtigungen – unter „Mehr" einschalten','Neu: Ankündigungen oben auf „Heute" (lassen sich mit ✕ ausblenden)','Am iPhone: kurze Anleitung, wie die App für Benachrichtigungen auf den Home-Bildschirm kommt','Beim Abmelden bekommt das Handy keine Benachrichtigungen mehr'] },
@@ -537,8 +538,11 @@ function render(){
   const prev = $('#views .view');
   if (!slideDx && prev && prev.dataset.key === key){ const top = prev.scrollTop; morph(prev, v); if (prev.scrollTop !== top) prev.scrollTop = top; }
   else $('#views').innerHTML = `<div class="view" data-tab="${UI.tab}" data-key="${key}" style="${slideDx?`--dx:${slideDx}px;--dy:0px`:''}">${v}</div>`;
-  slideDx = 0;
+  slideDx = 0; syncTopFade();
 }
+/* Beim Scrollen bekommt der obere Rand einen leichten Milchglas-Hintergrund, damit Uhrzeit und Akku lesbar bleiben */
+const syncTopFade = () => { const v = $('#views .view'), f = $('#topfade'); if (f) f.classList.toggle('on', !!v && v.scrollTop > 4); };
+document.addEventListener('scroll', e => { if (e.target.classList && e.target.classList.contains('view')) syncTopFade(); }, true);
 /* Eingaben einmal zentral abfangen (nicht bei jedem Zeichnen neu anhängen) */
 document.addEventListener('input', e => { if (e.target.id === 'search'){ UI.q = e.target.value; UI.rlimit = 30; render(); } });
 document.addEventListener('submit', e => { if (e.target.id === 'authForm') onAuth(e); });
@@ -732,7 +736,7 @@ function sceneFor(txt, r){
 }
 
 function openCook(id){
-  UI.cook = { id, step: 0, dir: 1 }; sheetFn = null;
+  UI.cook = { id, step: 0, dir: 1 }; sheetFn = null; applyTheme();
   try { navigator.wakeLock && navigator.wakeLock.request('screen').then(l => wakeLock = l).catch(()=>{}); } catch(e){}
   // Auf dem Handy: Vollbild und Querformat versuchen (Android). iPhone zeigt den Dreh-Hinweis.
   if (!mq.matches){ try { const el = document.documentElement; (el.requestFullscreen ? el.requestFullscreen() : Promise.reject()).then(() => screen.orientation && screen.orientation.lock && screen.orientation.lock('landscape')).catch(()=>{}); } catch(e){} }
@@ -784,7 +788,7 @@ function closeCook(){
   try { wakeLock && wakeLock.release(); } catch(e){} wakeLock = null;
   try { screen.orientation && screen.orientation.unlock && screen.orientation.unlock(); } catch(e){}
   try { document.fullscreenElement && document.exitFullscreen(); } catch(e){}
-  document.documentElement.classList.remove('cooking'); layout();
+  document.documentElement.classList.remove('cooking'); layout(); applyTheme();
   $('#overlay').innerHTML = '';
 }
 
@@ -1064,7 +1068,11 @@ $('#views').addEventListener('touchend', e=>{ if(!D.user || !isActive()) return;
   if (Math.abs(dx)>70 && Math.abs(dx)>Math.abs(dy)*1.6){ const k=ORDER.indexOf(UI.tab)+(dx<0?1:-1); if(k>=0&&k<ORDER.length) go(ORDER[k]); } }, {passive:true});
 
 /* ---------- Farbschema ---------- */
-function applyTheme(){ const r=document.documentElement, th=L.theme||'system'; if(th==='system') r.removeAttribute('data-theme'); else r.setAttribute('data-theme', th); }
+function applyTheme(){ const r=document.documentElement, th=L.theme||'system'; if(th==='system') r.removeAttribute('data-theme'); else r.setAttribute('data-theme', th);
+  /* Oberer Rand (Statusleiste / Safari-Leiste) in derselben Farbe wie die App */
+  const bg = UI.cook ? '#0f1d14' : getComputedStyle(r).getPropertyValue('--bg').trim();
+  if (bg && applyTheme.last !== bg){ applyTheme.last = bg; document.querySelectorAll('meta[name=theme-color]').forEach(m => { if (th !== 'system') m.removeAttribute('media'); m.setAttribute('content', bg); }); } }
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change', () => applyTheme());
 
 /* ---------- Geräte-Modus: iPhone-Simulator am Computer ---------- */
 const mq = window.matchMedia('(min-width: 820px) and (pointer: fine)');
