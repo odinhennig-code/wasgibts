@@ -696,7 +696,7 @@ function patchEl(a, b){
 /* ---------- Food-Fotos (Wikipedia / Wikimedia Commons, freie Lizenzen) ----------
    Zu jedem Rezept wird einmal ein passendes Foto gesucht und auf dem Gerät gemerkt.
    Ohne Treffer bleibt das Emoji. Urheber und Lizenz stehen im Rezept am Bild. */
-const PH_KEY = 'wasgibts.photos.v1';
+const PH_KEY = 'wasgibts.photos.v2';
 let PH = {}; try { PH = JSON.parse(localStorage.getItem(PH_KEY)) || {}; } catch(e){}
 const phSave = () => { try { localStorage.setItem(PH_KEY, JSON.stringify(PH)); } catch(e){} };
 const phQueue = [], phWait = new Set(), phFail = {}; let phBusy = 0, phT = null;
@@ -719,13 +719,19 @@ function pumpPhotos(){
 async function findPhoto(name){
   const api = 'https://de.wikipedia.org/w/api.php?format=json&formatversion=2&origin=*&';
   const words = name.toLowerCase().replace(/[^a-zäöüß\s-]/g, ' ').split(/[\s-]+/).filter(w => w.length >= 4 && !STOPW.includes(w));
-  const fits = title => { const t = title.toLowerCase(); return words.some(w => t.includes(w.slice(0, Math.max(4, w.length - 2)))); };
-  const tries = [...new Set([name, name.split(/ mit | aus | in | auf | und | vom /i)[0], words[0]].filter(Boolean))];
+  const stem = w => w.slice(0, Math.max(4, w.length - 2));
+  // Erster Versuch: Titel enthält ein Wort aus dem Rezept. Spätere Versuche: Titel muss damit ANFANGEN (sonst kommen Denkmäler o. Ä.)
+  // Artikel über rohe Zutaten oder Tiere zeigen kein Gericht (z. B. „Fische" → Walhai)
+  const RAW = ['fisch','fische','lachs','lachse','haushuhn','huhn','hähnchen','hausrind','rind','hausschwein','schwein','garnelen','truthuhn','pute','linse','linsen','kartoffel','tomate','paprika','zwiebel','möhre','karotte','brokkoli','spinat','zucchini','reis','nudel','nudeln','ei','eier','käse','milch','butter','mehl','zucker','kürbis','apfel','banane','spargel','pilze','champignon','zuchtchampignon'];
+  const fits = (title, strict) => { const t = title.toLowerCase(); if (/\((?!gericht|speise)[^)]*\)/.test(t) || RAW.includes(t)) return false;
+    return words.some(w => strict ? t.startsWith(stem(w)) : t.includes(stem(w))); };
+  const BAD = /logo|karte|map|wappen|flagge|illustration|zeichnung|platz|denkmal|statue|skulptur|brunnen|portrait|portr%C3%A4t|geb%C3%A4ude|stra%C3%9Fe|schild|diagram|chart/i;
+  const tries = [...new Set([name, name.split(/ mit | aus | in | auf | und | vom /i)[0]].filter(Boolean))];
   try {
-    for (const q of tries){
+    for (const [n, q] of tries.entries()){
       const res = await fetch(api + 'action=query&generator=search&gsrnamespace=0&gsrlimit=4&prop=pageimages&piprop=thumbnail|name&pithumbsize=640&gsrsearch=' + encodeURIComponent(q)).then(r => r.json());
       const pages = ((res.query && res.query.pages) || []).sort((a, b) => a.index - b.index);
-      const hit = pages.find(p => p.thumbnail && p.pageimage && !/\.(svg|gif)$/i.test(p.pageimage) && !/logo|karte|map|wappen|flagge/i.test(p.pageimage) && fits(p.title));
+      const hit = pages.find(p => p.thumbnail && p.pageimage && !/\.(svg|gif|tif|tiff)$/i.test(p.pageimage) && !BAD.test(encodeURIComponent(p.pageimage)) && !BAD.test(p.pageimage) && fits(p.title, n > 0));
       if (!hit) continue;
       const info = await fetch(api + 'action=query&prop=imageinfo&iiprop=extmetadata&titles=' + encodeURIComponent('Datei:' + hit.pageimage)).then(r => r.json());
       const meta = (((info.query || {}).pages || [])[0] || {}).imageinfo?.[0]?.extmetadata || {};
