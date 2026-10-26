@@ -532,8 +532,9 @@ function viewFamily(){
 }
 
 /* ---------- Reiter „Mehr" ---------- */
-const VERSION = '2.2';
+const VERSION = '2.3';
 const CHANGELOG = [
+  { v:'2.3', d:'26. Oktober 2026', items:['Kochmodus ausführlich: 10–16 genaue Schritte – Zutaten holen, Haltbarkeit prüfen, schneiden, Herdstufe, Garzeiten und woran man erkennt, dass es fertig ist','Herdstufe oder Ofentemperatur steht bei jedem Schritt als eigenes Feld','Läuft eine Zutat bald ab, warnt der Kochmodus gleich am Anfang','Neue Food-Fotos von Pexels: die KI sucht gezielt ein Foto von genau diesem Gericht','Oberer Rand: hat jetzt exakt dieselbe Farbe wie die App'] },
   { v:'2.2', d:'26. Oktober 2026', items:['Neu: Haltbarkeitsdatum fotografieren – die App liest Datum und Produkt von der Verpackung und trägt beides ein','Erkanntes Produkt lässt sich mit einem Tipp ändern oder selbst eintippen','Die App sagt direkt, wo es hingehört: Kühlschrank, Vorrat oder kühl & dunkel','Ist das Produkt noch nicht im Kühlschrank, wird es automatisch hinzugefügt','Warnung, wenn etwas bald oder schon abgelaufen ist'] },
   { v:'2.1', d:'26. Oktober 2026', items:['Behoben: Kühlschrank-Foto gab auf, sobald bei einem KI-Modell das Tageslimit voll war – jetzt werden automatisch weitere Modelle versucht','Behoben: Foto aus der Einkaufsliste heraus führte zu keinem Ergebnis','Bei Problemen mit dem Foto zeigt die App jetzt einen genauen Hinweis und meldet den Fehler automatisch','Oberer Rand: farbiger Kopfbereich reicht jetzt bis ganz nach oben hinter Uhrzeit und Dynamic Island','Neu: Plus-Karte unter „Mehr" und Plus-Tipps im Kühlschrank, in der Einkaufsliste und im Wochenplan'] },
   { v:'2.0', d:'26. Oktober 2026', items:['Neu: Einkaufsliste für die ganze Familie – live, mit Vorschlägen beim Tippen; Abgehaktes landet automatisch im Kühlschrank','Neu: Im Rezept „Fehlende Zutaten auf die Einkaufsliste" mit einem Tipp','Neu: Wochenplan unter „Planen" – die App füllt die Woche abwechslungsreich, alles lässt sich tauschen','Neu: „Heute auf dem Plan" steht ganz oben auf der Startseite','Neu: Kühlschrank mit Suche, 9 Kategorien, „Zuletzt benutzt" und Filter „Nur was da ist"','Neu: Echte Food-Fotos von Wikipedia mit Urheberangabe – ohne passendes Foto bleibt das Emoji','Neu: Sprachsteuerung im Kochmodus („Weiter", „Zurück", „Nochmal", „Timer zehn Minuten") und Schritte vorlesen','Startseite aufgeräumt: Wer isst mit, Zeit und Lust in einer kompakten Karte'] },
@@ -700,14 +701,13 @@ function patchEl(a, b){
 /* ---------- Food-Fotos (Wikipedia / Wikimedia Commons, freie Lizenzen) ----------
    Zu jedem Rezept wird einmal ein passendes Foto gesucht und auf dem Gerät gemerkt.
    Ohne Treffer bleibt das Emoji. Urheber und Lizenz stehen im Rezept am Bild. */
-const PH_KEY = 'wasgibts.photos.v2';
-let PH = {}; try { PH = JSON.parse(localStorage.getItem(PH_KEY)) || {}; } catch(e){}
+const PH_KEY = 'wasgibts.photos.v3';
+let PH = {}; try { PH = JSON.parse(localStorage.getItem(PH_KEY)) || {}; localStorage.removeItem('wasgibts.photos.v1'); localStorage.removeItem('wasgibts.photos.v2'); } catch(e){}
 const phSave = () => { try { localStorage.setItem(PH_KEY, JSON.stringify(PH)); } catch(e){} };
 const phQueue = [], phWait = new Set(), phFail = {}; let phBusy = 0, phT = null;
 const phOf = r => { const v = PH[r.n]; return v && v.u ? v : null; };
-const STOPW = ['mit','aus','und','dem','der','die','das','vom','von','auf','art','pfanne','ofen','schnell','selbst','gemacht','einfach','klassisch','bunte','bunter','bunt','frische','frischem','frischen','cremige','cremiger','cremig','vegetarisch','vegetarische','kleine','heißer','heiße','warme','kalte'];
 function wantPhoto(r){
-  if (!r || r.n in PH || phWait.has(r.n) || !navigator.onLine || (phFail[r.n] && Date.now() - phFail[r.n] < 6e5)) return;
+  if (!r || UI.photoOff || r.n in PH || phWait.has(r.n) || !navigator.onLine || (phFail[r.n] && Date.now() - phFail[r.n] < 6e5)) return;
   phWait.add(r.n); phQueue.push(r.n); pumpPhotos();
 }
 function pumpPhotos(){
@@ -721,29 +721,17 @@ function pumpPhotos(){
   }
 }
 async function findPhoto(name){
-  const api = 'https://de.wikipedia.org/w/api.php?format=json&formatversion=2&origin=*&';
-  const words = name.toLowerCase().replace(/[^a-zäöüß\s-]/g, ' ').split(/[\s-]+/).filter(w => w.length >= 4 && !STOPW.includes(w));
-  const stem = w => w.slice(0, Math.max(4, w.length - 2));
-  // Erster Versuch: Titel enthält ein Wort aus dem Rezept. Spätere Versuche: Titel muss damit ANFANGEN (sonst kommen Denkmäler o. Ä.)
-  // Artikel über rohe Zutaten oder Tiere zeigen kein Gericht (z. B. „Fische" → Walhai)
-  const RAW = ['fisch','fische','lachs','lachse','haushuhn','huhn','hähnchen','hausrind','rind','hausschwein','schwein','garnelen','truthuhn','pute','linse','linsen','kartoffel','tomate','paprika','zwiebel','möhre','karotte','brokkoli','spinat','zucchini','reis','nudel','nudeln','ei','eier','käse','milch','butter','mehl','zucker','kürbis','apfel','banane','spargel','pilze','champignon','zuchtchampignon'];
-  const fits = (title, strict) => { const t = title.toLowerCase(); if (/\((?!gericht|speise)[^)]*\)/.test(t) || RAW.includes(t)) return false;
-    return words.some(w => strict ? t.startsWith(stem(w)) : t.includes(stem(w))); };
-  const BAD = /logo|karte|map|wappen|flagge|illustration|zeichnung|platz|denkmal|statue|skulptur|brunnen|portrait|portr%C3%A4t|geb%C3%A4ude|stra%C3%9Fe|schild|diagram|chart/i;
-  const tries = [...new Set([name, name.split(/ mit | aus | in | auf | und | vom /i)[0]].filter(Boolean))];
+  // Foto kommt jetzt von Pexels über unsere Server-Funktion (KI wählt passend aus, einmal für alle gespeichert)
+  const r = RX().find(x => x.n === name); if (!r) return null;
+  if (UI.photoOff) return undefined;
   try {
-    for (const [n, q] of tries.entries()){
-      const res = await fetch(api + 'action=query&generator=search&gsrnamespace=0&gsrlimit=4&prop=pageimages&piprop=thumbnail|name&pithumbsize=640&gsrsearch=' + encodeURIComponent(q)).then(r => r.json());
-      const pages = ((res.query && res.query.pages) || []).sort((a, b) => a.index - b.index);
-      const hit = pages.find(p => p.thumbnail && p.pageimage && !/\.(svg|gif|tif|tiff)$/i.test(p.pageimage) && !BAD.test(encodeURIComponent(p.pageimage)) && !BAD.test(p.pageimage) && fits(p.title, n > 0));
-      if (!hit) continue;
-      const info = await fetch(api + 'action=query&prop=imageinfo&iiprop=extmetadata&titles=' + encodeURIComponent('Datei:' + hit.pageimage)).then(r => r.json());
-      const meta = (((info.query || {}).pages || [])[0] || {}).imageinfo?.[0]?.extmetadata || {};
-      const strip = h => String(h || '').replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim();
-      return { u: hit.thumbnail.source, a: strip(meta.Artist && meta.Artist.value).slice(0, 70) || 'Wikimedia Commons', l: strip(meta.LicenseShortName && meta.LicenseShortName.value) || 'freie Lizenz', f: 'https://de.wikipedia.org/wiki/Datei:' + encodeURIComponent(hit.pageimage), t: hit.title };
-    }
-    return null;   // kein passendes Foto – Emoji bleibt
-  } catch(e){ return undefined; }   // Netzfehler: später nochmal versuchen
+    const { data, error } = await sb.functions.invoke('recipe-ai', { body:{ action:'photo', recipe:{ id:r.id, name:r.n, ingredients:r.i.map(ingName) } } });
+    if (error || !data) return undefined;
+    if (data.reason === 'nokey'){ UI.photoOff = true; return undefined; }   // noch kein Pexels-Schlüssel: Emojis
+    if (data.reason === 'limit' || data.reason === 'failed' || data.error) return undefined;
+    const p = data.photo;
+    return p ? { u:p.u, big:p.big || p.u, a:p.a, l:p.l, f:p.f } : null;
+  } catch(e){ return undefined; }
 }
 /* Kleines Bild in Listen */
 function photoEm(r){ const ph = phOf(r); if (!ph) wantPhoto(r);
@@ -753,7 +741,7 @@ function pickArt(r){ const ph = phOf(r); if (!ph) wantPhoto(r);
   return ph ? `<span class="big ph" aria-hidden="true"><img src="${esc(ph.u)}" alt="" decoding="async"></span>` : `<span class="big" aria-hidden="true">${r.e}</span>`; }
 /* Großes Bild im Rezept, mit Urheber */
 function recipeHero(r){ const ph = phOf(r); if (!ph) wantPhoto(r);
-  return ph ? `<figure class="r-photo"><img src="${esc(ph.u)}" alt="${esc(r.n)}" decoding="async"><figcaption><a href="${esc(ph.f)}" target="_blank" rel="noopener">Foto: ${esc(ph.a)} · ${esc(ph.l)}</a></figcaption></figure>`
+  return ph ? `<figure class="r-photo"><img src="${esc(ph.big || ph.u)}" alt="${esc(r.n)}" decoding="async"><figcaption><a href="${esc(ph.f)}" target="_blank" rel="noopener">Foto: ${esc(ph.a)} · ${esc(ph.l)}</a></figcaption></figure>`
     : `<div class="r-hero" aria-hidden="true">${r.e}</div>`; }
 
 /* ---------- Haupt-Render ---------- */
@@ -991,7 +979,9 @@ function sceneFor(txt, r){
 }
 
 function openCook(id){
-  UI.cook = { id, step: 0, dir: 1 }; sheetFn = null; applyTheme();
+  const r0 = rec(id);
+  UI.cook = { id, step: 0, dir: 1, steps: cookStepsCached(r0) }; sheetFn = null; applyTheme();
+  if (!UI.cook.steps) loadCookSteps(r0);
   try { navigator.wakeLock && navigator.wakeLock.request('screen').then(l => wakeLock = l).catch(()=>{}); } catch(e){}
   // Auf dem Handy: Vollbild und Querformat versuchen (Android). iPhone zeigt den Dreh-Hinweis.
   if (!mq.matches){ try { const el = document.documentElement; (el.requestFullscreen ? el.requestFullscreen() : Promise.reject()).then(() => screen.orientation && screen.orientation.lock && screen.orientation.lock('landscape')).catch(()=>{}); } catch(e){} }
@@ -1000,14 +990,85 @@ function openCook(id){
   renderCook(true);
 }
 function tickCookClock(){ const el = $('#cookClock'); if (!el) return; const d = new Date(); el.textContent = d.getHours() + ':' + String(d.getMinutes()).padStart(2,'0'); }
+/* ---------- Ausführliche Kochschritte ----------
+   Die KI schreibt aus der kurzen Anleitung 10–16 genaue Schritte (Zutaten holen, Haltbarkeit prüfen,
+   Herdstufe, Garzeiten …). Einmal erzeugt, gelten sie für alle. Ohne KI greift eine eigene Logik. */
+const ST_KEY = 'wasgibts.steps.v1';
+let STC = {}; try { STC = JSON.parse(localStorage.getItem(ST_KEY)) || {}; } catch(e){}
+const stKey = r => r.custom ? r.id : r.n;
+function cookStepsCached(r){ const st = STC[stKey(r)]; return st ? personalize(r, st) : null; }
+async function loadCookSteps(r){
+  const c = UI.cook; let steps = null;
+  try {
+    const call = sb.functions.invoke('recipe-ai', { body:{ action:'steps', recipe:{ id:r.id, name:r.n, ingredients:r.i.map(ingName), optional:r.o.map(ingName), steps:r.s, minutes:r.t } } });
+    const res = await Promise.race([call, new Promise(ok => setTimeout(() => ok({ timeout:true }), 15000))]);
+    if (res && res.data && Array.isArray(res.data.steps) && res.data.steps.length >= 5){
+      steps = res.data.steps; STC[stKey(r)] = steps; try { localStorage.setItem(ST_KEY, JSON.stringify(STC)); } catch(e){}
+    }
+  } catch(e){}
+  if (UI.cook !== c) return;   // inzwischen geschlossen
+  c.steps = personalize(r, steps || expandSteps(r)); c.step = 0; c.lastRead = null;
+  renderCook(true);
+}
+/* Eigene Logik, falls die KI gerade nicht kann */
+const PREP = {
+  zwiebeln:'Zwiebeln schälen und fein würfeln.', knoblauch:'Knoblauch schälen und fein hacken.', paprika:'Paprika waschen, entkernen und in Streifen oder Würfel schneiden.',
+  zucchini:'Zucchini waschen, die Enden abschneiden und in Scheiben oder Würfel schneiden.', tomaten:'Tomaten waschen und klein schneiden.', karotten:'Karotten schälen und in dünne Scheiben schneiden.',
+  kartoffeln:'Kartoffeln schälen, waschen und in gleich große Stücke schneiden.', brokkoli:'Brokkoli waschen und in kleine Röschen teilen.', champignons:'Champignons mit Küchenpapier abreiben und in Scheiben schneiden.',
+  lauch:'Lauch längs halbieren, gründlich waschen und in Ringe schneiden.', spinat:'Spinat waschen und abtropfen lassen.', aubergine:'Aubergine waschen und in Würfel schneiden.',
+  blumenkohl:'Blumenkohl waschen und in Röschen teilen.', haehnchen:'Hähnchen kalt abspülen, trocken tupfen und in mundgerechte Stücke schneiden. Danach Hände und Brett gründlich waschen.',
+  gurke:'Gurke waschen und in Scheiben schneiden.', salat:'Salat waschen und trocken schleudern.', kraeuter:'Kräuter waschen, trocken schütteln und hacken.', fruehlingszwiebeln:'Frühlingszwiebeln waschen und in Ringe schneiden.',
+  kuerbis:'Kürbis waschen, entkernen und in Würfel schneiden.', suesskartoffel:'Süßkartoffeln schälen und in Würfel schneiden.', ingwer:'Ingwer schälen und fein reiben.', chili:'Chili entkernen und fein hacken (danach Hände waschen!).',
+};
+const FRESH_CHECK = ['milch','sahne','joghurt','quark','frischkaese','schmand','hackfleisch','haehnchen','pute','rind','schwein','lachs','fischfilet','garnelen','eier','mozzarella','feta','schinken','speck','wuerstchen','salami'];
+function expandSteps(r){
+  const out = [], k = r.i.filter(x => ING[x]), cold = k.filter(x => ING[x][2] === 'k'), dry = k.filter(x => ING[x][2] === 'v');
+  out.push({ text: `Zutaten bereitlegen.${cold.length ? ' Aus dem Kühlschrank: ' + cold.map(ingName).join(', ') + '.' : ''}${dry.length ? ' Aus dem Vorrat: ' + dry.map(ingName).join(', ') + '.' : ''} Dazu Salz, Pfeffer und Öl.` });
+  const fresh = k.filter(x => FRESH_CHECK.includes(x));
+  if (fresh.length) out.push({ text: `Kurz prüfen: Haltbarkeitsdatum von ${fresh.map(ingName).join(', ')} ansehen und bei Fleisch und Milchprodukten auch riechen.` });
+  const all = r.s.join(' ').toLowerCase(), oven = all.match(/(\d{3})\s*°c/);
+  if (oven) out.push({ text: `Backofen auf ${oven[1]} °C Ober-/Unterhitze vorheizen.`, heat: `${oven[1]} °C Ober-/Unterhitze` });
+  if (/nudeln|spaghetti|kartoffeln \d+ minuten|reis kochen/.test(all) || k.some(x => ['nudeln','reisnudeln','gnocchi','lasagne'].includes(x)) && /koch/.test(all))
+    out.push({ text: 'Einen großen Topf mit reichlich Wasser füllen, 1 TL Salz pro Liter dazugeben und auf höchster Stufe zum Kochen bringen.', heat: 'Stufe 9 von 9' });
+  const grate = /raspel|reib/.test(all);
+  k.forEach(x => { if (!PREP[x]) return;
+    if (grate && ['karotten','zucchini','kartoffeln','suesskartoffel'].includes(x)) out.push({ text: `${ingName(x)} waschen${['karotten','kartoffeln','suesskartoffel'].includes(x) ? ' und schälen' : ''} – geraspelt wird gleich.` });
+    else out.push({ text: PREP[x] }); });
+  let fried = false;
+  r.s.forEach(st => {
+    const t = st.toLowerCase();
+    if (!fried && /brat|anbrat|anschwitz|pfanne|röst/.test(t)){ fried = true; out.push({ text: 'Eine große Pfanne mit 1–2 EL Öl auf den Herd stellen und heiß werden lassen.', heat: 'mittel-hoch, Stufe 6–7 von 9' }); }
+    out.push({ text: st, minutes: stepMinutes(st) || null });
+  });
+  if (r.meal !== 'suess') out.push({ text: 'Abschmecken: probieren und bei Bedarf mit Salz und Pfeffer nachwürzen.' });
+  out.push({ text: `Herd${oven ? ' und Ofen' : ''} ausschalten, anrichten und servieren. Guten Appetit!` });
+  return out;
+}
+/* Persönlich: läuft etwas bald ab, kommt eine Warnung gleich an den Anfang */
+function personalize(r, steps){
+  const list = steps.map(x => typeof x === 'string' ? { text:x } : { ...x });
+  const soon = r.i.filter(k => { const d = daysLeft(k); return d !== null && d <= 2; });
+  if (soon.length){
+    const txt = soon.map(k => { const d = daysLeft(k); return `${ingName(k)} (${d < 0 ? 'abgelaufen!' : d === 0 ? 'läuft heute ab' : d === 1 ? 'läuft morgen ab' : 'in 2 Tagen'})`; }).join(', ');
+    list.splice(Math.min(1, list.length), 0, { text: `⚠️ Achtung: ${txt}. Kurz ansehen und riechen – wenn es gut ist, heute verbrauchen.`, warn: true });
+  }
+  return list;
+}
+
 function renderCook(first){
   const c = UI.cook, r = rec(c.id); if (!r) return;
-  const n = r.s.length, txt = r.s[c.step] || '', mins = stepMinutes(txt), last = c.step === n - 1, sc = sceneFor(txt, r);
+  if (!c.steps){
+    $('#overlay').innerHTML = `<div class="cook tone-idle enter" role="dialog" aria-label="Kochmodus"><div class="ck-aura" aria-hidden="true"><i></i><i></i><i></i></div>
+      <header class="ck-top glass"><button class="ck-icon" data-action="cook-close" aria-label="Kochmodus beenden">${I.x}</button><div class="ck-title"><b>${r.e} ${esc(r.n)}</b><span>Wird vorbereitet …</span></div><div id="cookClock" class="ck-clock"></div></header>
+      <div class="ck-prep glass"><div class="ck-prep-ic">👨‍🍳</div><b>Ich schreibe dir die Schritte ausführlich auf</b><span>mit Herdstufe, Garzeiten und woran du erkennst, dass es fertig ist</span><div class="ck-dots"><i></i><i></i><i></i></div></div></div>`;
+    tickCookClock(); return;
+  }
+  const S = c.steps, n = S.length, cur = S[c.step] || { text:'' }, txt = cur.text, mins = cur.minutes || stepMinutes(txt), last = c.step === n - 1, sc = cur.warn ? { kind:'season', label:'Prüfen', html: `<div class="scene sc-idle"><div class="sc-stage"><span class="sc-main">⚠️</span></div></div>` } : sceneFor(txt, r);
   const pct = Math.round((c.step + 1) / n * 100);
   const stepHTML = `
       <div class="ck-orb glass">${sc.html}</div>
       <div class="ck-copy">
-        <div class="ck-kicker"><span class="ck-pill">${sc.label}</span></div>
+        <div class="ck-kicker"><span class="ck-pill">${sc.label}</span>${cur.heat ? `<span class="ck-pill heat">🔥 ${esc(cur.heat)}</span>` : ''}</div>
         <p class="ck-text">${esc(txt)}</p>
         ${mins ? `<button class="ck-tbtn glass" data-action="timer" data-v="${mins}"><span class="ck-tdot"></span>${mins}-Minuten-Timer starten</button>` : ''}
       </div>`;
@@ -1055,7 +1116,7 @@ function speak(text){
     const v = speechSynthesis.getVoices().find(x => /^de/i.test(x.lang)); if (v) u.voice = v;
     speechSynthesis.speak(u); } catch(e){}
 }
-function speakStep(){ const c = UI.cook; if (!c) return; const r = rec(c.id); if (!r) return; c.lastRead = c.step; speak(`Schritt ${c.step + 1}. ${r.s[c.step]}`); }
+function speakStep(){ const c = UI.cook; if (!c || !c.steps) return; const st = c.steps[c.step]; if (!st) return; c.lastRead = c.step; speak(`Schritt ${c.step + 1}. ${st.text}${st.heat ? '. ' + st.heat : ''}`); }
 function updVoice(){
   const m = $('#ckMic'), rd = $('#ckRead'), box = $('#ckVoice');
   if (m) m.setAttribute('aria-pressed', !!UI.voice); if (rd) rd.setAttribute('aria-pressed', !!L.readAloud); if (box) box.hidden = !UI.voice;
@@ -1080,7 +1141,7 @@ function onVoice(t){
   else if (/(wiederhol|nochmal|noch mal|vorlesen|lies)/.test(t)) speakStep();
   else if (/(timer|wecker|stoppuhr)/.test(t)){
     const num = t.match(/(\d+)/), w = Object.keys(NUMW).sort((a, b) => b.length - a.length).find(k => new RegExp('\\b' + k + '\\b').test(t));
-    const r = rec(UI.cook.id), m = num ? +num[1] : w ? NUMW[w] : stepMinutes(r.s[UI.cook.step]);
+    const r = rec(UI.cook.id), m = num ? +num[1] : w ? NUMW[w] : (UI.cook.steps && UI.cook.steps[UI.cook.step] ? (UI.cook.steps[UI.cook.step].minutes || stepMinutes(UI.cook.steps[UI.cook.step].text)) : 0);
     if (m) startTimer(m); else toast('Wie viele Minuten? Sag z. B. „Timer zehn Minuten"');
   }
   else if (/\b(fertig)\b/.test(t)) click('[data-action=cook-done]') || click('[data-action=cook-next]');
@@ -1118,7 +1179,7 @@ const LEGAL = {
     <h3>Welche Daten wir speichern</h3><p>Für dein Konto: E-Mail-Adresse und verschlüsseltes Passwort. In der App: Name, Profilbild-Emoji, Essensvorlieben und Unverträglichkeiten, Familienzugehörigkeit, Wünsche, Lieblingsgerichte, Kühlschrank-Inhalt mit Ablaufdaten, eigene Rezepte, Abstimmungen und Feedback. Diese Daten sehen nur die Mitglieder deiner Familie.</p>
     <h3>Wo die Daten liegen</h3><p>Die Daten werden bei Supabase in einem Rechenzentrum in Frankfurt (EU) gespeichert.</p>
     <h3>Kühlschrank-Foto</h3><p>Fotos werden nur zur Erkennung der Zutaten an Google (Gemini) gesendet und von der App nicht gespeichert.</p>
-    <h3>Rezeptfotos</h3><p>Fotos zu den Rezepten lädt die App von Wikipedia/Wikimedia Commons (Wikimedia Foundation). Dabei wird deine IP-Adresse an Wikimedia übertragen. Die Fotos stehen unter freien Lizenzen, Urheber und Lizenz stehen jeweils am Bild.</p>
+    <h3>Rezeptfotos und Kochschritte</h3><p>Fotos zu den Rezepten stammen von Pexels (pexels.com) und werden von deren Servern geladen; dabei wird deine IP-Adresse an Pexels übertragen. Fotograf und Quelle stehen am Bild. Für die Bildauswahl und die ausführlichen Kochschritte wird nur der Rezeptname mit seinen Zutaten an Google (Gemini) gesendet – keine persönlichen Daten.</p>
     <h3>Einkaufsliste und Wochenplan</h3><p>Einträge auf der Einkaufsliste und im Wochenplan sehen nur die Mitglieder deiner Familie.</p>
     <h3>Sprachsteuerung</h3><p>Wenn du im Kochmodus die Sprachsteuerung einschaltest, verarbeitet dein Gerät bzw. der Spracherkennungsdienst deines Browsers (bei Apple: Siri, bei Google: Google) deine Sprache. Die App selbst speichert keine Aufnahmen.</p>
     <h3>Hosting und Bibliotheken</h3><p>Die App wird über GitHub Pages ausgeliefert. Dabei werden technisch notwendige Daten wie deine IP-Adresse verarbeitet. Eine Programmbibliothek wird über jsDelivr geladen. Schriften liegen direkt in der App.</p>
@@ -1436,8 +1497,8 @@ document.addEventListener('click', async e => {
       t.disabled = true; const { error } = await sb.from('feedback').insert({ user_id:D.user.id, kind:$('[data-action=fb-kind][aria-pressed=true]')?.dataset.v || 'idee', message:msg, app_version:VERSION });
       if (error){ t.disabled = false; throw error; } closeSheet(); toast('Danke für dein Feedback! 💚'); break; }
     case 'cook': openCook(id); break;
-    case 'cook-next': UI.cook.step++; UI.cook.dir = 1; buzz(8); renderCook(); break;
-    case 'cook-prev': UI.cook.step = Math.max(0, UI.cook.step - 1); UI.cook.dir = -1; buzz(8); renderCook(); break;
+    case 'cook-next': if (!UI.cook || !UI.cook.steps) break; UI.cook.step++; UI.cook.dir = 1; buzz(8); renderCook(); break;
+    case 'cook-prev': if (!UI.cook || !UI.cook.steps) break; UI.cook.step = Math.max(0, UI.cook.step - 1); UI.cook.dir = -1; buzz(8); renderCook(); break;
     case 'cook-force': UI.cookForce = true; $('.cook').classList.add('force'); break;
     case 'cook-close': closeCook(); render(); break;
     case 'cook-done': { const cid = UI.cook.id; closeCook(); render(); openRecipe(cid); setTimeout(() => { const b = $('[data-action=cooked]'); if (b) b.click(); }, 350); break; }
@@ -1482,7 +1543,7 @@ let tx=0, ty=0;
 $('#views').addEventListener('touchstart', e=>{ tx=e.touches[0].clientX; ty=e.touches[0].clientY; }, {passive:true});
 $('#overlay').addEventListener('touchstart', e=>{ tx=e.touches[0].clientX; ty=e.touches[0].clientY; }, {passive:true});
 $('#overlay').addEventListener('touchend', e=>{ if (!UI.cook) return; const dx=e.changedTouches[0].clientX-tx, dy=e.changedTouches[0].clientY-ty;
-  if (Math.abs(dx)>70 && Math.abs(dx)>Math.abs(dy)*1.6){ const r = rec(UI.cook.id); const k = UI.cook.step + (dx<0?1:-1); if (k>=0 && k<r.s.length){ UI.cook.dir = dx<0?1:-1; UI.cook.step=k; buzz(8); renderCook(); } } }, {passive:true});
+  if (Math.abs(dx)>70 && Math.abs(dx)>Math.abs(dy)*1.6){ const r = rec(UI.cook.id); const k = UI.cook.step + (dx<0?1:-1); if (UI.cook.steps && k>=0 && k<UI.cook.steps.length){ UI.cook.dir = dx<0?1:-1; UI.cook.step=k; buzz(8); renderCook(); } } }, {passive:true});
 $('#views').addEventListener('touchend', e=>{ if(!D.user || !isActive()) return;
   const dx=e.changedTouches[0].clientX-tx, dy=e.changedTouches[0].clientY-ty;
   if (Math.abs(dx)>70 && Math.abs(dx)>Math.abs(dy)*1.6){ const k=ORDER.indexOf(UI.tab)+(dx<0?1:-1); if(k>=0&&k<ORDER.length) go(ORDER[k]); } }, {passive:true});
@@ -1490,7 +1551,7 @@ $('#views').addEventListener('touchend', e=>{ if(!D.user || !isActive()) return;
 /* ---------- Farbschema ---------- */
 function applyTheme(){ const r=document.documentElement, th=L.theme||'system'; if(th==='system') r.removeAttribute('data-theme'); else r.setAttribute('data-theme', th);
   /* Oberer Rand (Statusleiste / Safari-Leiste) in derselben Farbe wie die App */
-  const bg = r.classList.contains('splashing') ? '#1f5a37' : UI.cook ? '#0f1d14' : getComputedStyle(r).getPropertyValue(D.user ? '--band' : '--bg').trim();
+  const bg = r.classList.contains('splashing') ? '#1f5a37' : UI.cook ? '#0f1d14' : getComputedStyle(r).getPropertyValue('--bg').trim();
   if (bg && applyTheme.last !== bg){ applyTheme.last = bg; document.querySelectorAll('meta[name=theme-color]').forEach(m => { if (th !== 'system') m.removeAttribute('media'); m.setAttribute('content', bg); }); } }
 window.matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change', () => applyTheme());
 

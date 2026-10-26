@@ -636,16 +636,9 @@ html:not(.framed) #splash{position:fixed}
 .plus-card .pc-cta{margin-top:6px;font-weight:800;color:#ffe08a}
 .pc-glow{position:absolute;width:220px;height:220px;right:-60px;top:-80px;border-radius:50%;background:radial-gradient(circle,rgba(255,224,138,.5),transparent 65%);animation:pwGlow 5s ease-in-out infinite;pointer-events:none}
 
-/* ---------- 2.1: Oberer Rand – farbiger Kopfbereich bis ganz nach oben ---------- */
-:root{--band:#DCEBDD}
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--band:#15291C}}
-:root[data-theme="dark"]{--band:#15291C}
-html:not(.framed) .view>.top:first-child{
-  margin:calc(-6px - env(safe-area-inset-top,0px)) calc(-1 * max(18px,env(safe-area-inset-right,0px))) 14px calc(-1 * max(18px,env(safe-area-inset-left,0px)));
-  padding:calc(12px + env(safe-area-inset-top,0px)) max(18px,env(safe-area-inset-right,0px)) 18px max(18px,env(safe-area-inset-left,0px));
-  background:linear-gradient(180deg,var(--band) 0%,var(--band) 55%,var(--bg) 100%)}
-.framed .view>.top:first-child{margin:-6px -18px 14px;padding:10px 18px 18px;background:linear-gradient(180deg,var(--band),var(--bg))}
-#topfade{background:color-mix(in srgb,var(--band) 86%,transparent)}
+/* Oberer Rand: dieselbe Farbe wie die ganze App (kein eigener Streifen) */
+:root{--band:var(--bg)}
+#topfade{background:var(--bg);-webkit-backdrop-filter:none;backdrop-filter:none}
 
 /* ---------- 2.2: Haltbarkeit per Foto ---------- */
 .exp-photo{position:relative;border-radius:22px;overflow:hidden;background:#000;aspect-ratio:4/3;max-height:300px}
@@ -666,3 +659,14 @@ html:not(.framed) .view>.top:first-child{
 .exp-left{margin-top:8px;font-weight:700;font-size:14px;color:var(--herb)}
 .exp-left.warn{color:#a86f00}
 .exp-left.bad{color:var(--tomato)}
+
+/* ---------- 2.3: Kochschritte werden vorbereitet ---------- */
+.ck-prep{align-self:center;justify-self:center;display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;padding:26px 28px;border-radius:30px;max-width:420px;grid-row:2;animation:orbIn .6s cubic-bezier(.3,1.4,.5,1) both}
+.ck-prep b{font-family:var(--f-display);font-size:20px;font-weight:600}
+.ck-prep span{color:var(--ck-muted);font-size:14px}
+.ck-prep-ic{font-size:46px;animation:bob 2s ease-in-out infinite}
+.ck-dots{display:flex;gap:6px;margin-top:6px}
+.ck-dots i{width:8px;height:8px;border-radius:50%;background:#fff;opacity:.4;animation:dotUp 1.2s ease-in-out infinite}
+.ck-dots i:nth-child(2){animation-delay:.15s}.ck-dots i:nth-child(3){animation-delay:.3s}
+@keyframes dotUp{50%{opacity:1;transform:translateY(-6px)}}
+.ck-pill.heat{background:rgba(255,160,110,.25);border-color:rgba(255,190,150,.45);letter-spacing:.02em;text-transform:none;font-size:12px}
