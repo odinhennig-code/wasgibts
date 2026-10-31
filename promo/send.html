@@ -4,7 +4,7 @@
 (async () => {
   const name = new URLSearchParams(location.search).get('f') || 'halloween-2026.mp4';
   const buf = await (await fetch(name, { cache:'no-store' })).arrayBuffer();
-  if (window.opener) window.opener.postMessage({ wgVideo:true, name, buf }, '*', [buf]);
+  const to = window.opener || (window.parent !== window ? window.parent : null); if (to) to.postMessage({ wgVideo:true, name, buf }, '*', [buf]);
   document.body.textContent = 'Fertig – dieses Fenster kann geschlossen werden.';
 })();
 </script>
