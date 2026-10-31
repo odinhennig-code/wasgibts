@@ -1,6 +1,6 @@
 // Service Worker: macht die App installierbar und offline startbar.
 // Bei jeder neuen Version die Zahl erhöhen, damit Handys das Update laden.
-const CACHE = 'wasgibts-v20';
+const CACHE = 'wasgibts-v21';
 const FILES = ['./', './index.html', './styles.css', './app.js', './data.js', './config.js', './manifest.webmanifest', './icon.svg', './fonts/Figtree.woff', './fonts/Bricolage.woff', './lib/qrcode.min.js', ...Array.from({ length: 10 }, (_, i) => `./rezepte/${i + 1}.js`)];
 
 self.addEventListener('install', e => {

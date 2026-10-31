@@ -670,3 +670,66 @@ html:not(.framed) #splash{position:fixed}
 .ck-dots i:nth-child(2){animation-delay:.15s}.ck-dots i:nth-child(3){animation-delay:.3s}
 @keyframes dotUp{50%{opacity:1;transform:translateY(-6px)}}
 .ck-pill.heat{background:rgba(255,160,110,.25);border-color:rgba(255,190,150,.45);letter-spacing:.02em;text-transform:none;font-size:12px}
+
+/* =====================================================================
+   Halloween-Look (24. Oktober – 2. November, abschaltbar)
+   ===================================================================== */
+:root.halloween{
+  --bg:#F7F3EE; --surface:#FFFFFF; --surface-2:#EFE7DD; --line:#E6DBCE; --muted:#6E6258;
+  --herb:#D2601A; --herb-ink:#FFFFFF; --herb-soft:#FBE3D0;
+  --hw-night:#2A1638; --hw-night-2:#160B1F; --hw-glow:#FF9A4D;
+}
+@media (prefers-color-scheme: dark){
+  :root.halloween:not([data-theme="light"]){
+    --bg:#110C14; --surface:#1B1420; --surface-2:#251C2C; --fg:#F2EAF1; --muted:#A795AC; --line:#33273B;
+    --herb:#FF8F3F; --herb-ink:#1C0D03; --herb-soft:#3A2012;
+  }
+}
+:root.halloween[data-theme="dark"]{
+  --bg:#110C14; --surface:#1B1420; --surface-2:#251C2C; --fg:#F2EAF1; --muted:#A795AC; --line:#33273B;
+  --herb:#FF8F3F; --herb-ink:#1C0D03; --herb-soft:#3A2012;
+}
+/* Vorschlagskarte als Nachthimmel mit Kürbis-Leuchten */
+:root.halloween .pick,:root.halloween[data-theme="dark"] .pick,:root.halloween .pick.planned{background:
+  radial-gradient(90% 70% at 100% 0%, rgba(255,154,77,.55), transparent 60%),
+  radial-gradient(60% 50% at 0% 100%, rgba(140,70,190,.35), transparent 70%),
+  linear-gradient(155deg, var(--hw-night), var(--hw-night-2));
+  box-shadow:0 16px 34px rgba(42,22,56,.35)}
+.halloween .pick .meta .chip{background:rgba(255,255,255,.14)}
+.halloween .pick::after{content:"";position:absolute;inset:0;pointer-events:none;opacity:.5;
+  background:radial-gradient(1.5px 1.5px at 18% 22%,#fff,transparent),radial-gradient(1px 1px at 42% 12%,#fff,transparent),
+  radial-gradient(1.2px 1.2px at 63% 30%,#fff,transparent),radial-gradient(1px 1px at 30% 70%,#fff,transparent),radial-gradient(1.3px 1.3px at 80% 80%,#fff,transparent)}
+
+/* Halloween-Special-Karte */
+.hw-card{position:relative;overflow:hidden;border-radius:24px;margin:0 0 12px;color:#fff;isolation:isolate;
+  background:radial-gradient(120% 90% at 85% 10%, rgba(255,154,77,.38), transparent 55%), linear-gradient(150deg,#3B1E4E,#1A0D24);
+  box-shadow:0 12px 28px rgba(42,22,56,.28);animation:heroIn .6s cubic-bezier(.2,.9,.3,1) both}
+.hw-main{display:flex;flex-direction:column;gap:3px;width:100%;text-align:left;background:none;border:0;color:inherit;padding:16px 110px 16px 18px;font:inherit;cursor:pointer}
+.hw-main b{font-family:var(--f-display);font-weight:800;font-size:19px;line-height:1.15}
+.hw-main span{font-size:13px;opacity:.8;font-weight:600}
+.hw-main .hw-kicker{font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--hw-glow);opacity:1}
+.hw-main .hw-cta{margin-top:8px;align-self:flex-start;background:var(--hw-glow);color:#2A1206;opacity:1;font-weight:800;border-radius:999px;padding:6px 12px}
+.hw-x{position:absolute;top:10px;right:10px;width:28px;height:28px;border-radius:50%;border:0;background:rgba(255,255,255,.14);color:#fff;font-size:12px;z-index:3}
+.hw-pump{position:absolute;right:14px;bottom:-6px;font-size:72px;z-index:1;filter:drop-shadow(0 0 22px rgba(255,140,50,.65));animation:hwGlow 3.2s ease-in-out infinite}
+.hw-moon{position:absolute;right:58px;top:-28px;width:92px;height:92px;border-radius:50%;z-index:0;
+  background:radial-gradient(circle at 38% 38%,#FFF4DA,#F6D89A 60%,#E8B964);opacity:.18}
+.hw-bat{position:absolute;left:58%;top:12px;width:30px;color:#0B0510;opacity:.9;z-index:1;animation:hwBat 6s ease-in-out infinite}
+.hw-bat svg{display:block;width:100%}
+@keyframes hwGlow{50%{transform:translateY(-3px) rotate(-4deg);filter:drop-shadow(0 0 30px rgba(255,140,50,.9))}}
+@keyframes hwBat{0%,100%{transform:translate(0,0) scaleX(1)}25%{transform:translate(-14px,6px) scaleX(.8)}50%{transform:translate(-4px,-4px) scaleX(1)}75%{transform:translate(10px,4px) scaleX(.85)}}
+
+/* Spinnennetz in der Ecke, ganz dezent */
+.halloween #views::before{content:"";position:absolute;top:0;right:0;width:120px;height:120px;z-index:2;pointer-events:none;opacity:.16;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120' fill='none' stroke='%23888' stroke-width='1.2'%3E%3Cpath d='M120 0L0 120M120 0L40 120M120 0L0 40M120 0L80 120M120 0L0 80'/%3E%3Cpath d='M120 20Q108 18 102 6M120 44Q96 40 88 18 80 6 78 0M120 70Q88 64 74 40 62 18 60 0M120 96Q78 90 60 62 44 34 40 0'/%3E%3C/svg%3E") no-repeat top right/contain}
+:root.halloween[data-theme="dark"] #views::before{opacity:.22}
+
+/* Start-Intro bei Halloween */
+.halloween #splash{background:radial-gradient(120% 80% at 50% 35%,#4A2266,#1a0f22)}
+.halloween .sp-glow{background:radial-gradient(circle,rgba(255,154,77,.4),transparent 65%)}
+.halloween .sp-word .sp-q{color:#FF9A4D}
+
+/* Aktiver Tab im Kürbis-Ton */
+.halloween .badge-new,.halloween .new-badge{background:var(--herb)}
+@media (prefers-reduced-motion: reduce){ .hw-pump,.hw-bat{animation:none} }
+.halloween .plus-card{background:linear-gradient(140deg,#4A2266,#24112F 55%,#C8641E)}
+.hw-moon{opacity:.12}

@@ -145,6 +145,11 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden && D.
 /* ---------- Rezepte: feste Sammlung + eigene Familienrezepte ---------- */
 const RX = () => [...R, ...D.custom];
 /* Datum als JJJJ-MM-TT in Ortszeit */
+/* ---------- Saison-Look (Halloween) ----------
+   Läuft automatisch vom 24. Oktober bis 2. November. Unter „Mehr → Darstellung" abschaltbar. */
+const hwSeason = () => { const d = new Date(), m = d.getMonth(), t = d.getDate(); return (m === 9 && t >= 24) || (m === 10 && t <= 2); };
+const hwOn = () => hwSeason() && L.season !== false;
+const HW_BATS = '<svg viewBox="0 0 64 28" aria-hidden="true"><path fill="currentColor" d="M32 9c1.6-3 3.2-4 4.2-4-.3 1.3-.1 2.3.6 3.1 3-3.4 8.5-6.3 15.2-6.1-2.6 1.5-3.6 3.6-3.2 6 2.9-.7 6.2-.2 9.2 1.6-3.4.4-5.5 2.1-6.3 4.9-2.6-1.5-5.6-1.5-8.4.4-.6-2.2-2.7-3.5-5.4-3.4L32 17l-5.9-5.5c-2.7-.1-4.8 1.2-5.4 3.4-2.8-1.9-5.8-1.9-8.4-.4-.8-2.8-2.9-4.5-6.3-4.9 3-1.8 6.3-2.3 9.2-1.6.4-2.4-.6-4.5-3.2-6 6.7-.2 12.2 2.7 15.2 6.1.7-.8.9-1.8.6-3.1 1 0 2.6 1 4.2 4z"/></svg>';
 const isoDay = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 const nextDays = n => Array.from({ length:n }, (_, i) => { const d = new Date(); d.setHours(12,0,0,0); d.setDate(d.getDate() + i); return d; });
 const planFor = iso => D.plan.find(p => p.day === iso);
@@ -318,9 +323,9 @@ function viewHome(){
   /* Nur zeigen, was mit dem Kühlschrank wirklich geht – plus Ideen mit genau einem Einkauf */
   const ready0 = all.filter(s => s.missing.length===0), almost = all.filter(s => s.missing.length===1);
   const top = ready0.find(s => s.r.meal !== 'suess'), ready = top ? [top, ...ready0.filter(s => s !== top)] : [];
-  const h = new Date().getHours(), greet = h<11?'Guten Morgen':h<17?'Hallo':'Guten Abend';
+  const h = new Date().getHours(), greet = (h<11?'Guten Morgen':h<17?'Hallo':'Guten Abend') + (hwOn() ? ' · Happy Halloween 🎃' : '');
   const p = isAdmin() ? pendingReq() : [];
-  return header(`Was gibt's heute, ${esc(D.profile.name)}?`, greet) + annBanner() +
+  return header(`Was gibt's heute, ${esc(D.profile.name)}?`, greet) + annBanner() + hwCard() +
     (p.length ? `<button class="banner" data-tab="family"><span class="avatar sm">${prof(p[0].user_id).avatar}</span><span style="flex:1"><b>${esc(prof(p[0].user_id).name)}</b> möchte deiner Familie beitreten</span>${I.chev}</button>` : '') +
     (expiringSoon().length ? `<button class="banner" style="background:var(--tomato-soft)" data-tab="fridge"><span style="font-size:22px">⏰</span><span style="flex:1"><b>Bald aufbrauchen:</b> ${expiringSoon().map(x=>`${esc(ingName(x.k))} (${expLabel(x.d)})`).join(', ')}</span>${I.chev}</button>` : '') +
     `<div class="filters card">
@@ -532,8 +537,9 @@ function viewFamily(){
 }
 
 /* ---------- Reiter „Mehr" ---------- */
-const VERSION = '2.3';
+const VERSION = '2.4';
 const CHANGELOG = [
+  { v:'2.4', d:'31. Oktober 2026', items:['Halloween-Look 🎃: Kürbis-Orange, Nachtfarben im Dunkelmodus, Fledermäuse und ein eigenes Start-Intro','Neu auf „Heute": Halloween-Special mit allen Kürbis-Rezepten (ausblendbar)','Der Look endet automatisch am 2. November – unter Mehr → Darstellung auch vorher abschaltbar'] },
   { v:'2.3', d:'26. Oktober 2026', items:['Kochmodus ausführlich: 10–16 genaue Schritte – Zutaten holen, Haltbarkeit prüfen, schneiden, Herdstufe, Garzeiten und woran man erkennt, dass es fertig ist','Herdstufe oder Ofentemperatur steht bei jedem Schritt als eigenes Feld','Läuft eine Zutat bald ab, warnt der Kochmodus gleich am Anfang','Neue Food-Fotos von Pexels: die KI sucht gezielt ein Foto von genau diesem Gericht','Oberer Rand: hat jetzt exakt dieselbe Farbe wie die App'] },
   { v:'2.2', d:'26. Oktober 2026', items:['Neu: Haltbarkeitsdatum fotografieren – die App liest Datum und Produkt von der Verpackung und trägt beides ein','Erkanntes Produkt lässt sich mit einem Tipp ändern oder selbst eintippen','Die App sagt direkt, wo es hingehört: Kühlschrank, Vorrat oder kühl & dunkel','Ist das Produkt noch nicht im Kühlschrank, wird es automatisch hinzugefügt','Warnung, wenn etwas bald oder schon abgelaufen ist'] },
   { v:'2.1', d:'26. Oktober 2026', items:['Behoben: Kühlschrank-Foto gab auf, sobald bei einem KI-Modell das Tageslimit voll war – jetzt werden automatisch weitere Modelle versucht','Behoben: Foto aus der Einkaufsliste heraus führte zu keinem Ergebnis','Bei Problemen mit dem Foto zeigt die App jetzt einen genauen Hinweis und meldet den Fehler automatisch','Oberer Rand: farbiger Kopfbereich reicht jetzt bis ganz nach oben hinter Uhrzeit und Dynamic Island','Neu: Plus-Karte unter „Mehr" und Plus-Tipps im Kühlschrank, in der Einkaufsliste und im Wochenplan'] },
@@ -560,6 +566,13 @@ const FAQ = [
   ['Wo finde ich den Kochmodus?','Auf „Heute" direkt unter dem Vorschlag („Jetzt kochen") oder in jedem Rezept über „Kochmodus starten". Dort gibt es große Schritte zum Wischen und Timer mit Ton.'],
   ['Wie installiere ich die App?','iPhone: in Safari auf „Teilen" und dann „Zum Home-Bildschirm". Android: im Chrome-Menü auf „App installieren".'],
 ];
+function hwCard(){
+  if (!hwOn() || L.hwCardOff === new Date().getFullYear()) return '';
+  const n = RX().filter(r => r.i.includes('kuerbis')).length;
+  return `<div class="hw-card"><div class="hw-moon" aria-hidden="true"></div><span class="hw-bat" aria-hidden="true">${HW_BATS}</span>
+    <button class="hw-main" data-action="hw-recipes"><span class="hw-kicker">Halloween-Special</span><b>Kürbis-Rezepte für heute Abend</b><span>${n} Gerichte mit Kürbis · von Suppe bis Curry</span><span class="hw-cta">Ansehen ›</span></button>
+    <button class="hw-x" data-action="hw-card-off" aria-label="Ausblenden">✕</button><span class="hw-pump" aria-hidden="true">🎃</span></div>`;
+}
 function viewMore(){
   return header('Mehr', `Version ${VERSION}`) +
     `<button class="plus-card" data-action="plus"><div class="pc-glow"></div><span class="plus-badge">✨ PLUS</span><b>Mehr für deine Familie</b><span>KI-Rezepte · unbegrenzt Fotos · Wochenplan-Assistent · sortierte Einkaufsliste</span><span class="pc-cta">${L.plusInterest ? '💚 Du bist vorgemerkt' : 'Ansehen und vormerken ›'}</span></button>` +
@@ -567,6 +580,7 @@ function viewMore(){
     ${FAQ.map(([q,a])=>`<details class="faq"><summary>${esc(q)}</summary><p>${esc(a)}</p></details>`).join('')}
     <div class="h2">Darstellung</div>
     <div class="seg" role="group" aria-label="Farbschema">${[['system','System'],['light','Hell'],['dark','Dunkel']].map(([k,l])=>`<button data-action="theme" data-v="${k}" aria-pressed="${(L.theme||'system')===k}">${l}</button>`).join('')}</div>
+    ${hwSeason() ? `<div class="list" style="margin-top:10px"><button class="row" data-action="season" aria-pressed="${hwOn()}"><span style="font-size:22px">🎃</span><span class="grow"><b>Halloween-Look</b><small>Nur bis 2. November · ${hwOn() ? 'an' : 'aus'}</small></span><span class="switch" aria-checked="${hwOn()}" aria-hidden="true"></span></button></div>` : ''}
     <div class="h2">Benachrichtigungen</div>
     <div class="list">${pushRow()}</div>
     <div class="h2">Kontakt</div>
@@ -1507,6 +1521,9 @@ document.addEventListener('click', async e => {
     case 'cook-read': L.readAloud = !L.readAloud; saveLocal(); updVoice(); if (L.readAloud) speakStep(); else try { speechSynthesis.cancel(); } catch(e){} toast(L.readAloud ? '🔊 Schritte werden vorgelesen' : 'Vorlesen aus'); break;
     case 'legal': { const [title, html] = LEGAL[t.dataset.v]; sheetFn = null; openSheet(`${sheetHead(title)}<div class="legal">${html}</div>`); break; }
     case 'theme': L.theme=t.dataset.v; saveLocal(); render(); break;
+    case 'season': L.season = !hwOn(); saveLocal(); applyTheme(); render(); break;
+    case 'hw-card-off': L.hwCardOff = new Date().getFullYear(); saveLocal(); render(); break;
+    case 'hw-recipes': UI.rtab = 'all'; UI.q = 'Kürbis'; UI.rlimit = 30; go('recipes'); break;
     case 'push': { if (UI.push === 'on'){ await pushOff(); toast('Benachrichtigungen aus'); }
       else if (UI.push === 'off'){ t.disabled = true; const r = await pushOn(); toast(r === true ? 'Benachrichtigungen an 🔔' : r); }
       else if (UI.push === 'install') openPushHelp();
@@ -1550,8 +1567,9 @@ $('#views').addEventListener('touchend', e=>{ if(!D.user || !isActive()) return;
 
 /* ---------- Farbschema ---------- */
 function applyTheme(){ const r=document.documentElement, th=L.theme||'system'; if(th==='system') r.removeAttribute('data-theme'); else r.setAttribute('data-theme', th);
+  r.classList.toggle('halloween', hwOn());
   /* Oberer Rand (Statusleiste / Safari-Leiste) in derselben Farbe wie die App */
-  const bg = r.classList.contains('splashing') ? '#1f5a37' : UI.cook ? '#0f1d14' : getComputedStyle(r).getPropertyValue('--bg').trim();
+  const bg = r.classList.contains('splashing') ? (hwOn() ? '#1a0f22' : '#1f5a37') : UI.cook ? '#0f1d14' : getComputedStyle(r).getPropertyValue('--bg').trim();
   if (bg && applyTheme.last !== bg){ applyTheme.last = bg; document.querySelectorAll('meta[name=theme-color]').forEach(m => { if (th !== 'system') m.removeAttribute('media'); m.setAttribute('content', bg); }); } }
 window.matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change', () => applyTheme());
 
@@ -1571,6 +1589,7 @@ setInterval(tickClock, 1000); tickClock();
 
 /* ---------- Start-Intro ---------- */
 (() => { const sp = $('#splash'), root = document.documentElement; if (!sp) return;
+  if (hwOn()){ const f = sp.querySelector('.sp-food'); if (f) f.innerHTML = ['🎃','🦇','🍬','👻','🕸️','🍂'].map(e => `<span>${e}</span>`).join(''); }
   let done = false;
   const hide = () => { if (done) return; done = true; sp.classList.add('gone'); root.classList.remove('splashing'); applyTheme.last = null; applyTheme(); };
   // Nur beim ersten Öffnen zeigen – nicht noch einmal, wenn die App sich für ein Update kurz neu lädt
