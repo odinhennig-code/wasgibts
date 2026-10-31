@@ -516,7 +516,6 @@ details.faq p{margin:0 0 14px;color:var(--muted);font-size:14px}
 /* ---------- 1.8.2: wirklich der ganze Bildschirm, auch hinter Statusleiste und Dynamic Island ---------- */
 html:not(.framed) #stage{position:fixed;inset:0;height:auto}
 html:not(.framed),html:not(.framed) body{background:var(--bg)}
-html.splashing:not(.framed),html.splashing:not(.framed) body{background:#1f5a37}
 /* Intro: oben exakt dieselbe Farbe wie die Statusleiste, kein Streifen */
 #splash{background:radial-gradient(85% 42% at 50% 48%,#3c9a61,#1f5a37)}
 html:not(.framed) #splash{position:fixed}

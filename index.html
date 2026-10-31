@@ -14,6 +14,11 @@
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icon-192.png">
 <link rel="stylesheet" href="styles.css">
+<script>/* Farben sofort setzen, bevor das iPhone die Farbe der oberen Leiste übernimmt */
+(function(){try{var L=JSON.parse(localStorage.getItem('wasgibts.local'))||{},r=document.documentElement,d=new Date(),m=d.getMonth(),t=d.getDate();
+if(L.theme&&L.theme!=='system')r.setAttribute('data-theme',L.theme);
+if(((m===9&&t>=24)||(m===10&&t<=2))&&L.season!==false)r.classList.add('halloween');
+var bg=getComputedStyle(r).getPropertyValue('--bg').trim();if(bg)document.querySelectorAll('meta[name=theme-color]').forEach(function(x){if(L.theme&&L.theme!=='system')x.removeAttribute('media');x.setAttribute('content',bg);});}catch(e){}})();</script>
 </head>
 <body>
 <div id="stage">

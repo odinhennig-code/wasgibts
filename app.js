@@ -537,8 +537,9 @@ function viewFamily(){
 }
 
 /* ---------- Reiter „Mehr" ---------- */
-const VERSION = '2.4.1';
+const VERSION = '2.4.2';
 const CHANGELOG = [
+  { v:'2.4.2', d:'31. Oktober 2026', items:['Behoben: Auf dem iPhone blieb die Leiste ganz oben nach dem Start-Intro grün – sie hat jetzt von Anfang an die App-Farbe','Halloween-Farben und Hell/Dunkel werden schon beim Laden gesetzt, damit das iPhone gleich die richtige Farbe übernimmt'] },
   { v:'2.4.1', d:'31. Oktober 2026', items:['Behoben: Das Halloween-Spinnennetz schien oben in die Statusleiste – die Leiste hat jetzt wieder exakt die App-Farbe'] },
   { v:'2.4', d:'31. Oktober 2026', items:['Halloween-Look 🎃: Kürbis-Orange, Nachtfarben im Dunkelmodus, Fledermäuse und ein eigenes Start-Intro','Neu auf „Heute": Halloween-Special mit allen Kürbis-Rezepten (ausblendbar)','Der Look endet automatisch am 2. November – unter Mehr → Darstellung auch vorher abschaltbar'] },
   { v:'2.3', d:'26. Oktober 2026', items:['Kochmodus ausführlich: 10–16 genaue Schritte – Zutaten holen, Haltbarkeit prüfen, schneiden, Herdstufe, Garzeiten und woran man erkennt, dass es fertig ist','Herdstufe oder Ofentemperatur steht bei jedem Schritt als eigenes Feld','Läuft eine Zutat bald ab, warnt der Kochmodus gleich am Anfang','Neue Food-Fotos von Pexels: die KI sucht gezielt ein Foto von genau diesem Gericht','Oberer Rand: hat jetzt exakt dieselbe Farbe wie die App'] },
@@ -1570,7 +1571,7 @@ $('#views').addEventListener('touchend', e=>{ if(!D.user || !isActive()) return;
 function applyTheme(){ const r=document.documentElement, th=L.theme||'system'; if(th==='system') r.removeAttribute('data-theme'); else r.setAttribute('data-theme', th);
   r.classList.toggle('halloween', hwOn());
   /* Oberer Rand (Statusleiste / Safari-Leiste) in derselben Farbe wie die App */
-  const bg = r.classList.contains('splashing') ? (hwOn() ? '#1a0f22' : '#1f5a37') : UI.cook ? '#0f1d14' : getComputedStyle(r).getPropertyValue('--bg').trim();
+  const bg = UI.cook ? '#0f1d14' : getComputedStyle(r).getPropertyValue('--bg').trim();
   if (bg && applyTheme.last !== bg){ applyTheme.last = bg; document.querySelectorAll('meta[name=theme-color]').forEach(m => { if (th !== 'system') m.removeAttribute('media'); m.setAttribute('content', bg); }); } }
 window.matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change', () => applyTheme());
 
@@ -1596,7 +1597,7 @@ setInterval(tickClock, 1000); tickClock();
   // Nur beim ersten Öffnen zeigen – nicht noch einmal, wenn die App sich für ein Update kurz neu lädt
   let seen = false; try { seen = !!sessionStorage.getItem('wg.splash'); sessionStorage.setItem('wg.splash', '1'); } catch(e){}
   if (seen || window.matchMedia('(prefers-reduced-motion: reduce)').matches){ hide(); return; }
-  root.classList.add('splashing'); applyTheme();   // oberer Rand grün wie das Intro
+  root.classList.add('splashing');   // oberer Rand bleibt in App-Farbe (iPhone übernimmt sonst das Grün des Intros)
   sp.addEventListener('animationend', e => { if (e.target === sp && e.animationName === 'spOut') hide(); });
   sp.addEventListener('click', hide); setTimeout(hide, 3000); })();
 
