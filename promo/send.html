@@ -1,0 +1,10 @@
+<!doctype html><meta charset="utf-8"><title>Video wird übergeben …</title>
+<body style="font:16px system-ui;padding:20px">Video wird an das Fenster übergeben …
+<script>
+(async () => {
+  const name = new URLSearchParams(location.search).get('f') || 'halloween-2026.mp4';
+  const buf = await (await fetch(name, { cache:'no-store' })).arrayBuffer();
+  if (window.opener) window.opener.postMessage({ wgVideo:true, name, buf }, '*', [buf]);
+  document.body.textContent = 'Fertig – dieses Fenster kann geschlossen werden.';
+})();
+</script>
