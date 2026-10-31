@@ -537,8 +537,9 @@ function viewFamily(){
 }
 
 /* ---------- Reiter „Mehr" ---------- */
-const VERSION = '2.4';
+const VERSION = '2.4.1';
 const CHANGELOG = [
+  { v:'2.4.1', d:'31. Oktober 2026', items:['Behoben: Das Halloween-Spinnennetz schien oben in die Statusleiste – die Leiste hat jetzt wieder exakt die App-Farbe'] },
   { v:'2.4', d:'31. Oktober 2026', items:['Halloween-Look 🎃: Kürbis-Orange, Nachtfarben im Dunkelmodus, Fledermäuse und ein eigenes Start-Intro','Neu auf „Heute": Halloween-Special mit allen Kürbis-Rezepten (ausblendbar)','Der Look endet automatisch am 2. November – unter Mehr → Darstellung auch vorher abschaltbar'] },
   { v:'2.3', d:'26. Oktober 2026', items:['Kochmodus ausführlich: 10–16 genaue Schritte – Zutaten holen, Haltbarkeit prüfen, schneiden, Herdstufe, Garzeiten und woran man erkennt, dass es fertig ist','Herdstufe oder Ofentemperatur steht bei jedem Schritt als eigenes Feld','Läuft eine Zutat bald ab, warnt der Kochmodus gleich am Anfang','Neue Food-Fotos von Pexels: die KI sucht gezielt ein Foto von genau diesem Gericht','Oberer Rand: hat jetzt exakt dieselbe Farbe wie die App'] },
   { v:'2.2', d:'26. Oktober 2026', items:['Neu: Haltbarkeitsdatum fotografieren – die App liest Datum und Produkt von der Verpackung und trägt beides ein','Erkanntes Produkt lässt sich mit einem Tipp ändern oder selbst eintippen','Die App sagt direkt, wo es hingehört: Kühlschrank, Vorrat oder kühl & dunkel','Ist das Produkt noch nicht im Kühlschrank, wird es automatisch hinzugefügt','Warnung, wenn etwas bald oder schon abgelaufen ist'] },
