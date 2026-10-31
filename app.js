@@ -269,6 +269,7 @@ function viewAuth(){
     <p class="muted" style="text-align:center">Wir haben dir eine E-Mail geschickt. Tippe auf den Link darin und melde dich dann hier an.</p>
     <button class="btn btn-herb btn-block" data-action="auth-mode" data-v="login">Zur Anmeldung</button></div>`;
   return `<div class="center">
+    ${installBanner()}
     <div class="logo-big">Was<br>gibt's<span>?</span></div>
     <p class="muted" style="text-align:center;margin:0 0 6px">Ein Essen, das allen schmeckt, aus dem, was da ist.</p>
     ${UI.joinCode||L.joinCode ? `<div class="card" style="background:var(--herb-soft);font-weight:700">👋 Du wurdest in eine Familie eingeladen. ${reg?'Erstelle':'Melde dich an oder erstelle'} deinen Account, dann geht's los.</div>` : ''}
@@ -325,7 +326,7 @@ function viewHome(){
   const top = ready0.find(s => s.r.meal !== 'suess'), ready = top ? [top, ...ready0.filter(s => s !== top)] : [];
   const h = new Date().getHours(), greet = (h<11?'Guten Morgen':h<17?'Hallo':'Guten Abend') + (hwOn() ? ' · Happy Halloween 🎃' : '');
   const p = isAdmin() ? pendingReq() : [];
-  return header(`Was gibt's heute, ${esc(D.profile.name)}?`, greet) + annBanner() + hwCard() +
+  return header(`Was gibt's heute, ${esc(D.profile.name)}?`, greet) + annBanner() + installBanner() + hwCard() +
     (p.length ? `<button class="banner" data-tab="family"><span class="avatar sm">${prof(p[0].user_id).avatar}</span><span style="flex:1"><b>${esc(prof(p[0].user_id).name)}</b> möchte deiner Familie beitreten</span>${I.chev}</button>` : '') +
     (expiringSoon().length ? `<button class="banner" style="background:var(--tomato-soft)" data-tab="fridge"><span style="font-size:22px">⏰</span><span style="flex:1"><b>Bald aufbrauchen:</b> ${expiringSoon().map(x=>`${esc(ingName(x.k))} (${expLabel(x.d)})`).join(', ')}</span>${I.chev}</button>` : '') +
     `<div class="filters card">
@@ -537,8 +538,9 @@ function viewFamily(){
 }
 
 /* ---------- Reiter „Mehr" ---------- */
-const VERSION = '2.4.2';
+const VERSION = '2.5';
 const CHANGELOG = [
+  { v:'2.5', d:'31. Oktober 2026', items:['Neu: Installations-Anleitung – die App erkennt, ob du ein iPhone oder Android-Handy hast und in welchem Browser du bist, und zeigt dir jeden Schritt','Neu: Auf Android-Handys mit Chrome reicht ein Tipp auf „Jetzt installieren"','Neu: Kommst du aus TikTok, Instagram & Co., erklärt die App, wie du die Seite zuerst im Browser öffnest – mit „Link kopieren"','Neu: Beim ersten Start vom Startbildschirm bestätigt die App, dass alles geklappt hat','Unter Mehr → „App installieren" jederzeit wieder aufrufbar'] },
   { v:'2.4.2', d:'31. Oktober 2026', items:['Behoben: Auf dem iPhone blieb die Leiste ganz oben nach dem Start-Intro grün – sie hat jetzt von Anfang an die App-Farbe','Halloween-Farben und Hell/Dunkel werden schon beim Laden gesetzt, damit das iPhone gleich die richtige Farbe übernimmt'] },
   { v:'2.4.1', d:'31. Oktober 2026', items:['Behoben: Das Halloween-Spinnennetz schien oben in die Statusleiste – die Leiste hat jetzt wieder exakt die App-Farbe'] },
   { v:'2.4', d:'31. Oktober 2026', items:['Halloween-Look 🎃: Kürbis-Orange, Nachtfarben im Dunkelmodus, Fledermäuse und ein eigenes Start-Intro','Neu auf „Heute": Halloween-Special mit allen Kürbis-Rezepten (ausblendbar)','Der Look endet automatisch am 2. November – unter Mehr → Darstellung auch vorher abschaltbar'] },
@@ -566,7 +568,7 @@ const FAQ = [
   ['Was bedeutet „Wählerischer Esser"?','Statt anzugeben, was du nicht magst, wählst du aus, was du isst. Dann bekommst du nur Gerichte, bei denen du alle Hauptzutaten magst.'],
   ['Die Foto-Erkennung macht Pause?','Die KI hat ein Tageslimit. Am nächsten Tag geht es wieder. Bis dahin kannst du die Zutaten antippen.'],
   ['Wo finde ich den Kochmodus?','Auf „Heute" direkt unter dem Vorschlag („Jetzt kochen") oder in jedem Rezept über „Kochmodus starten". Dort gibt es große Schritte zum Wischen und Timer mit Ton.'],
-  ['Wie installiere ich die App?','iPhone: in Safari auf „Teilen" und dann „Zum Home-Bildschirm". Android: im Chrome-Menü auf „App installieren".'],
+  ['Wie installiere ich die App?','Unter Mehr → „App installieren" erkennt die App dein Handy und zeigt dir jeden Schritt. Kurz: iPhone in Safari „Teilen" → „Zum Home-Bildschirm". Android in Chrome ⋮ → „App installieren".'],
 ];
 function hwCard(){
   if (!hwOn() || L.hwCardOff === new Date().getFullYear()) return '';
@@ -583,6 +585,7 @@ function viewMore(){
     <div class="h2">Darstellung</div>
     <div class="seg" role="group" aria-label="Farbschema">${[['system','System'],['light','Hell'],['dark','Dunkel']].map(([k,l])=>`<button data-action="theme" data-v="${k}" aria-pressed="${(L.theme||'system')===k}">${l}</button>`).join('')}</div>
     ${hwSeason() ? `<div class="list" style="margin-top:10px"><button class="row" data-action="season" aria-pressed="${hwOn()}"><span style="font-size:22px">🎃</span><span class="grow"><b>Halloween-Look</b><small>Nur bis 2. November · ${hwOn() ? 'an' : 'aus'}</small></span><span class="switch" aria-checked="${hwOn()}" aria-hidden="true"></span></button></div>` : ''}
+    ${isStandalone() ? '' : `<div class="h2">App</div><div class="list"><button class="row" data-action="install">${ic8(IC.dl,'row-ic')}<span class="grow"><b>App installieren</b><small>Auf den Startbildschirm – Schritt für Schritt</small></span>${I.chev}</button></div>`}
     <div class="h2">Benachrichtigungen</div>
     <div class="list">${pushRow()}</div>
     <div class="h2">Kontakt</div>
@@ -617,6 +620,93 @@ function viewBanned(){
 const pushSupported = () => 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window && location.protocol === 'https:';
 const isIOS = () => /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 const isStandalone = () => window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+
+/* ---------- App installieren: Gerät erkennen und Schritt für Schritt erklären ----------
+   Icons: Icons8 (https://icons8.com), lokal in /icons gespeichert – werden als Maske eingefärbt, damit sie zu Hell/Dunkel passen. */
+const ic8 = (n, cls = '') => `<i class="ic8 ${cls}" style="--ic:url('icons/${n}.png')" aria-hidden="true"></i>`;
+const IC = { share:'share', more:'more', dots:'dots', plus:'plus', home:'home', open:'open', copy:'copy', ok:'ok', dl:'dl', phone:'phone', android:'android', menu:'menu' };   // liegen in /icons (von Icons8)
+function deviceInfo(){
+  const ua = navigator.userAgent, ios = isIOS(), android = /Android/i.test(ua);
+  const appName = /musical_ly|Bytedance|TikTok/i.test(ua) ? 'TikTok' : /Instagram/i.test(ua) ? 'Instagram' : /FBAN|FBAV|FB_IAB/i.test(ua) ? 'Facebook' : /Snapchat/i.test(ua) ? 'Snapchat' : /WhatsApp/i.test(ua) ? 'WhatsApp' : /GSA\//.test(ua) ? 'der Google-App' : null;
+  let browser = 'other', inApp = !!appName;
+  if (ios){
+    if (/CriOS/.test(ua)) browser = 'chrome'; else if (/FxiOS/.test(ua)) browser = 'firefox'; else if (/EdgiOS/.test(ua)) browser = 'edge';
+    else if (!inApp && /Safari\//.test(ua)) browser = 'safari'; else inApp = true;
+  } else if (android){
+    if (/; wv\)/.test(ua)) inApp = true;
+    if (/SamsungBrowser/.test(ua)) browser = 'samsung'; else if (/Firefox/.test(ua)) browser = 'firefox'; else if (/EdgA/.test(ua)) browser = 'edge'; else if (/Chrome/.test(ua)) browser = 'chrome';
+  } else browser = /Edg\//.test(ua) ? 'edge' : /Chrome/.test(ua) ? 'chrome' : /Safari/.test(ua) ? 'safari' : /Firefox/.test(ua) ? 'firefox' : 'other';
+  return { os: ios ? 'ios' : android ? 'android' : 'desktop', browser, inApp, appName, installed: isStandalone() };
+}
+const BNAME = { safari:'Safari', chrome:'Chrome', firefox:'Firefox', edge:'Edge', samsung:'Samsung Internet', other:'Browser' };
+let installEvt = null;
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); installEvt = e; if (sheetFn === openInstall) refreshSheet(); });
+window.addEventListener('appinstalled', () => { installEvt = null; L.installedAt = Date.now(); saveLocal(); if (sheetFn === openInstall) refreshSheet(); toast('🎉 Installiert! „Was gibt\'s?" ist jetzt auf deinem Startbildschirm.'); });
+
+function installSteps(d){
+  const os = UI.instOs || d.os, b = UI.instOs && UI.instOs !== d.os ? (UI.instOs === 'ios' ? 'safari' : 'chrome') : d.browser;
+  const last = [IC.home, `<b>Fertig!</b> Öffne „Was gibt's?" ab jetzt über das neue Icon auf deinem Startbildschirm – wie jede andere App.`];
+  if (d.inApp && !UI.instOs) return os === 'ios' ? [
+      [IC.more, `Tippe oben rechts auf <b>⋯</b> oder auf das Kompass-Symbol.`],
+      [IC.open, `Wähle <b>In Safari öffnen</b> bzw. <b>Im Browser öffnen</b>.`],
+      [IC.share, `Danach geht's in Safari weiter – diese Anleitung erscheint dort automatisch wieder.`] ] : [
+      [IC.dots, `Tippe oben rechts auf <b>⋮</b>.`],
+      [IC.open, `Wähle <b>Im Browser öffnen</b> bzw. <b>In Chrome öffnen</b>.`],
+      [IC.dl, `Danach geht's im Browser weiter – diese Anleitung erscheint dort automatisch wieder.`] ];
+  if (os === 'ios') return [
+      b === 'safari' ? [IC.share, `Tippe unten in Safari auf <b>Teilen</b> ${ic8(IC.share,'in')}. Siehst du es nicht, tippe zuerst auf <b>⋯</b> unten rechts.`]
+        : b === 'firefox' ? [IC.share, `Tippe unten rechts auf <b>☰</b> und dann auf <b>Teilen</b> ${ic8(IC.share,'in')}.`]
+        : [IC.share, `Tippe oben rechts in der Adresszeile auf <b>Teilen</b> ${ic8(IC.share,'in')}.`],
+      [IC.plus, `Scroll in der Liste nach unten und wähle <b>Zum Home-Bildschirm</b> ${ic8(IC.plus,'in')}.`],
+      [IC.ok, `Lass <b>„Als Web-App öffnen"</b> eingeschaltet und tippe oben rechts auf <b>Hinzufügen</b>.`], last ];
+  if (os === 'android') return b === 'samsung' ? [
+      [IC.menu, `Tippe unten rechts auf das Menü <b>☰</b>.`],
+      [IC.plus, `Wähle <b>Seite hinzufügen zu</b> → <b>Startbildschirm</b>.`],
+      [IC.ok, `Tippe auf <b>Hinzufügen</b>.`], last ] : [
+      [IC.dots, `Tippe oben rechts auf <b>⋮</b>.`],
+      [IC.dl, `Wähle <b>App installieren</b> – oder <b>Zum Startbildschirm hinzufügen</b>.`],
+      [IC.ok, `Bestätige mit <b>Installieren</b>.`], last ];
+  return b === 'safari' ? [
+      [IC.share, `Am Mac: In der Menüleiste <b>Ablage</b> → <b>Zum Dock hinzufügen</b>.`], [IC.ok, `Auf <b>Hinzufügen</b> klicken.`] ] : [
+      [IC.dl, `Klicke rechts in der Adresszeile auf das Installieren-Symbol ${ic8(IC.dl,'in')}.`], [IC.ok, `Auf <b>Installieren</b> klicken.`] ];
+}
+function openInstall(keep){
+  sheetFn = openInstall;
+  const d = deviceInfo(), os = UI.instOs || d.os;
+  const devName = d.os === 'ios' ? (/iPad/.test(navigator.userAgent) || (navigator.maxTouchPoints > 1 && !/iPhone/.test(navigator.userAgent)) ? 'iPad' : 'iPhone') : d.os === 'android' ? 'Android-Handy' : 'Computer';
+  const where = d.inApp ? `in ${d.appName || 'einer App'}` : `in ${BNAME[d.browser]}`;
+  const steps = installSteps(d);
+  const body = d.installed ? `
+      <div class="inst-done">${ic8(IC.ok,'big')}<b>Alles erledigt!</b><p>Du nutzt „Was gibt's?" schon vom Startbildschirm. Mehr musst du nicht tun.</p></div>`
+    : `
+      <div class="inst-demo" aria-hidden="true"><div class="inst-grid">${'<i></i>'.repeat(7)}<img src="icon-192.png" alt=""></div></div>
+      <div class="inst-dev">${ic8(os === 'ios' ? IC.phone : os === 'android' ? IC.android : IC.dl)}<span>Erkannt: <b>${devName}</b> · ${esc(where)}</span></div>
+      ${d.inApp && !UI.instOs ? `<div class="inst-warn"><b>In ${esc(d.appName || 'dieser App')} geht das Installieren nicht.</b> Öffne die Seite zuerst in ${os === 'ios' ? 'Safari' : 'deinem Browser'} – oder kopiere den Link und füge ihn dort ein.
+        <button class="btn btn-line btn-sm" data-action="inst-copy" style="margin-top:10px">${ic8(IC.copy,'in')} Link kopieren</button></div>` : ''}
+      ${installEvt && os === 'android' && !UI.instOs ? `<button class="btn btn-herb btn-block inst-now" data-action="inst-now">${ic8(IC.dl,'in light')} Jetzt installieren</button><div class="h2" style="margin-top:14px">Oder von Hand</div>` : ''}
+      <ol class="inst-steps">${steps.map(([icon, t], n) => `<li style="--d:${n * 70}ms"><span class="inst-n">${n + 1}</span><span class="inst-ic">${ic8(icon)}</span><span class="inst-t">${t}</span></li>`).join('')}</ol>
+      ${os === 'ios' && !(d.inApp && !UI.instOs) ? `<p class="inst-note">Wichtig beim iPhone: Nach dem Öffnen vom Startbildschirm meldest du dich einmal neu an – das iPhone trennt Safari und Startbildschirm-Apps.</p>` : ''}
+      <div class="inst-why"><span>⚡ Startet im Vollbild</span><span>🔔 Benachrichtigungen</span><span>📴 Läuft auch offline</span></div>
+      <div class="inst-other">Anderes Gerät? <button class="linkbtn" data-action="inst-os" data-v="ios" aria-pressed="${os === 'ios'}">iPhone</button> · <button class="linkbtn" data-action="inst-os" data-v="android" aria-pressed="${os === 'android'}">Android</button></div>`;
+  openSheet(`${sheetHead('App installieren')}${body}<p class="inst-credit">Icons von <a href="https://icons8.com" target="_blank" rel="noopener">Icons8</a></p>`, keep);
+}
+const isPhone = () => deviceInfo().os !== 'desktop';
+const needsInstall = () => isPhone() && !isStandalone() && !mq.matches;
+function installBanner(){
+  if (!needsInstall() || (L.instHide && Date.now() < L.instHide)) return '';
+  const d = deviceInfo();
+  return `<div class="inst-banner"><button class="inst-b-main" data-action="install"><img src="icon-192.png" alt=""><span><b>App auf den Startbildschirm holen</b><small>${d.inApp ? `Öffne die Seite zuerst im Browser – so geht's` : `Dauert 20 Sekunden · für ${d.os === 'ios' ? 'iPhone' : 'Android'} erklärt`}</small></span><span class="inst-b-cta">Zeigen</span></button>
+    <button class="inst-b-x" data-action="inst-hide" aria-label="Später">✕</button></div>`;
+}
+/* Beim ersten Besuch im Browser einmal automatisch zeigen, nach dem ersten Start vom Startbildschirm einmal „Geschafft" */
+function installAuto(){
+  if (sheetFn || $('.sheet')) return;
+  if (isStandalone()){
+    if (!L.installedSeen){ L.installedSeen = Date.now(); saveLocal(); setTimeout(() => toast('🎉 Geschafft! „Was gibt\'s?" ist jetzt auf deinem Startbildschirm.'), 400); }
+    return;
+  }
+  if (needsInstall() && !L.instAuto){ L.instAuto = Date.now(); saveLocal(); UI.instOs = null; openInstall(); }
+}
 function b64ToBytes(b){ const p = '='.repeat((4 - b.length % 4) % 4); const r = atob((b + p).replace(/-/g,'+').replace(/_/g,'/')); return Uint8Array.from(r, c => c.charCodeAt(0)); }
 async function pushStatus(){
   if (!pushSupported()) return isIOS() && !isStandalone() ? 'install' : 'unsupported';
@@ -1523,6 +1613,11 @@ document.addEventListener('click', async e => {
     case 'cook-read': L.readAloud = !L.readAloud; saveLocal(); updVoice(); if (L.readAloud) speakStep(); else try { speechSynthesis.cancel(); } catch(e){} toast(L.readAloud ? '🔊 Schritte werden vorgelesen' : 'Vorlesen aus'); break;
     case 'legal': { const [title, html] = LEGAL[t.dataset.v]; sheetFn = null; openSheet(`${sheetHead(title)}<div class="legal">${html}</div>`); break; }
     case 'theme': L.theme=t.dataset.v; saveLocal(); render(); break;
+    case 'install': UI.instOs = null; openInstall(); break;
+    case 'inst-os': UI.instOs = t.dataset.v === deviceInfo().os ? null : t.dataset.v; openInstall(true); break;
+    case 'inst-hide': L.instHide = Date.now() + 3*864e5; saveLocal(); render(); break;
+    case 'inst-now': if (installEvt){ const ev = installEvt; ev.prompt(); ev.userChoice.then(c => { if (c && c.outcome === 'accepted'){ installEvt = null; refreshSheet(); } }).catch(()=>{}); } break;
+    case 'inst-copy': { const u = location.origin + location.pathname; (navigator.clipboard ? navigator.clipboard.writeText(u) : Promise.reject()).then(() => toast('Link kopiert – jetzt im Browser einfügen'), () => toast(u)); break; }
     case 'season': L.season = !hwOn(); saveLocal(); applyTheme(); render(); break;
     case 'hw-card-off': L.hwCardOff = new Date().getFullYear(); saveLocal(); render(); break;
     case 'hw-recipes': UI.rtab = 'all'; UI.q = 'Kürbis'; UI.rlimit = 30; go('recipes'); break;
@@ -1610,6 +1705,7 @@ if ('serviceWorker' in navigator && location.protocol === 'https:'){
   navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(r => { r.update(); document.addEventListener('visibilitychange', () => { if (!document.hidden) r.update(); }); }).catch(()=>{});
 }
 layout(); render();
+setTimeout(installAuto, 3300);
 if (configured){
   sb.auth.getSession().then(({ data }) => onSession(data.session));
   sb.auth.onAuthStateChange((ev, session) => {

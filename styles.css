@@ -735,3 +735,49 @@ html:not(.framed) #splash{position:fixed}
 
 /* 2.4.1: Statusleiste immer exakt in App-Farbe, nichts scheint durch */
 #topfade{opacity:1;background:var(--bg)}
+
+/* ---------- App installieren ---------- */
+.ic8{display:inline-block;width:22px;height:22px;flex:none;background:currentColor;vertical-align:-5px;
+  -webkit-mask:var(--ic) center/contain no-repeat;mask:var(--ic) center/contain no-repeat}
+.ic8.in{width:18px;height:18px;vertical-align:-3px;margin:0 1px}
+.ic8.big{width:56px;height:56px;color:var(--herb)}
+.ic8.light{color:var(--herb-ink)}
+.row .ic8.row-ic{width:24px;height:24px;color:var(--herb)}
+.inst-demo{display:grid;place-items:center;margin:2px 0 14px}
+.inst-grid{display:grid;grid-template-columns:repeat(4,46px);gap:12px;padding:16px 18px;border-radius:26px;
+  background:linear-gradient(160deg,color-mix(in srgb,var(--herb) 22%,var(--surface-2)),var(--surface-2));position:relative}
+.inst-grid i{height:46px;border-radius:12px;background:color-mix(in srgb,var(--fg) 9%,transparent)}
+.inst-grid img{width:46px;height:46px;border-radius:12px;box-shadow:0 8px 18px rgba(0,0,0,.25);animation:instPop 2.6s cubic-bezier(.3,1.5,.5,1) .3s infinite both}
+@keyframes instPop{0%{transform:translateY(-70px) scale(.4);opacity:0}22%,78%{transform:none;opacity:1}88%,100%{transform:scale(.9);opacity:0}}
+.inst-dev{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:14px;background:var(--herb-soft);color:var(--fg);font-size:14px;margin-bottom:12px}
+.inst-dev .ic8{color:var(--herb)}
+.inst-warn{padding:14px;border-radius:16px;background:var(--tomato-soft);font-size:14px;line-height:1.45;margin-bottom:12px}
+.inst-warn .btn{display:flex;width:max-content;align-items:center;gap:6px}
+.inst-now{display:flex;align-items:center;justify-content:center;gap:8px}
+.inst-steps{list-style:none;margin:4px 0 0;padding:0;display:flex;flex-direction:column;gap:10px}
+.inst-steps li{display:grid;grid-template-columns:26px 44px 1fr;align-items:center;gap:10px;padding:12px;border-radius:18px;background:var(--surface);
+  border:1px solid var(--line);animation:instIn .45s cubic-bezier(.2,.9,.3,1) var(--d) both}
+@keyframes instIn{from{opacity:0;transform:translateY(10px)}}
+.inst-n{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;background:var(--herb);color:var(--herb-ink);font-weight:800;font-size:13px}
+.inst-ic{width:44px;height:44px;border-radius:13px;display:grid;place-items:center;background:var(--surface-2)}
+.inst-ic .ic8{width:24px;height:24px;color:var(--fg)}
+.inst-t{font-size:14.5px;line-height:1.4}
+.inst-t .ic8.in{color:var(--herb)}
+.inst-note{font-size:13px;color:var(--muted);margin:12px 2px 0;line-height:1.45}
+.inst-why{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px}
+.inst-why span{font-size:12.5px;font-weight:700;padding:6px 10px;border-radius:999px;background:var(--surface-2);color:var(--muted)}
+.inst-other{margin-top:16px;font-size:13px;color:var(--muted);text-align:center}
+.inst-other .linkbtn{font-size:13px;padding:4px}
+.inst-other .linkbtn[aria-pressed="true"]{color:var(--herb);font-weight:800}
+.inst-done{display:flex;flex-direction:column;align-items:center;text-align:center;gap:8px;padding:18px 6px 6px}
+.inst-done b{font-family:var(--f-display);font-size:22px}.inst-done p{margin:0;color:var(--muted)}
+.inst-credit{text-align:center;font-size:11px;color:var(--muted);margin:16px 0 0}.inst-credit a{color:inherit}
+.inst-banner{position:relative;margin:0 0 12px;border-radius:20px;background:var(--surface);border:1px solid var(--line);box-shadow:0 6px 18px rgba(0,0,0,.06);animation:heroIn .5s both}
+.inst-b-main{display:flex;align-items:center;gap:12px;width:100%;padding:12px 44px 12px 12px;background:none;border:0;text-align:left;color:inherit;font:inherit}
+.inst-b-main img{width:44px;height:44px;border-radius:11px;flex:none}
+.inst-b-main span{display:flex;flex-direction:column;gap:2px;flex:1;min-width:0}
+.inst-b-main b{font-size:15px}.inst-b-main small{font-size:12.5px;color:var(--muted)}
+.inst-b-cta{flex:none!important;background:var(--herb);color:var(--herb-ink);font-weight:800;font-size:13px;padding:7px 12px;border-radius:999px}
+.inst-b-x{position:absolute;top:6px;right:6px;width:26px;height:26px;border-radius:50%;border:0;background:transparent;color:var(--muted);font-size:12px}
+.center > .inst-banner{width:100%}
+@media (prefers-reduced-motion: reduce){ .inst-grid img,.inst-steps li{animation:none} }
