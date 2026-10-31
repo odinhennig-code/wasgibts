@@ -8,7 +8,32 @@ import { SUPABASE_URL, SUPABASE_ANON_KEY } from './config.js';
 import { ING, ingName, ingEmoji, R, recipe, ALLERGENS, TRAITS, allergensOf, MEAT, FISH, CATS } from './data.js';
 
 const configured = !!(SUPABASE_URL && SUPABASE_ANON_KEY);
-const sb = configured ? createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+/* ---------- Angemeldet bleiben ----------
+   Die Anmeldung liegt doppelt: im localStorage (schnell) und in der IndexedDB (Sicherung).
+   Löscht das Handy den localStorage (z. B. Speicher knapp, iOS räumt auf), holt die App
+   die Anmeldung still aus der Sicherung zurück – man muss sich nicht neu anmelden. */
+const authStore = (() => {
+  let dbp = null;
+  const db = () => dbp || (dbp = new Promise((ok, no) => { try { const r = indexedDB.open('wasgibts-auth', 1);
+    r.onupgradeneeded = () => r.result.createObjectStore('kv'); r.onsuccess = () => ok(r.result); r.onerror = () => no(r.error); } catch(e){ no(e); } }));
+  const tx = (mode, fn) => db().then(d => new Promise((ok, no) => { const t = d.transaction('kv', mode), st = t.objectStore('kv'), q = fn(st);
+    t.oncomplete = () => ok(q && q.result); t.onerror = () => no(t.error); })).catch(() => null);
+  const ls = { get:k => { try { return localStorage.getItem(k); } catch(e){ return null; } }, set:(k,v) => { try { localStorage.setItem(k, v); } catch(e){} }, del:k => { try { localStorage.removeItem(k); } catch(e){} } };
+  return {
+    async getItem(k){ const v = ls.get(k); if (v != null) return v;
+      const b = await tx('readonly', st => st.get(k)); if (b != null) ls.set(k, b); return b ?? null; },
+    async setItem(k, v){ ls.set(k, v); await tx('readwrite', st => st.put(v, k)); },
+    async removeItem(k){ ls.del(k); await tx('readwrite', st => st.delete(k)); },
+  };
+})();
+const sb = configured ? createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  auth:{ persistSession:true, autoRefreshToken:true, detectSessionInUrl:true, storage:authStore } }) : null;
+/* Den Browser bitten, den Speicher der App nicht automatisch zu löschen */
+try { navigator.storage && navigator.storage.persist && navigator.storage.persisted().then(p => p || navigator.storage.persist()).catch(()=>{}); } catch(e){}
+/* Handy schläft Zeitgeber ein: beim Zurückkommen die Anmeldung sofort auffrischen */
+if (sb) document.addEventListener('visibilitychange', () => { try {
+  if (document.hidden) sb.auth.stopAutoRefresh && sb.auth.stopAutoRefresh();
+  else { sb.auth.startAutoRefresh && sb.auth.startAutoRefresh(); sb.auth.getSession().catch(()=>{}); } } catch(e){} });
 
 /* ---------- Zustand ---------- */
 const D = { user:null, profile:null, membership:null, family:null, members:[], profiles:{}, wishes:[], fridge:[], expiries:{}, custom:[], poll:null, votes:[], shop:[], plan:[], ann:null, appAdmin:false };
@@ -326,7 +351,7 @@ function viewHome(){
   const top = ready0.find(s => s.r.meal !== 'suess'), ready = top ? [top, ...ready0.filter(s => s !== top)] : [];
   const h = new Date().getHours(), greet = (h<11?'Guten Morgen':h<17?'Hallo':'Guten Abend') + (hwOn() ? ' · Happy Halloween 🎃' : '');
   const p = isAdmin() ? pendingReq() : [];
-  return header(`Was gibt's heute, ${esc(D.profile.name)}?`, greet) + annBanner() + installBanner() + hwCard() +
+  return header(`Was gibt's heute, ${esc(D.profile.name)}?`, greet) + annBanner() + installBanner() + pushBanner() + hwCard() +
     (p.length ? `<button class="banner" data-tab="family"><span class="avatar sm">${prof(p[0].user_id).avatar}</span><span style="flex:1"><b>${esc(prof(p[0].user_id).name)}</b> möchte deiner Familie beitreten</span>${I.chev}</button>` : '') +
     (expiringSoon().length ? `<button class="banner" style="background:var(--tomato-soft)" data-tab="fridge"><span style="font-size:22px">⏰</span><span style="flex:1"><b>Bald aufbrauchen:</b> ${expiringSoon().map(x=>`${esc(ingName(x.k))} (${expLabel(x.d)})`).join(', ')}</span>${I.chev}</button>` : '') +
     `<div class="filters card">
@@ -538,8 +563,9 @@ function viewFamily(){
 }
 
 /* ---------- Reiter „Mehr" ---------- */
-const VERSION = '2.5';
+const VERSION = '2.6';
 const CHANGELOG = [
+  { v:'2.6', d:'31. Oktober 2026', items:['Neu: Sind Benachrichtigungen aus, fragt die App nach dem Start – mit dem klaren Versprechen: keine nervigen Benachrichtigungen, nur selten, bei Updates und wenn deine Familie dich braucht','Neu: Hinweis-Karte auf „Heute", solange Benachrichtigungen aus sind','Besser angemeldet bleiben: die Anmeldung wird zusätzlich gesichert und nach dem Aufwecken des Handys sofort aufgefrischt','Die App bittet das Handy, ihren Speicher nicht automatisch zu löschen'] },
   { v:'2.5', d:'31. Oktober 2026', items:['Neu: Installations-Anleitung – die App erkennt, ob du ein iPhone oder Android-Handy hast und in welchem Browser du bist, und zeigt dir jeden Schritt','Neu: Auf Android-Handys mit Chrome reicht ein Tipp auf „Jetzt installieren"','Neu: Kommst du aus TikTok, Instagram & Co., erklärt die App, wie du die Seite zuerst im Browser öffnest – mit „Link kopieren"','Neu: Beim ersten Start vom Startbildschirm bestätigt die App, dass alles geklappt hat','Unter Mehr → „App installieren" jederzeit wieder aufrufbar'] },
   { v:'2.4.2', d:'31. Oktober 2026', items:['Behoben: Auf dem iPhone blieb die Leiste ganz oben nach dem Start-Intro grün – sie hat jetzt von Anfang an die App-Farbe','Halloween-Farben und Hell/Dunkel werden schon beim Laden gesetzt, damit das iPhone gleich die richtige Farbe übernimmt'] },
   { v:'2.4.1', d:'31. Oktober 2026', items:['Behoben: Das Halloween-Spinnennetz schien oben in die Statusleiste – die Leiste hat jetzt wieder exakt die App-Farbe'] },
@@ -624,7 +650,7 @@ const isStandalone = () => window.matchMedia('(display-mode: standalone)').match
 /* ---------- App installieren: Gerät erkennen und Schritt für Schritt erklären ----------
    Icons: Icons8 (https://icons8.com), lokal in /icons gespeichert – werden als Maske eingefärbt, damit sie zu Hell/Dunkel passen. */
 const ic8 = (n, cls = '') => `<i class="ic8 ${cls}" style="--ic:url('icons/${n}.png')" aria-hidden="true"></i>`;
-const IC = { share:'share', more:'more', dots:'dots', plus:'plus', home:'home', open:'open', copy:'copy', ok:'ok', dl:'dl', phone:'phone', android:'android', menu:'menu' };   // liegen in /icons (von Icons8)
+const IC = { share:'share', more:'more', dots:'dots', plus:'plus', home:'home', open:'open', copy:'copy', ok:'ok', dl:'dl', phone:'phone', android:'android', menu:'menu', bell:'bell', nobell:'nobell', update:'update', family:'family', rare:'rare', nospam:'nospam' };   // liegen in /icons (von Icons8)
 function deviceInfo(){
   const ua = navigator.userAgent, ios = isIOS(), android = /Android/i.test(ua);
   const appName = /musical_ly|Bytedance|TikTok/i.test(ua) ? 'TikTok' : /Instagram/i.test(ua) ? 'Instagram' : /FBAN|FBAV|FB_IAB/i.test(ua) ? 'Facebook' : /Snapchat/i.test(ua) ? 'Snapchat' : /WhatsApp/i.test(ua) ? 'WhatsApp' : /GSA\//.test(ua) ? 'der Google-App' : null;
@@ -749,7 +775,7 @@ async function syncPush(){
 }
 function pushRow(){
   const st = UI.push || 'unsupported';
-  const sub = { on:'Neuigkeiten und Hinweise aufs Handy', off:'Aus – tippen zum Einschalten', install:'Zuerst die App zum Home-Bildschirm hinzufügen', denied:'In den Handy-Einstellungen blockiert', unsupported:'Dieser Browser unterstützt das nicht' }[st];
+  const sub = { on:'An – nur bei Updates und Familien-Nachrichten', off:'Aus – tippen zum Einschalten', install:'Zuerst die App zum Home-Bildschirm hinzufügen', denied:'In den Handy-Einstellungen blockiert', unsupported:'Dieser Browser unterstützt das nicht' }[st];
   const clickable = st !== 'unsupported';
   return `<${clickable?'button':'div'} class="row" ${clickable?'data-action="push"':''}><span style="font-size:22px">🔔</span><span class="grow"><b>Push-Benachrichtigungen</b><small>${sub}</small></span>${st==='on'||st==='off'?`<span class="switch" role="switch" aria-checked="${st==='on'}"></span>`:st==='install'?I.chev:''}</${clickable?'button':'div'}>`;
 }
@@ -759,6 +785,32 @@ function openPushHelp(){
     <p style="color:var(--muted);margin:0 0 14px">Apple erlaubt Benachrichtigungen nur, wenn die App auf dem Home-Bildschirm liegt. Das dauert 10 Sekunden:</p>
     <ol class="steps"><li>In Safari unten auf <b>Teilen</b> tippen (Quadrat mit Pfeil).</li><li><b>„Zum Home-Bildschirm"</b> wählen und hinzufügen.</li><li>Die App über das neue Symbol öffnen und hier unter „Mehr" Benachrichtigungen einschalten.</li></ol>
     <button class="btn btn-herb btn-block" style="margin-top:14px" data-action="close">Verstanden</button>`);
+}
+
+
+/* ---------- Benachrichtigungen: bei jedem Start fragen, solange sie aus sind ---------- */
+function pushPromptHtml(){
+  const pts = [[IC.rare,'Nur ganz selten','Kein Dauer-Gepiepe, versprochen.'],[IC.update,'Wenn es ein Update gibt','Damit du neue Funktionen nicht verpasst.'],[IC.family,'Wenn deine Familie dich braucht','Zum Beispiel bei einem Essenswunsch oder einer Abstimmung.'],[IC.nospam,'Keine Werbung, kein Spam','Niemals.']];
+  return `${sheetHead('')}
+    <div class="pp-hero" aria-hidden="true"><span class="pp-ring"></span><span class="pp-ring r2"></span>${ic8(IC.bell,'pp-bell')}</div>
+    <div class="pp-title">Benachrichtigungen aktivieren</div>
+    <p class="pp-sub">damit du keine Updates verpasst</p>
+    <div class="pp-promise">${ic8(IC.nobell,'pp-nob')}<b>Keine nervigen<br>Benachrichtigungen.</b></div>
+    <ul class="pp-list">${pts.map(([i,b,t]) => `<li>${ic8(i)}<span><b>${b}</b><small>${t}</small></span></li>`).join('')}</ul>
+    <button class="btn btn-herb btn-block pp-on" data-action="pp-on">${ic8(IC.bell,'in light')} Benachrichtigungen aktivieren</button>
+    <button class="linkbtn pp-later" data-action="pp-later">Jetzt nicht</button>
+    <p class="inst-note" style="text-align:center">Du kannst sie jederzeit unter Mehr → Benachrichtigungen wieder ausschalten.</p>`;
+}
+function openPushPrompt(){ sheetFn = null; openSheet(pushPromptHtml()); }
+function pushBanner(){
+  if (UI.push !== 'off') return '';
+  return `<button class="pp-banner" data-action="pp-open">${ic8(IC.bell,'pp-b-ic')}<span><b>Benachrichtigungen aktivieren</b><small>Keine nervigen – nur bei Updates &amp; wenn deine Familie dich braucht</small></span><span class="inst-b-cta">An</span></button>`;
+}
+/* Nach jedem Start / jeder Anmeldung einmal zeigen, solange Benachrichtigungen aus sind */
+function maybePushPrompt(){
+  if (UI.push !== 'off' || !D.user || !D.family || !isActive() || $('.sheet') || sheetFn) return;
+  try { if (sessionStorage.getItem('wg.pp') === (D.user && D.user.id)) return; sessionStorage.setItem('wg.pp', D.user.id); } catch(e){}
+  openPushPrompt();
 }
 
 /* ---------- Sanftes Neuzeichnen ----------
@@ -914,7 +966,7 @@ async function onSession(session){
   if (D.user){ try { await loadAll(true); subscribe(); } catch(e){ UI.err = errText(e); } }
   else { UI.auth = UI.auth==='check' ? 'check' : 'login'; D.profile=null; D.membership=null; if (channel){ sb.removeChannel(channel); channel=null; } }
   UI.loading=false; render();
-  if (D.user && !D.profile?.banned) syncPush();
+  if (D.user && !D.profile?.banned) syncPush().then(() => setTimeout(maybePushPrompt, performance.now() < 6000 ? 3800 : 600));
   if (D.user && !UI.counted){ UI.counted = true; trackOpen(); setTimeout(maybePlusPopup, 8000); }
 }
 
@@ -1614,6 +1666,9 @@ document.addEventListener('click', async e => {
     case 'legal': { const [title, html] = LEGAL[t.dataset.v]; sheetFn = null; openSheet(`${sheetHead(title)}<div class="legal">${html}</div>`); break; }
     case 'theme': L.theme=t.dataset.v; saveLocal(); render(); break;
     case 'install': UI.instOs = null; openInstall(); break;
+    case 'pp-open': openPushPrompt(); break;
+    case 'pp-later': closeSheet(); render(); break;
+    case 'pp-on': { t.disabled = true; const r = await pushOn(); closeSheet(); render(); toast(r === true ? 'Benachrichtigungen an 🔔 – danke!' : r); break; }
     case 'inst-os': UI.instOs = t.dataset.v === deviceInfo().os ? null : t.dataset.v; openInstall(true); break;
     case 'inst-hide': L.instHide = Date.now() + 3*864e5; saveLocal(); render(); break;
     case 'inst-now': if (installEvt){ const ev = installEvt; ev.prompt(); ev.userChoice.then(c => { if (c && c.outcome === 'accepted'){ installEvt = null; refreshSheet(); } }).catch(()=>{}); } break;

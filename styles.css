@@ -781,3 +781,28 @@ html:not(.framed) #splash{position:fixed}
 .inst-b-x{position:absolute;top:6px;right:6px;width:26px;height:26px;border-radius:50%;border:0;background:transparent;color:var(--muted);font-size:12px}
 .center > .inst-banner{width:100%}
 @media (prefers-reduced-motion: reduce){ .inst-grid img,.inst-steps li{animation:none} }
+
+/* ---------- Benachrichtigungen-Abfrage ---------- */
+.pp-hero{position:relative;width:110px;height:110px;margin:0 auto 6px;display:grid;place-items:center;border-radius:50%;background:var(--herb-soft)}
+.pp-hero .ic8.pp-bell{width:54px;height:54px;color:var(--herb);transform-origin:50% 10%;animation:ppRing 2.4s ease-in-out .4s infinite}
+.pp-ring{position:absolute;inset:0;border-radius:50%;border:2px solid var(--herb);opacity:0;animation:ppWave 2.4s ease-out .4s infinite}
+.pp-ring.r2{animation-delay:1.2s}
+@keyframes ppRing{0%,60%,100%{transform:none}8%{transform:rotate(16deg)}16%{transform:rotate(-14deg)}24%{transform:rotate(10deg)}32%{transform:rotate(-6deg)}40%{transform:rotate(2deg)}}
+@keyframes ppWave{0%{transform:scale(.9);opacity:.5}100%{transform:scale(1.5);opacity:0}}
+.pp-title{font-family:var(--f-display);font-weight:800;font-size:26px;letter-spacing:-.02em;text-align:center;line-height:1.1;margin-top:8px}
+.pp-sub{text-align:center;color:var(--muted);margin:4px 0 16px;font-size:16px;font-weight:600}
+.pp-promise{display:flex;align-items:center;gap:14px;padding:16px 18px;border-radius:20px;background:var(--herb);color:var(--herb-ink);margin-bottom:14px}
+.pp-promise b{font-family:var(--f-display);font-weight:800;font-size:23px;line-height:1.12;letter-spacing:-.01em}
+.pp-promise .ic8.pp-nob{width:44px;height:44px;color:var(--herb-ink)}
+.pp-list{list-style:none;margin:0 0 18px;padding:0;display:flex;flex-direction:column;gap:12px}
+.pp-list li{display:flex;align-items:center;gap:14px}
+.pp-list .ic8{width:30px;height:30px;color:var(--herb);flex:none}
+.pp-list span{display:flex;flex-direction:column}
+.pp-list b{font-size:17px}.pp-list small{font-size:14px;color:var(--muted)}
+.pp-on{display:flex;align-items:center;justify-content:center;gap:8px;font-size:17px;padding:16px}
+.pp-later{display:block;margin:10px auto 0;color:var(--muted);font-size:15px}
+.pp-banner{display:flex;align-items:center;gap:12px;width:100%;margin:0 0 12px;padding:14px;border-radius:20px;border:2px solid var(--herb);background:var(--herb-soft);color:var(--fg);text-align:left;font:inherit}
+.pp-banner > span:not(.inst-b-cta){display:flex;flex-direction:column;gap:2px;flex:1;min-width:0}
+.pp-banner b{font-size:16px}.pp-banner small{font-size:13px;color:var(--muted);font-weight:600}
+.pp-banner .ic8.pp-b-ic{width:32px;height:32px;color:var(--herb)}
+@media (prefers-reduced-motion: reduce){ .pp-hero .ic8.pp-bell,.pp-ring{animation:none} }
