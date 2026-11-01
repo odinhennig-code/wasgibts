@@ -17,7 +17,8 @@
 <script>/* Farben sofort setzen, bevor das iPhone die Farbe der oberen Leiste übernimmt */
 (function(){try{var L=JSON.parse(localStorage.getItem('wasgibts.local'))||{},r=document.documentElement,d=new Date(),m=d.getMonth(),t=d.getDate();
 if(L.theme&&L.theme!=='system')r.setAttribute('data-theme',L.theme);
-if(((m===9&&t>=24)||(m===10&&t<=2))&&L.season!==false)r.classList.add('halloween');
+if(L.season!==false){var se=L.preview||(((m===9&&t>=24)||(m===10&&t<=2))?'halloween':(m===11&&t<=26)?'advent':'');if(se)r.classList.add(se);}
+if(L.tz)r.style.setProperty('--tz',L.tz);
 var bg=getComputedStyle(r).getPropertyValue('--bg').trim();if(bg)document.querySelectorAll('meta[name=theme-color]').forEach(function(x){if(L.theme&&L.theme!=='system')x.removeAttribute('media');x.setAttribute('content',bg);});}catch(e){}})();</script>
 </head>
 <body>
@@ -35,6 +36,9 @@ var bg=getComputedStyle(r).getPropertyValue('--bg').trim();if(bg)document.queryS
           </span></div>
         <main id="views"></main>
         <div id="topfade" aria-hidden="true"></div>
+        <div id="navbar"><b id="navTitle"></b><button class="nb-av" data-tab="family" aria-label="Familie und Profil"></button></div>
+        <div id="ptr" aria-hidden="true"><span>🍲</span></div>
+        <div id="ftimers" aria-live="polite"></div>
         <nav id="tabbar" aria-label="Hauptnavigation"></nav>
         <div id="overlay"></div>
         <canvas id="fx" aria-hidden="true"></canvas>

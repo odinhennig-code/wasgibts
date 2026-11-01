@@ -36,7 +36,7 @@ if (sb) document.addEventListener('visibilitychange', () => { try {
   else { sb.auth.startAutoRefresh && sb.auth.startAutoRefresh(); sb.auth.getSession().catch(()=>{}); } } catch(e){} });
 
 /* ---------- Zustand ---------- */
-const D = { user:null, profile:null, membership:null, family:null, members:[], profiles:{}, wishes:[], fridge:[], expiries:{}, custom:[], poll:null, votes:[], shop:[], plan:[], ann:null, appAdmin:false };
+const D = { user:null, profile:null, membership:null, family:null, members:[], profiles:{}, wishes:[], fridge:[], expiries:{}, custom:[], poll:null, votes:[], shop:[], plan:[], log:[], ratings:[], ann:null, appAdmin:false };
 const UI = { tab:'home', time:60, mood:'egal', rtab:'week', q:'', auth:'login', busy:false, err:'', loading:true,
              joinCode: new URLSearchParams(location.search).get('join') || '' };
 const LOCAL = 'wasgibts.local';
@@ -94,13 +94,13 @@ async function loadAll(force){
   ]);
   N.ann = (an.data && an.data[0]) || null; N.appAdmin = adm.data === true;
   N.membership = (ms.data && ms.data[0]) || null;
-  Object.assign(N, { family:null, members:[], wishes:[], fridge:[], expiries:{}, custom:[], poll:null, votes:[], shop:[], plan:[] });
+  Object.assign(N, { family:null, members:[], wishes:[], fridge:[], expiries:{}, custom:[], poll:null, votes:[], shop:[], plan:[], log:[], ratings:[] });
   if (N.membership){
     const fid = N.membership.family_id;
     const { data: fam } = await sb.from('families').select('*').eq('id', fid).maybeSingle();
     N.family = fam;
     if (N.membership.status === 'active'){
-      const [mem, wis, fr, cus, pol, shp, pln] = await Promise.all([
+      const [mem, wis, fr, cus, pol, shp, pln, lg, rt] = await Promise.all([
         sb.from('memberships').select('*').eq('family_id', fid).order('created_at'),
         sb.from('wishes').select('*').eq('family_id', fid),
         sb.from('fridges').select('*').eq('family_id', fid).maybeSingle(),
@@ -108,7 +108,10 @@ async function loadAll(force){
         sb.from('polls').select('*').eq('family_id', fid).order('created_at', { ascending:false }).limit(1),
         sb.from('shopping_items').select('*').eq('family_id', fid).order('created_at'),
         sb.from('meal_plan').select('*').eq('family_id', fid).gte('day', isoDay(new Date())),
+        sb.from('cook_log').select('*').eq('family_id', fid).order('cooked_at', { ascending:false }).limit(300),
+        sb.from('ratings').select('*').eq('family_id', fid),
       ]);
+      N.log = (lg && lg.data) || []; N.ratings = (rt && rt.data) || [];
       N.shop = shp.data || []; N.plan = pln.data || [];
       N.members = mem.data || []; N.wishes = wis.data || []; N.fridge = (fr.data && fr.data.items) || [];
       N.expiries = (fr.data && fr.data.expiries) || {};
@@ -168,6 +171,8 @@ function subscribe(){
     .on('postgres_changes', { event:'*', schema:'public', table:'announcements' }, scheduleReload)
     .on('postgres_changes', { event:'*', schema:'public', table:'shopping_items', filter:'family_id=eq.'+fid }, scheduleReload)
     .on('postgres_changes', { event:'*', schema:'public', table:'meal_plan', filter:'family_id=eq.'+fid }, scheduleReload)
+    .on('postgres_changes', { event:'*', schema:'public', table:'cook_log', filter:'family_id=eq.'+fid }, scheduleReload)
+    .on('postgres_changes', { event:'*', schema:'public', table:'ratings', filter:'family_id=eq.'+fid }, scheduleReload)
     .subscribe();
 }
 document.addEventListener('visibilitychange', () => { if (!document.hidden && D.user) scheduleReload(); });
@@ -177,8 +182,11 @@ const RX = () => [...R, ...D.custom];
 /* Datum als JJJJ-MM-TT in Ortszeit */
 /* ---------- Saison-Look (Halloween) ----------
    Läuft automatisch vom 24. Oktober bis 2. November. Unter „Mehr → Darstellung" abschaltbar. */
-const hwSeason = () => { const d = new Date(), m = d.getMonth(), t = d.getDate(); return (m === 9 && t >= 24) || (m === 10 && t <= 2); };
-const hwOn = () => hwSeason() && L.season !== false;
+const seasonByDate = () => { const d = new Date(), m = d.getMonth(), t = d.getDate(); return (m === 9 && t >= 24) || (m === 10 && t <= 2) ? 'halloween' : (m === 11 && t <= 26) ? 'advent' : null; };
+const seasonNow = () => L.season === false ? null : (L.preview || seasonByDate());
+const hwSeason = () => (L.preview || seasonByDate()) === 'halloween';
+const hwOn = () => seasonNow() === 'halloween';
+const adOn = () => seasonNow() === 'advent';
 const HW_BATS = '<svg viewBox="0 0 64 28" aria-hidden="true"><path fill="currentColor" d="M32 9c1.6-3 3.2-4 4.2-4-.3 1.3-.1 2.3.6 3.1 3-3.4 8.5-6.3 15.2-6.1-2.6 1.5-3.6 3.6-3.2 6 2.9-.7 6.2-.2 9.2 1.6-3.4.4-5.5 2.1-6.3 4.9-2.6-1.5-5.6-1.5-8.4.4-.6-2.2-2.7-3.5-5.4-3.4L32 17l-5.9-5.5c-2.7-.1-4.8 1.2-5.4 3.4-2.8-1.9-5.8-1.9-8.4-.4-.8-2.8-2.9-4.5-6.3-4.9 3-1.8 6.3-2.3 9.2-1.6.4-2.4-.6-4.5-3.2-6 6.7-.2 12.2 2.7 15.2 6.1.7-.8.9-1.8.6-3.1 1 0 2.6 1 4.2 4z"/></svg>';
 const isoDay = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 const nextDays = n => Array.from({ length:n }, (_, i) => { const d = new Date(); d.setHours(12,0,0,0); d.setDate(d.getDate() + i); return d; });
@@ -250,7 +258,8 @@ function suggest(){
       const missing = r.i.filter(k=>!fr.has(k)), wishers = wishersOf(r.id), favs = people.filter(p=>(p.favs||[]).includes(r.id));
       const cover = r.i.length ? (r.i.length-missing.length)/r.i.length : 1;
       const uses = [...r.i, ...r.o].filter(k => fr.has(k) && (d => d !== null && d >= 0 && d <= 3)(daysLeft(k)));
-      return { r, missing, wishers, favs, cover, uses, score: wishers.length*40 + favs.length*14 + cover*60 - missing.length*8 + uses.length*30 + mealAdj(r) };
+      const rt = ratingOf(r.id), seas = inSeason(r);
+      return { r, missing, wishers, favs, cover, uses, rt, seas, score: wishers.length*40 + favs.length*14 + cover*60 - missing.length*8 + uses.length*30 + mealAdj(r) + (rt.n ? (rt.avg - 3) * 12 : 0) + (seas ? 10 : 0) };
     }).sort((a,b)=>b.score-a.score);
 }
 function whyLines(s){
@@ -258,6 +267,8 @@ function whyLines(s){
   if (s.wishers.length) l.push(`🙋 ${esc(names(s.wishers.map(id=>prof(id).name)))} ${s.wishers.length>1?'haben':'hat'} sich das gewünscht`);
   if (s.favs.length) l.push(`❤️ Lieblingsessen von ${esc(names(s.favs.map(p=>p.name)))}`);
   if (s.uses && s.uses.length) l.push(`⏰ Verbraucht ${esc(names(s.uses.map(ingName)))}, läuft bald ab`);
+  if (s.rt && s.rt.n && s.rt.avg >= 4.2) l.push(`⭐ Familien-Hit – ${s.rt.avg.toFixed(1).replace('.', ',')} von 5`);
+  if (s.seas) l.push(`🍂 Gerade in Saison: ${esc(names(s.seas.map(ingName)))}`);
   l.push(s.missing.length===0 ? '✅ Du hast alles da' : s.missing.length===1 ? `🛒 Es fehlt nur: ${ingName(s.missing[0])}` : `🛒 Es fehlen ${s.missing.length} Zutaten`);
   return l;
 }
@@ -284,7 +295,13 @@ function renderTabbar(){
   $('#tabbar').hidden = !show; if (!show) return;
   const p = isAdmin() ? pendingReq().length : 0;
   const tabs = [['home','Heute',I.home],['fridge','Kühlschrank',I.fridge],['recipes','Planen',I.book],['family','Familie',I.family],['more','Mehr',I.more]];
-  $('#tabbar').innerHTML = tabs.map(([id,l,ic]) => `<button class="tab" data-tab="${id}" ${UI.tab===id?'aria-current="page"':''}>${ic}<span>${l}</span>${id==='family'&&p?`<span class="dot">${p}</span>`:''}</button>`).join('');
+  const tb = $('#tabbar'), idx = Math.max(0, tabs.findIndex(t => t[0] === UI.tab));
+  if (!tb.querySelector('.tab-pill')) tb.innerHTML = `<span class="tab-pill" aria-hidden="true"></span>` + tabs.map(([id,l,ic]) => `<button class="tab" data-tab="${id}">${ic}<span>${l}</span></button>`).join('');
+  tabs.forEach(([id]) => { const b = tb.querySelector(`[data-tab="${id}"]`); if (!b) return;
+    if (UI.tab === id){ if (b.getAttribute('aria-current') !== 'page') b.setAttribute('aria-current', 'page'); } else b.removeAttribute('aria-current');
+    let d = b.querySelector('.dot'); const want = id === 'family' && p ? String(p) : '';
+    if (want && !d){ d = document.createElement('span'); d.className = 'dot'; b.appendChild(d); } if (d){ if (want) d.textContent = want; else d.remove(); } });
+  tb.querySelector('.tab-pill').style.transform = `translateX(${idx * 100}%)`;
 }
 
 /* ---------- Ansichten: Start & Anmeldung ---------- */
@@ -346,7 +363,7 @@ function suggestionCard(s){
   return `<button class="rc" data-action="open-recipe" data-id="${s.r.id}">
     ${photoEm(s.r)}
     <div class="main"><div class="t">${esc(s.r.n)}</div>
-      <div class="s"><span>⏱ ${s.r.t} Min</span>${s.wishers.length?`<span class="chip c-tomato">🙋 ${s.wishers.length}</span>`:''}${s.favs.length?`<span class="chip c-tomato">❤️ ${s.favs.length}</span>`:''}${s.r.m==='fast'?'<span class="chip c-yolk">Fastfood</span>':s.r.m==='gesund'?'<span class="chip c-herb">Gesund</span>':''}</div>
+      <div class="s"><span>⏱ ${s.r.t} Min</span>${s.wishers.length?`<span class="chip c-tomato">🙋 ${s.wishers.length}</span>`:''}${s.favs.length?`<span class="chip c-tomato">❤️ ${s.favs.length}</span>`:''}${s.r.m==='fast'?'<span class="chip c-yolk">Fastfood</span>':s.r.m==='gesund'?'<span class="chip c-herb">Gesund</span>':''}${s.rt && s.rt.n ? `<span class="chip c-yolk">⭐ ${s.rt.avg.toFixed(1).replace('.', ',')}</span>` : ''}${s.seas ? '<span class="chip c-herb">🍂 Saison</span>' : ''}</div>
       ${s.missing.length?`<div class="s" style="margin-top:4px"><span class="chip c-yolk">🛒 ${s.missing.map(ingName).join(', ')}</span></div>`:'<div class="meter"><i style="width:100%"></i></div>'}</div>${I.chev}</button>`;
 }
 function viewHome(){
@@ -354,9 +371,9 @@ function viewHome(){
   /* Nur zeigen, was mit dem Kühlschrank wirklich geht – plus Ideen mit genau einem Einkauf */
   const ready0 = all.filter(s => s.missing.length===0), almost = all.filter(s => s.missing.length===1);
   const top = ready0.find(s => s.r.meal !== 'suess'), ready = top ? [top, ...ready0.filter(s => s !== top)] : [];
-  const h = new Date().getHours(), greet = (h<11?'Guten Morgen':h<17?'Hallo':'Guten Abend') + (hwOn() ? ' · Happy Halloween 🎃' : '');
+  const h = new Date().getHours(), greet = (h<11?'Guten Morgen':h<17?'Hallo':'Guten Abend') + (hwOn() ? ' · Happy Halloween 🎃' : adOn() ? ' · Schöne Adventszeit 🎄' : '');
   const p = isAdmin() ? pendingReq() : [];
-  return header(`Was gibt's heute, ${esc(D.profile.name)}?`, greet) + annBanner() + installBanner() + pushBanner() + hwCard() +
+  return header(`Was gibt's heute, ${esc(D.profile.name)}?`, greet) + annBanner() + installBanner() + pushBanner() + hwCard() + adventCard() + rateBanner() +
     (p.length ? `<button class="banner" data-tab="family"><span class="avatar sm">${prof(p[0].user_id).avatar}</span><span style="flex:1"><b>${esc(prof(p[0].user_id).name)}</b> möchte deiner Familie beitreten</span>${I.chev}</button>` : '') +
     (expiringSoon().length ? `<button class="banner" style="background:var(--tomato-soft)" data-tab="fridge"><span style="font-size:22px">⏰</span><span style="flex:1"><b>Bald aufbrauchen:</b> ${expiringSoon().map(x=>`${esc(ingName(x.k))} (${expLabel(x.d)})`).join(', ')}</span>${I.chev}</button>` : '') +
     `<div class="filters card">
@@ -366,6 +383,7 @@ function viewHome(){
         <div class="seg mini" role="group" aria-label="Lust">${[['gesund','🥗'],['egal','Egal'],['fast','🍔']].map(([v,l])=>`<button data-action="mood" data-v="${v}" aria-pressed="${UI.mood===v}" aria-label="${v==='gesund'?'Gesund':v==='fast'?'Fastfood':'Egal'}">${l}</button>`).join('')}</div>
       </div>
     </div>
+    ${seasonRow()}
     ${todayPlanned()}
     ${pollBlock(all)}
     <div class="h2">${planFor(isoDay(new Date())) ? 'Oder spontan' : 'Du könntest machen'}</div>
@@ -376,6 +394,7 @@ function viewHome(){
       <button class="btn btn-tomato btn-block" style="margin-top:10px" data-action="cook" data-id="${top.r.id}">👨‍🍳 Jetzt kochen</button>
       ${ready.length>1?`<div class="h2">Geht auch <span class="chip c-muted">${ready.length-1}</span></div><div class="stack">${ready.slice(1,8).map(suggestionCard).join('')}</div>`:''}`
     : `<div class="card empty"><div class="g">🧊</div><b>Mit dem, was da ist, passt noch kein Rezept</b>Trag im Kühlschrank ein, was du hast, oder schau unten, was mit einem Einkauf geht.<button class="btn btn-line btn-block" style="margin-top:12px" data-tab="fridge">Kühlschrank öffnen</button></div>`}
+    ${all.length > 2 ? `<button class="slot-btn" data-action="slot"><span class="slot-ic">🎰</span><span><b>Kann mich nicht entscheiden</b><small>Dreh am Rad – die App sucht aus</small></span>${I.chev}</button>` : ''}
     ${almost.length?`<div class="h2">Mit einem kleinen Einkauf <span class="chip c-muted">${almost.length}</span></div><div class="stack">${almost.slice(0,6).map(suggestionCard).join('')}</div>`:''}
     ${showPlusWidget() ? plusWidget() : ''}`;
 }
@@ -436,7 +455,8 @@ function viewShopping(){
   return `<form class="shop-add" id="shopForm" autocomplete="off"><input id="shopIn" class="input" placeholder="Was fehlt? z. B. Milch" value="${esc(UI.sq||'')}" aria-label="Zur Einkaufsliste hinzufügen"><button class="btn btn-herb" type="submit" aria-label="Hinzufügen">+</button></form>
     ${sugg.length ? `<div class="chips" style="margin:10px 0 4px">${sugg.map(k => `<button class="ing" data-action="shop-ing" data-k="${k}" ${onList(k)?'aria-pressed="true"':''}>${ING[k][1]} ${ING[k][0]}</button>`).join('')}</div>` : ''}
     ${planned.length ? `<button class="banner soft" data-action="shop-plan"><span style="font-size:22px">📅</span><span style="flex:1"><b>Für den Wochenplan fehlen ${planned.length} Zutaten</b><br><span class="muted" style="font-size:13px">${esc(planned.slice(0,4).map(ingName).join(', '))}${planned.length>4?' …':''}</span></span><span class="chip c-herb">Hinzufügen</span></button>` : ''}
-    ${open.length ? `<div class="card list-card">${open.map(row).join('')}</div>`
+    ${open.length ? `<div class="shop-tools"><button class="btn btn-herb" data-action="shop-mode">🛒 Einkaufs-Modus</button><button class="btn btn-ghost" data-action="shop-share">📤 Teilen</button></div>
+      ${aisles(open).map(([t, items]) => `<div class="h2 aisle">${t}</div><div class="card list-card">${items.map(row).join('')}</div>`).join('')}`
       : `<div class="card empty"><div class="g">🛒</div><b>Die Liste ist leer</b>Füge oben etwas hinzu – oder tippe in einem Rezept auf „Fehlende Zutaten auf die Einkaufsliste".</div>`}
     ${done.length ? `<div class="h2">Erledigt <button class="linkbtn" data-action="shop-clear">Löschen</button></div><div class="card list-card">${done.map(row).join('')}</div>` : ''}
     <p class="muted" style="font-size:13px;margin-top:14px">Abgehakte Zutaten landen automatisch im Kühlschrank.</p>
@@ -497,6 +517,7 @@ function viewWeek(){
     <div class="week-actions">
       ${empty ? `<button class="btn btn-herb" data-action="plan-fill">✨ ${empty===7?'Woche planen':`${empty} ${empty===1?'Tag':'Tage'} füllen`}</button>` : ''}
       ${miss ? `<button class="btn btn-line" data-action="shop-plan">🛒 ${miss} Zutaten einkaufen</button>` : ''}
+      ${D.plan.length ? `<button class="btn btn-ghost" data-action="plan-ics">📆 In den Kalender</button>` : ''}
     </div>
     ${plusHint('week')}
     <p class="muted" style="font-size:13px;margin-top:12px">Die App wählt abwechslungsreich: Wünsche zuerst, passend für alle in der Familie, nicht zweimal hintereinander dasselbe Fleisch und höchstens zwei Fastfood-Tage.</p>`;
@@ -505,7 +526,7 @@ function openPlanDay(iso, keep){
   sheetFn = k => openPlanDay(iso, k);
   const d = new Date(iso + 'T12:00:00'), i = Math.round((d - new Date(isoDay(new Date()) + 'T12:00:00')) / 864e5);
   const p = planFor(iso), r = p && rec(p.recipe_id), q = (UI.pq || '').trim().toLowerCase();
-  const list = q ? RX().filter(x => x.n.toLowerCase().includes(q)).slice(0, 12).map(x => ({ r:x })) : planCandidates().filter(c => !r || c.r.id !== r.id).slice(0, 8);
+  const list = q ? RX().filter(x => searchScore(x, q) > 0).sort((a, b) => searchScore(b, q) - searchScore(a, q)).slice(0, 12).map(x => ({ r:x })) : planCandidates().filter(c => !r || c.r.id !== r.id).slice(0, 8);
   openSheet(`${sheetHead(`${dayLabel(d, i)}, ${d.getDate()}.${d.getMonth()+1}.`)}
     ${r ? `<div class="card" style="display:flex;gap:12px;align-items:center;margin-bottom:12px">${photoEm(r)}<div style="flex:1;min-width:0"><b>${esc(r.n)}</b><div class="muted" style="font-size:13px">⏱ ${r.t} Min</div></div></div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:6px"><button class="btn btn-ghost" data-action="open-recipe" data-id="${r.id}">Rezept öffnen</button><button class="btn btn-ghost" style="color:var(--tomato)" data-action="plan-clear" data-v="${iso}">Entfernen</button></div>` : ''}
@@ -533,17 +554,19 @@ function viewRecipes(){
       : `<div class="card empty"><div class="g">🙋</div><b>Noch keine Wünsche</b>Öffne ein Rezept unter „Alle" und tippe auf „Wünschen".</div>`;
   } else {
     const q = UI.q.trim().toLowerCase();
-    let list = RX().filter(r => (t==='all' || (t==='favs' && favs.includes(r.id)) || (t==='fam' && r.custom)) && (!q || r.n.toLowerCase().includes(q)));
+    let list = RX().filter(r => (t==='all' || (t==='favs' && favs.includes(r.id)) || (t==='fam' && r.custom)) && (!q || searchScore(r, q) > 0));
+    if (q) list.sort((a, b) => searchScore(b, q) - searchScore(a, q));
+    if (t === 'all') list = list.filter(passFilters);
     let more = 0, hint = '';
     if (t==='all'){
       /* Nicht alle 600+ Rezepte auf einmal: nur was zu allen passt, sortiert nach dem Kühlschrank */
       const people = eatersNow().map(prof), fr = new Set(D.fridge), have = r => r.i.filter(k => fr.has(k)).length / (r.i.length || 1);
       if (!q) list = list.filter(r => people.every(p => conflicts(r,p).length===0));
-      list = list.map(r => [r, have(r)]).sort((a,b) => b[1]-a[1] || a[0].n.localeCompare(b[0].n, 'de')).map(x => x[0]);
+      if (!q) list = list.map(r => [r, have(r)]).sort((a,b) => b[1]-a[1] || a[0].n.localeCompare(b[0].n, 'de')).map(x => x[0]);
       const lim = UI.rlimit || 30; more = Math.max(0, list.length - lim); list = list.slice(0, lim);
       hint = q ? '' : `<div style="color:var(--muted);font-size:13px;margin:-4px 2px 10px">Passt zu allen, die mitessen · Was ihr schon da habt, steht oben</div>`;
     }
-    body = (t==='fam' ? `<button class="btn btn-herb btn-block" style="margin-bottom:12px" data-action="new-recipe">📖 Eigenes Rezept eintragen</button>` : '') + (t==='all' ? `<input id="search" class="input" type="search" placeholder="In allen ${RX().length} Rezepten suchen" value="${esc(UI.q)}" aria-label="Rezept suchen" style="margin-bottom:12px">` + hint : '') +
+    body = (t==='fam' ? `<button class="btn btn-herb btn-block" style="margin-bottom:12px" data-action="new-recipe">📖 Eigenes Rezept eintragen</button>` : '') + (t==='all' ? `<input id="search" class="input" type="search" placeholder="In allen ${RX().length} Rezepten suchen" value="${esc(UI.q)}" aria-label="Rezept suchen" style="margin-bottom:10px">` + filterChips() + hint : '') +
       (list.length ? `<div class="stack">${list.map(r=>`<button class="rc" data-action="open-recipe" data-id="${r.id}">${photoEm(r)}<div class="main"><div class="t">${esc(r.n)}</div><div class="s"><span>⏱ ${r.t} Min</span>${r.custom?'<span class="chip c-herb">Familie</span>':''}${favs.includes(r.id)?'<span class="chip c-tomato">❤️</span>':''}${t==='all'&&D.fridge.length?(m => m===0?'<span class="chip c-herb">✅ alles da</span>':m===1?'<span class="chip c-yolk">🛒 1 fehlt</span>':'')(r.i.filter(k=>!D.fridge.includes(k)).length):''}</div></div>${I.chev}</button>`).join('')}</div>${more?`<button class="btn btn-line btn-block" style="margin-top:12px" data-action="more-recipes">Weitere ${Math.min(30, more)} anzeigen</button>`:''}`
       : t==='fam' ? `<div class="card empty"><div class="g">📖</div><b>Noch keine Familienrezepte</b>Tragt eure eigenen Lieblingsgerichte ein, zum Beispiel Omas Gulasch.</div>`
       : `<div class="card empty"><div class="g">${t==='favs'?'❤️':'🔍'}</div><b>${t==='favs'?'Noch keine Lieblingsessen':'Nichts gefunden'}</b>${t==='favs'?'Tippe in einem Rezept auf das Herz.':'Versuch es mit einem anderen Wort.'}</div>`);
@@ -560,6 +583,7 @@ function viewFamily(){
         <span class="avatar">${a.avatar}</span><div style="flex:1;min-width:140px"><b>${esc(a.name)}</b> hat sich einen Account erstellt und möchte deiner Familie beitreten.</div>
         <div style="display:flex;gap:8px;flex-basis:100%"><button class="btn btn-herb btn-sm" style="flex:1" data-action="accept" data-id="${a.id}">Annehmen</button><button class="btn btn-ghost btn-sm" style="flex:1" data-action="decline" data-id="${a.id}">Ablehnen</button></div></div>`; }).join('')}</div>` : '') +
     (isAdmin() ? `<button class="btn btn-herb btn-block" style="margin-top:6px" data-action="invite">${I.qr} Familienmitglied einladen</button>` : '') +
+    familyExtras() +
     `<div class="h2">Mitglieder</div>
     <div class="list">${active().map(m=>{ const a=prof(m.user_id), mine=a.id===D.user.id; return `<button class="row" data-action="edit-prefs" data-id="${a.id}"><span class="avatar">${a.avatar}</span><span class="grow"><b>${esc(a.name)}</b>${m.role==='admin'?' <span class="chip c-herb">Admin</span>':''}${mine?' <span class="chip c-muted">Du</span>':''}<small>${esc(prefText(a))}</small></span>${mine?I.chev:''}</button>`; }).join('')}</div>
     ${!isAdmin()?`<div class="list" style="margin-top:16px"><button class="row" data-action="ask-leave"><span class="grow"><b>Familie verlassen</b></span></button></div>`:''}
@@ -568,8 +592,9 @@ function viewFamily(){
 }
 
 /* ---------- Reiter „Mehr" ---------- */
-const VERSION = '2.8';
+const VERSION = '3.0';
 const CHANGELOG = [
+  { v:'3.0', d:'1. November 2026', items:['Das große Update: alles läuft flüssiger – weichere Seitenwechsel, Listen gleiten nacheinander herein, jeder Knopf gibt beim Antippen nach, Animationen ohne rechenintensive Unschärfe','Neue schwebende Tab-Leiste aus Glas mit gleitender Markierung – wird beim Scrollen kleiner','Neue Titelleiste aus Glas: Beim Scrollen erscheint oben der Titel, Antippen springt nach oben','Ziehen zum Aktualisieren und Fenster zum Wegwischen nach unten','🎰 Überrasch mich: Dreh am Rad, wenn sich keiner entscheiden kann','⭐ Bewerten nach dem Essen – Familien-Hits werden öfter vorgeschlagen','✨ Euer Küchen-Rückblick als Story, Kochverlauf, Statistik und 12 Erfolge unter „Familie"','Neuigkeiten aus der Familie: wer was gewünscht, gekocht oder bewertet hat','🛒 Einkaufs-Modus: große Liste nach Supermarkt-Bereichen, Bildschirm bleibt an; Einkaufsliste teilen (z. B. per WhatsApp)','🍂 Saison-Kalender: Was gerade frisch ist, kommt öfter auf den Tisch','🎄 Im Dezember: Advents-Look mit Schnee und Adventskalender mit 24 Türchen','👥 Kochmodus rechnet Mengen auf 1–8 Personen um, mehrere Timer laufen gleichzeitig – auch nach dem Schließen','📤 Rezept als Bild teilen, 📆 Wochenplan in den Kalender','Bessere Suche: findet auch Tippfehler, Umlaute und Zutaten – mit Filtern (bis 20 Min, vegetarisch, alles da, Saison)','Kurze Tour für neue Nutzer, Textgröße einstellbar, Lade-Platzhalter statt Kreisel'] },
   { v:'2.8', d:'1. November 2026', items:['Am Computer bedienst du das iPhone jetzt wie ein echtes: Sperrbildschirm mit Uhr und Mitteilungen – nach oben wischen zum Entsperren','Home-Bildschirm mit Widgets (Vorschlag für heute, Einkaufsliste) und App-Icon – die App öffnet und schließt mit der iOS-Zoom-Animation','Home-Strich unten nach oben ziehen (oder Esc) bringt dich zum Home-Bildschirm','Kontrollzentrum oben rechts: WLAN, Bluetooth, Flugmodus, Stumm, Helligkeit, Lautstärke, Fokus, Taschenlampe, Dunkelmodus','Die Tasten am Gehäuse funktionieren: Seitentaste sperrt, Lauter/Leiser zeigen die Lautstärke, Action-Taste schaltet stumm','Neue Wünsche aus der Familie erscheinen oben als Mitteilung'] },
   { v:'2.7', d:'1. November 2026', items:['Am Computer: nur noch das iPhone in der Mitte – ohne Text daneben','Das iPhone sieht jetzt echter aus: Titan-Rahmen mit Kantenlicht, schwarzer Glasrand, Dynamic Island mit Kameralinse, Spiegelung auf dem Glas und alle Seitentasten'] },
   { v:'2.6', d:'31. Oktober 2026', items:['Neu: Sind Benachrichtigungen aus, fragt die App nach dem Start – mit dem klaren Versprechen: keine nervigen Benachrichtigungen, nur selten, bei Updates und wenn deine Familie dich braucht','Neu: Hinweis-Karte auf „Heute", solange Benachrichtigungen aus sind','Besser angemeldet bleiben: die Anmeldung wird zusätzlich gesichert und nach dem Aufwecken des Handys sofort aufgefrischt','Die App bittet das Handy, ihren Speicher nicht automatisch zu löschen'] },
@@ -614,10 +639,15 @@ function viewMore(){
   return header('Mehr', `Version ${VERSION}`) +
     `<button class="plus-card" data-action="plus"><div class="pc-glow"></div><span class="plus-badge">✨ PLUS</span><b>Mehr für deine Familie</b><span>KI-Rezepte · unbegrenzt Fotos · Wochenplan-Assistent · sortierte Einkaufsliste</span><span class="pc-cta">${L.plusInterest ? '💚 Du bist vorgemerkt' : 'Ansehen und vormerken ›'}</span></button>` +
     `<div class="h2">Hilfe</div>
+    <div class="list" style="margin-bottom:10px"><button class="row" data-action="tour"><span style="font-size:22px">👋</span><span class="grow"><b>Kurze Tour durch die App</b><small>In 4 Schritten erklärt</small></span>${I.chev}</button></div>
     ${FAQ.map(([q,a])=>`<details class="faq"><summary>${esc(q)}</summary><p>${esc(a)}</p></details>`).join('')}
     <div class="h2">Darstellung</div>
     <div class="seg" role="group" aria-label="Farbschema">${[['system','System'],['light','Hell'],['dark','Dunkel']].map(([k,l])=>`<button data-action="theme" data-v="${k}" aria-pressed="${(L.theme||'system')===k}">${l}</button>`).join('')}</div>
-    ${hwSeason() ? `<div class="list" style="margin-top:10px"><button class="row" data-action="season" aria-pressed="${hwOn()}"><span style="font-size:22px">🎃</span><span class="grow"><b>Halloween-Look</b><small>Nur bis 2. November · ${hwOn() ? 'an' : 'aus'}</small></span><span class="switch" aria-checked="${hwOn()}" aria-hidden="true"></span></button></div>` : ''}
+    ${(() => { const se = L.preview || seasonByDate(); if (!se) return ''; const on = seasonNow() === se;
+      return `<div class="list" style="margin-top:10px"><button class="row" data-action="season" aria-pressed="${on}"><span style="font-size:22px">${se === 'advent' ? '🎄' : '🎃'}</span><span class="grow"><b>${se === 'advent' ? 'Advents-Look' : 'Halloween-Look'}</b><small>${se === 'advent' ? 'Bis 26. Dezember' : 'Nur bis 2. November'} · ${on ? 'an' : 'aus'}</small></span><span class="switch" aria-checked="${on}" aria-hidden="true"></span></button></div>`; })()}
+    <div class="h2">Textgröße</div>
+    <div class="seg" role="group" aria-label="Textgröße">${[['1','Normal'],['1.1','Groß'],['1.2','Sehr groß']].map(([k,l])=>`<button data-action="tz" data-v="${k}" aria-pressed="${String(L.tz||1)===k}">${l}</button>`).join('')}</div>
+    ${D.appAdmin ? `<div class="h2">Vorschau Saison-Look <span class="chip c-muted">nur für dich</span></div><div class="seg" role="group">${[['','Aus'],['halloween','🎃'],['advent','🎄']].map(([k,l])=>`<button data-action="preview" data-v="${k}" aria-pressed="${(L.preview||'')===k}">${l}</button>`).join('')}</div>` : ''}
     ${isStandalone() ? '' : `<div class="h2">App</div><div class="list"><button class="row" data-action="install">${ic8(IC.dl,'row-ic')}<span class="grow"><b>App installieren</b><small>Auf den Startbildschirm – Schritt für Schritt</small></span>${I.chev}</button></div>`}
     <div class="h2">Benachrichtigungen</div>
     <div class="list">${pushRow()}</div>
@@ -733,7 +763,7 @@ function installBanner(){
 }
 /* Beim ersten Besuch im Browser einmal automatisch zeigen, nach dem ersten Start vom Startbildschirm einmal „Geschafft" */
 function installAuto(){
-  if (sheetFn || $('.sheet')) return;
+  if (sheetFn || $('.sheet') || $('#tour')) return;
   if (isStandalone()){
     if (!L.installedSeen){ L.installedSeen = Date.now(); saveLocal(); setTimeout(() => toast('🎉 Geschafft! „Was gibt\'s?" ist jetzt auf deinem Startbildschirm.'), 400); }
     return;
@@ -815,7 +845,7 @@ function pushBanner(){
 }
 /* Nach jedem Start / jeder Anmeldung einmal zeigen, solange Benachrichtigungen aus sind */
 function maybePushPrompt(){
-  if (UI.push !== 'off' || !D.user || !D.family || !isActive() || $('.sheet') || sheetFn) return;
+  if (UI.push !== 'off' || !D.user || !D.family || !isActive() || $('.sheet') || sheetFn || $('#tour')) return;
   try { if (sessionStorage.getItem('wg.pp') === (D.user && D.user.id)) return; sessionStorage.setItem('wg.pp', D.user.id); } catch(e){}
   openPushPrompt();
 }
@@ -916,16 +946,21 @@ function render(){
   applyTheme(); renderTabbar();
   let v;
   if (!configured) v = viewSetup();
-  else if (UI.loading) v = `<div class="center" style="align-items:center"><span class="spin" style="width:32px;height:32px;color:var(--herb)"></span></div>`;
+  else if (UI.loading) v = skeletonView();
   else if (!D.user) v = viewAuth();
   else if (D.profile && D.profile.banned) v = viewBanned();
   else if (!isActive() || !D.family) v = viewNoFamily();
   else v = ({home:viewHome, fridge:viewFridge, recipes:viewRecipes, family:viewFamily, more:viewMore}[UI.tab])();
   const key = UI.tab + '|' + (!configured ? 'setup' : UI.loading ? 'load' : !D.user ? 'auth' : D.profile?.banned ? 'ban' : (!isActive() || !D.family) ? 'nofam' : 'app');
-  const prev = $('#views .view');
+  const prev = $('#views .view:not(.leaving)');
   if (!slideDx && prev && prev.dataset.key === key){ const top = prev.scrollTop; morph(prev, v); if (prev.scrollTop !== top) prev.scrollTop = top; }
-  else $('#views').innerHTML = `<div class="view" data-tab="${UI.tab}" data-key="${key}" style="${slideDx?`--dx:${slideDx}px;--dy:0px`:''}">${v}</div>`;
-  slideDx = 0; syncTopFade();
+  else {
+    // Weicher Wechsel: die alte Seite gleitet raus, die neue rein (nur Bewegung und Deckkraft – läuft flüssig)
+    if (slideDx && prev){ const old = prev; old.classList.add('leaving'); old.style.setProperty('--dx', (-slideDx * .6) + 'px'); old.removeAttribute('data-key'); setTimeout(() => old.remove(), 260);
+      $('#views').insertAdjacentHTML('beforeend', `<div class="view" data-tab="${UI.tab}" data-key="${key}" style="--dx:${slideDx}px;--dy:0px">${v}</div>`); }
+    else $('#views').innerHTML = `<div class="view" data-tab="${UI.tab}" data-key="${key}" style="${slideDx?`--dx:${slideDx}px;--dy:0px`:''}">${v}</div>`;
+  }
+  slideDx = 0; syncTopFade(); syncNav(true); watchLoops(); ensureSnow();
 }
 /* Beim Scrollen bekommt der obere Rand einen leichten Milchglas-Hintergrund, damit Uhrzeit und Akku lesbar bleiben */
 const syncTopFade = () => { const v = $('#views .view'), f = $('#topfade'); if (f) f.classList.toggle('on', !!v && v.scrollTop > 4); };
@@ -974,7 +1009,7 @@ async function onSession(session){
   else { UI.auth = UI.auth==='check' ? 'check' : 'login'; D.profile=null; D.membership=null; if (channel){ sb.removeChannel(channel); channel=null; } }
   UI.loading=false; render();
   if (D.user && !D.profile?.banned) syncPush().then(() => setTimeout(maybePushPrompt, performance.now() < 6000 ? 3800 : 600));
-  if (D.user && !UI.counted){ UI.counted = true; trackOpen(); setTimeout(maybePlusPopup, 8000); }
+  if (D.user && !UI.counted){ UI.counted = true; trackOpen(); setTimeout(maybePlusPopup, 8000); setTimeout(firstRunInfo, 1400); setTimeout(checkBadges, 2500); }
 }
 
 /* ---------- Sheets ---------- */
@@ -994,7 +1029,7 @@ function openRecipe(id, keep){
   const people = eatersNow().map(prof), notes = softNotes(r, people), blocked = people.map(p=>({p, c:conflicts(r,p)})).filter(x=>x.c.length);
   openSheet(`${sheetHead('')}
     ${recipeHero(r)}<div class="h1" style="text-align:center">${esc(r.n)}</div>
-    <div style="display:flex;gap:6px;justify-content:center;margin:10px 0 16px;flex-wrap:wrap"><span class="chip c-muted">⏱ ${r.t} Min</span>${r.m==='fast'?'<span class="chip c-yolk">Fastfood-Abend</span>':r.m==='gesund'?'<span class="chip c-herb">Gesund</span>':''}${r.x.includes('scharf')?'<span class="chip c-tomato">Scharf</span>':''}</div>
+    <div style="display:flex;gap:6px;justify-content:center;margin:10px 0 16px;flex-wrap:wrap"><span class="chip c-muted">⏱ ${r.t} Min</span>${r.m==='fast'?'<span class="chip c-yolk">Fastfood-Abend</span>':r.m==='gesund'?'<span class="chip c-herb">Gesund</span>':''}${r.x.includes('scharf')?'<span class="chip c-tomato">Scharf</span>':''}${(rt => rt.n ? `<span class="chip c-yolk">⭐ ${rt.avg.toFixed(1).replace('.', ',')} · ${rt.n} ${rt.n === 1 ? 'Bewertung' : 'Bewertungen'}</span>` : '')(ratingOf(id))}${inSeason(r) ? '<span class="chip c-herb">🍂 Saison</span>' : ''}${cookedTimes(id) ? `<span class="chip c-muted">🍳 ${cookedTimes(id)}× gekocht</span>` : ''}</div>
     ${who.length?`<div class="card" style="display:flex;gap:10px;align-items:center;margin-bottom:12px"><span class="avatar-stack">${who.map(w=>`<span class="avatar sm">${prof(w).avatar}</span>`).join('')}</span><span><b>${esc(names(who.map(w=>prof(w).name)))}</b> ${who.length>1?'wünschen':'wünscht'} sich das</span></div>`:''}
     ${blocked.length?`<div class="card" style="background:var(--tomato-soft);color:var(--tomato);margin-bottom:12px;font-weight:700">${blocked.map(b=>`${esc(b.p.name)} ${esc(b.c[0])}`).join('<br>')}</div>`:''}
     ${notes.length?`<div class="card" style="background:var(--yolk-soft);margin-bottom:12px;font-weight:700">💡 ${notes.map(esc).join('<br>💡 ')}</div>`:''}
@@ -1012,6 +1047,7 @@ function openRecipe(id, keep){
     <div class="card" style="padding:6px 16px">${r.s.map((s,n)=>`<div class="step"><b>${n+1}</b><span>${esc(s)}</span></div>`).join('')}</div>
     <button class="btn btn-tomato btn-block" style="margin-top:16px" data-action="cook" data-id="${id}">👨‍🍳 Kochmodus starten</button>
     <button class="btn btn-herb btn-block" style="margin-top:8px" data-action="cooked" data-id="${id}">🍽️ Heute gekocht</button>
+    <button class="btn btn-ghost btn-block" style="margin-top:8px" data-action="share-recipe" data-id="${id}">📤 Rezept als Bild teilen</button>
     ${r.custom ? `<p class="muted" style="text-align:center;font-size:13px;margin:14px 0 0">Familienrezept von ${esc(prof(r.by).name)}</p>
       ${(r.by===D.user.id || isAdmin()) ? (UI.confirmDel===id ? `<div class="card" style="background:var(--tomato-soft);margin-top:10px"><b style="color:var(--tomato)">Rezept wirklich löschen?</b><div style="display:flex;gap:8px;margin-top:10px"><button class="btn btn-tomato btn-sm" style="flex:1" data-action="del-recipe" data-id="${id}">Löschen</button><button class="btn btn-ghost btn-sm" style="flex:1" data-action="cancel-del" data-id="${id}">Abbrechen</button></div></div>` : `<button class="linkbtn" style="display:block;margin:4px auto 0;color:var(--tomato)" data-action="ask-del" data-id="${id}">Rezept löschen</button>`) : ''}` : ''}`, keep);
 }
@@ -1145,7 +1181,7 @@ function sceneFor(txt, r){
 
 function openCook(id){
   const r0 = rec(id);
-  UI.cook = { id, step: 0, dir: 1, steps: cookStepsCached(r0) }; sheetFn = null; applyTheme();
+  UI.cook = { id, step: 0, dir: 1, steps: cookStepsCached(r0), servings: Math.max(1, Math.min(12, eatersNow().length || 4)) }; sheetFn = null; applyTheme();
   if (!UI.cook.steps) loadCookSteps(r0);
   try { navigator.wakeLock && navigator.wakeLock.request('screen').then(l => wakeLock = l).catch(()=>{}); } catch(e){}
   // Auf dem Handy: Vollbild und Querformat versuchen (Android). iPhone zeigt den Dreh-Hinweis.
@@ -1228,7 +1264,7 @@ function renderCook(first){
       <div class="ck-prep glass"><div class="ck-prep-ic">👨‍🍳</div><b>Ich schreibe dir die Schritte ausführlich auf</b><span>mit Herdstufe, Garzeiten und woran du erkennst, dass es fertig ist</span><div class="ck-dots"><i></i><i></i><i></i></div></div></div>`;
     tickCookClock(); return;
   }
-  const S = c.steps, n = S.length, cur = S[c.step] || { text:'' }, txt = cur.text, mins = cur.minutes || stepMinutes(txt), last = c.step === n - 1, sc = cur.warn ? { kind:'season', label:'Prüfen', html: `<div class="scene sc-idle"><div class="sc-stage"><span class="sc-main">⚠️</span></div></div>` } : sceneFor(txt, r);
+  const S = c.steps, n = S.length, cur = S[c.step] || { text:'' }, txt = scaleQty(cur.text, (c.servings || 4) / 4), mins = cur.minutes || stepMinutes(txt), last = c.step === n - 1, sc = cur.warn ? { kind:'season', label:'Prüfen', html: `<div class="scene sc-idle"><div class="sc-stage"><span class="sc-main">⚠️</span></div></div>` } : sceneFor(txt, r);
   const pct = Math.round((c.step + 1) / n * 100);
   const stepHTML = `
       <div class="ck-orb glass">${sc.html}</div>
@@ -1249,7 +1285,8 @@ function renderCook(first){
         <div class="ck-title"><b>${r.e} ${esc(r.n)}</b><span id="ckStepTxt">Schritt ${c.step+1} von ${n}</span></div>
         ${SR ? `<button class="ck-icon ck-tool" id="ckMic" data-action="cook-voice" aria-pressed="${!!UI.voice}" aria-label="Sprachsteuerung">${I.mic}</button>` : ''}
         ${'speechSynthesis' in window ? `<button class="ck-icon ck-tool" id="ckRead" data-action="cook-read" aria-pressed="${!!L.readAloud}" aria-label="Schritte vorlesen">${I.speaker}</button>` : ''}
-        <span id="cookTimer" class="ck-timer" ${UI.timer?'':'hidden'}></span>
+        <button class="ck-icon ck-tool ck-serv" data-action="cook-serv" aria-label="Personen ändern">👥 <b id="ckServ">${c.servings}</b></button>
+        <span id="cookTimers" class="ck-timers"></span>
         <div id="cookClock" class="ck-clock"></div>
         <div class="ck-bar"><i id="ckBar" style="width:${pct}%"></i></div>
       </header>
@@ -1272,7 +1309,11 @@ function renderCook(first){
   if (L.readAloud && (first || c.lastRead !== c.step)) speakStep();
 }
 /* ---------- Timer, Vorlesen und Sprachsteuerung im Kochmodus ---------- */
-function startTimer(m){ if (!m) return; UI.timer = { end: Date.now() + m*60e3 }; clearInterval(timerT); timerT = setInterval(tickTimer, 500); tickTimer(); beep(); buzz(20); toast(`⏱ Timer: ${m} Minuten`); }
+/* Mehrere Timer gleichzeitig – laufen auch weiter, wenn der Kochmodus zu ist */
+UI.timers = [];
+function startTimer(m, label){ if (!m) return; const c = UI.cook;
+  UI.timers.push({ id: Date.now() + Math.random(), end: Date.now() + m*60e3, label: label || (c ? `Schritt ${c.step + 1}` : 'Timer'), dish: c ? (rec(c.id) || {}).n : '' });
+  clearInterval(timerT); timerT = setInterval(tickTimer, 500); tickTimer(); beep(); buzz(20); toast(`⏱ ${m}-Minuten-Timer läuft`); }
 const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
 let voiceRec = null;
 function speak(text){
@@ -1318,10 +1359,14 @@ function beep(){
       g.gain.setValueAtTime(.25, audioCtx.currentTime + t); g.gain.exponentialRampToValueAtTime(.001, audioCtx.currentTime + t + .3); o.start(audioCtx.currentTime + t); o.stop(audioCtx.currentTime + t + .3); }); } catch(e){}
 }
 function tickTimer(){
-  const el = $('#cookTimer'); if (!UI.timer){ if (el) el.hidden = true; return; }
-  const left = Math.max(0, UI.timer.end - Date.now()), m = Math.floor(left/60e3), sec = Math.floor(left%60e3/1e3);
-  if (el){ el.hidden = false; el.innerHTML = `<i></i>${m}:${String(sec).padStart(2,'0')}`; }
-  if (left <= 0){ clearInterval(timerT); UI.timer = null; beep(); buzz([300,150,300,150,300]); toast('⏰ Die Zeit ist um!'); if (el) el.hidden = true; }
+  const now = Date.now(), fmt = t => { const left = Math.max(0, t.end - now); return Math.floor(left/60e3) + ':' + String(Math.floor(left%60e3/1e3)).padStart(2,'0'); };
+  const done = UI.timers.filter(t => t.end <= now);
+  if (done.length){ UI.timers = UI.timers.filter(t => t.end > now); beep(); buzz([300,150,300,150,300]); done.forEach(t => toast(`⏰ ${t.label}: Die Zeit ist um!`)); }
+  const el = $('#cookTimers');
+  if (el) el.innerHTML = UI.timers.map(t => `<button class="ck-timer" data-action="timer-x" data-v="${t.id}" title="${esc(t.label)} – antippen zum Beenden"><i></i>${fmt(t)}</button>`).join('');
+  const ft = $('#ftimers');
+  if (ft) ft.innerHTML = UI.cook ? '' : UI.timers.map(t => `<button class="ftimer" data-action="timer-x" data-v="${t.id}"><i></i><span>${esc(t.dish || t.label)}</span><b>${fmt(t)}</b></button>`).join('');
+  if (!UI.timers.length) clearInterval(timerT);
 }
 function closeCook(){
   stopVoice(); try { speechSynthesis.cancel(); } catch(e){}
@@ -1595,7 +1640,8 @@ document.addEventListener('click', async e => {
     case 'fav': { const f = new Set(D.profile.favs||[]); f.has(id) ? f.delete(id) : (f.add(id), buzz(20)); updateProfile({ favs:[...f] }); openRecipe(id, true); render(); break; }
     case 'cooked': { const r=rec(id); burstAt(t); buzz([20,50,20]); D.wishes = D.wishes.filter(w=>w.recipe_id!==id);
       L.cookedCount = (L.cookedCount||0) + 1; saveLocal();
-      setTimeout(()=>{ closeSheet(); render(); if (L.cookedCount % 3 === 0 && !L.plusInterest) setTimeout(() => openPlus(true), 1600); }, 450); toast(`Guten Appetit! ${r.e}`);
+      const logP = logCooked(r);
+      setTimeout(()=>{ closeSheet(); render(); logP.then(log => { if (log) setTimeout(() => openRate(log.id), 500); }); }, 450); toast(`Guten Appetit! ${r.e}`);
       await save(() => sb.from('wishes').delete().eq('family_id', D.family.id).eq('recipe_id', id)); break; }
     case 'ing': { const k=t.dataset.k; D.fridge = D.fridge.includes(k) ? D.fridge.filter(x=>x!==k) : [...D.fridge,k]; saveFridgeSoon(); buzz(6);
       L.recentIng = [k, ...(L.recentIng||[]).filter(x => x !== k)].slice(0, 12); saveLocal();
@@ -1680,7 +1726,7 @@ document.addEventListener('click', async e => {
     case 'inst-hide': L.instHide = Date.now() + 3*864e5; saveLocal(); render(); break;
     case 'inst-now': if (installEvt){ const ev = installEvt; ev.prompt(); ev.userChoice.then(c => { if (c && c.outcome === 'accepted'){ installEvt = null; refreshSheet(); } }).catch(()=>{}); } break;
     case 'inst-copy': { const u = location.origin + location.pathname; (navigator.clipboard ? navigator.clipboard.writeText(u) : Promise.reject()).then(() => toast('Link kopiert – jetzt im Browser einfügen'), () => toast(u)); break; }
-    case 'season': L.season = !hwOn(); saveLocal(); applyTheme(); render(); break;
+    case 'season': L.season = L.season === false ? true : !seasonNow() ? true : false; saveLocal(); applyTheme(); render(); break;
     case 'hw-card-off': L.hwCardOff = new Date().getFullYear(); saveLocal(); render(); break;
     case 'hw-recipes': UI.rtab = 'all'; UI.q = 'Kürbis'; UI.rlimit = 30; go('recipes'); break;
     case 'push': { if (UI.push === 'on'){ await pushOff(); toast('Benachrichtigungen aus'); }
@@ -1726,7 +1772,7 @@ $('#views').addEventListener('touchend', e=>{ if(!D.user || !isActive()) return;
 
 /* ---------- Farbschema ---------- */
 function applyTheme(){ const r=document.documentElement, th=L.theme||'system'; if(th==='system') r.removeAttribute('data-theme'); else r.setAttribute('data-theme', th);
-  r.classList.toggle('halloween', hwOn());
+  r.classList.toggle('halloween', hwOn()); r.classList.toggle('advent', adOn());
   /* Oberer Rand (Statusleiste / Safari-Leiste) in derselben Farbe wie die App */
   const bg = UI.cook ? '#0f1d14' : getComputedStyle(r).getPropertyValue('--bg').trim();
   if (bg && applyTheme.last !== bg){ applyTheme.last = bg; document.querySelectorAll('meta[name=theme-color]').forEach(m => { if (th !== 'system') m.removeAttribute('media'); m.setAttribute('content', bg); }); } }
@@ -1765,7 +1811,7 @@ window.__wgTheme = th => { L.theme = th; saveLocal(); render(); };
 
 /* ---------- Start-Intro ---------- */
 (() => { const sp = $('#splash'), root = document.documentElement; if (!sp) return;
-  if (hwOn()){ const f = sp.querySelector('.sp-food'); if (f) f.innerHTML = ['🎃','🦇','🍬','👻','🕸️','🍂'].map(e => `<span>${e}</span>`).join(''); }
+  if (hwOn() || adOn()){ const f = sp.querySelector('.sp-food'); if (f) f.innerHTML = (adOn() ? ['🎄','⭐','🍪','🎁','❄️','🦌'] : ['🎃','🦇','🍬','👻','🕸️','🍂']).map(e => `<span>${e}</span>`).join(''); }
   let done = false;
   const hide = () => { if (done) return; done = true; sp.classList.add('gone'); root.classList.remove('splashing'); applyTheme.last = null; applyTheme(); };
   // Nur beim ersten Öffnen zeigen – nicht noch einmal, wenn die App sich für ein Update kurz neu lädt
@@ -1774,6 +1820,459 @@ window.__wgTheme = th => { L.theme = th; saveLocal(); render(); };
   root.classList.add('splashing');   // oberer Rand bleibt in App-Farbe (iPhone übernimmt sonst das Grün des Intros)
   sp.addEventListener('animationend', e => { if (e.target === sp && e.animationName === 'spOut') hide(); });
   sp.addEventListener('click', hide); setTimeout(hide, 3000); })();
+
+/* =========================================================================
+   VERSION 3.0 – flüssiger, schöner, mehr Funktionen
+   ========================================================================= */
+
+/* ---------- Lade-Platzhalter statt Kreisel ---------- */
+function skeletonView(){
+  const bar = (w, h = 14, r = 8, mt = 0) => `<i class="sk" style="width:${w};height:${h}px;border-radius:${r}px;margin-top:${mt}px"></i>`;
+  return `<div class="skel" aria-label="Lädt …">
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0 14px"><div style="flex:1">${bar('35%', 12)}${bar('75%', 26, 10, 8)}</div><i class="sk" style="width:44px;height:44px;border-radius:50%"></i></div>
+    ${bar('100%', 92, 22)}${bar('40%', 12, 6, 22)}${bar('100%', 210, 26, 10)}${bar('100%', 52, 16, 10)}
+    ${[1, 2, 3].map(() => `<div style="display:flex;gap:12px;align-items:center;margin-top:12px"><i class="sk" style="width:56px;height:56px;border-radius:16px"></i><div style="flex:1">${bar('70%', 14)}${bar('40%', 11, 6, 8)}</div></div>`).join('')}
+  </div>`;
+}
+
+/* ---------- Obere Leiste: großer Titel schrumpft zu einer Glasleiste ---------- */
+let lastScroll = 0;
+function syncNav(fresh){
+  const v = $('#views .view:not(.leaving)'), nb = $('#navbar'), tb = $('#tabbar'); if (!v || !nb) return;
+  const h1 = v.querySelector('.top .h1');
+  if (fresh){ $('#navTitle').textContent = h1 ? h1.textContent : ''; const av = nb.querySelector('.nb-av'); av.textContent = D.profile ? D.profile.avatar : ''; av.hidden = !D.profile; }
+  const st = v.scrollTop;
+  nb.classList.toggle('on', !!h1 && st > 62 && !UI.cook);
+  if (h1){ const k = Math.max(0, Math.min(1, st / 70)); h1.style.opacity = String(1 - k * .7); h1.style.transform = `scale(${1 - k * .04})`; }
+  if (tb){ const d = st - lastScroll; if (fresh || st < 80) tb.classList.remove('mini'); else if (d > 6) tb.classList.add('mini'); else if (d < -6) tb.classList.remove('mini'); }
+  lastScroll = st;
+}
+document.addEventListener('scroll', e => { if (e.target.classList && e.target.classList.contains('view') && !e.target.classList.contains('leaving')) syncNav(); }, true);
+document.addEventListener('click', e => { if (e.target.closest('#navbar') && !e.target.closest('.nb-av')){ const v = $('#views .view'); v && v.scrollTo({ top:0, behavior:'smooth' }); } });
+
+/* ---------- Endlos-Animationen anhalten, wenn man sie nicht sieht (spart Akku) ---------- */
+const LOOPS = '.pick .big,.hw-pump,.hw-bat,.pc-glow,.plus-widget,.inst-grid img,.pp-hero,.adv-glow,.slot-btn .slot-ic';
+const loopIO = 'IntersectionObserver' in window ? new IntersectionObserver(es => es.forEach(x => x.target.classList.toggle('paused', !x.isIntersecting)), { threshold:0 }) : null;
+function watchLoops(){ if (!loopIO) return; document.querySelectorAll(LOOPS).forEach(el => { if (!el.__w){ el.__w = 1; loopIO.observe(el); } }); }
+document.addEventListener('visibilitychange', () => document.documentElement.classList.toggle('bg', document.hidden));
+
+/* ---------- Ziehen zum Aktualisieren ---------- */
+let ptr = null;
+const ptrEl = () => $('#ptr');
+function drawPtr(d){ const p = ptrEl(); if (!p) return; p.style.transform = `translate(-50%,${d - 54}px) rotate(${d * 3}deg)`; p.style.opacity = String(Math.min(1, d / 60)); p.classList.toggle('ready', d >= 70); }
+document.addEventListener('touchstart', e => { const v = e.target.closest && e.target.closest('#views .view'); if (!v || v.scrollTop > 0 || UI.cook || $('.sheet') || !D.user) return; ptr = { y: e.touches[0].clientY, d: 0, v }; }, { passive:true });
+document.addEventListener('touchmove', e => { if (!ptr) return; const dy = e.touches[0].clientY - ptr.y; if (dy <= 0 || ptr.v.scrollTop > 0){ ptr.d = 0; drawPtr(0); return; } ptr.d = Math.min(120, dy * .45); drawPtr(ptr.d); }, { passive:true });
+document.addEventListener('touchend', async () => { if (!ptr) return; const d = ptr.d; ptr = null; const p = ptrEl();
+  if (d >= 70 && p){ p.classList.add('spin'); drawPtr(70); buzz(10); try { await loadAll(true); } catch(e){} paint(); toast('Aktualisiert ✓'); }
+  if (p){ p.classList.remove('spin', 'ready'); p.style.transition = 'transform .35s, opacity .3s'; drawPtr(0); setTimeout(() => { p.style.transition = ''; }, 360); } });
+
+/* ---------- Fenster nach unten wegwischen ---------- */
+let sdrag = null;
+function sheetStart(y, sh){ sdrag = { y, d: 0, sh, t: performance.now() }; sh.style.transition = 'none'; }
+function sheetMove(y){ if (!sdrag) return false; const d = Math.max(0, y - sdrag.y); if (d > 0 && sdrag.sh.scrollTop > 0) return false; sdrag.d = d;
+  sdrag.sh.style.transform = `translateY(${d}px)`; const sc = $('.scrim'); if (sc) sc.style.opacity = String(Math.max(0, 1 - d / 400)); return d > 0; }
+function sheetEnd(){ if (!sdrag) return; const { sh, d, t } = sdrag; sdrag = null; const fast = d > 40 && d / (performance.now() - t) > .6;
+  sh.style.transition = 'transform .32s cubic-bezier(.2,.9,.25,1)'; const sc = $('.scrim'); if (sc){ sc.style.transition = 'opacity .3s'; }
+  if (d > 130 || fast){ sh.style.transform = 'translateY(105%)'; if (sc) sc.style.opacity = '0'; setTimeout(() => { keepName(); closeSheet(); render(); }, 260); }
+  else { sh.style.transform = ''; if (sc) sc.style.opacity = ''; } }
+document.addEventListener('touchstart', e => { const sh = e.target.closest && e.target.closest('.sheet'); if (!sh || sh.scrollTop > 0 || e.target.closest('input,textarea,.slot,.no-drag')) return; sheetStart(e.touches[0].clientY, sh); }, { passive:true });
+document.addEventListener('touchmove', e => { if (sdrag && sheetMove(e.touches[0].clientY) && e.cancelable) e.preventDefault(); }, { passive:false });
+document.addEventListener('touchend', sheetEnd, { passive:true });
+document.addEventListener('pointerdown', e => { if (e.pointerType !== 'mouse') return; const g = e.target.closest && e.target.closest('.sheet .grabber'); if (!g) return; sheetStart(e.clientY, g.closest('.sheet'));
+  const mv = ev => sheetMove(ev.clientY), up = () => { window.removeEventListener('pointermove', mv); window.removeEventListener('pointerup', up); sheetEnd(); };
+  window.addEventListener('pointermove', mv); window.addEventListener('pointerup', up); });
+
+/* ---------- Mengen im Kochmodus auf die Personenzahl umrechnen ---------- */
+const FRAC = { '½':.5, '¼':.25, '¾':.75 };
+function fmtNum(v){ const r = Math.round(v * 2) / 2, i = Math.floor(r), h = r - i ? '½' : ''; return i ? i + (h ? ' ' + h : '') : (h || '½'); }
+function scaleQty(txt, f){
+  if (!txt || Math.abs(f - 1) < .01) return txt;
+  return txt.replace(/(\d+(?:[.,]\d+)?|½|¼|¾)(\s?)(kg|g|ml|l|EL|TL|Prisen?|Stück|Scheiben?|Zehen?|Dosen?|Becher|Packungen?|Pck\.?|Bund|Tassen?|Eier|Ei|Kellen?|Handvoll)(?![a-zäöü])/g, (all, n, sp, u) => {
+    const v = (FRAC[n] ?? parseFloat(n.replace(',', '.'))) * f;
+    let s;
+    if (u === 'g' || u === 'ml') s = String(v < 20 ? Math.max(1, Math.round(v)) : v < 100 ? Math.round(v / 5) * 5 : Math.round(v / 10) * 10);
+    else if (u === 'kg' || u === 'l') s = (Math.round(v * 10) / 10).toString().replace('.', ',');
+    else s = fmtNum(Math.max(u.startsWith('Prise') ? 1 : .5, v));
+    let unit = u; const num = Math.round(v * 2) / 2;
+    if (u === 'Eier' && num <= 1) unit = 'Ei'; else if (u === 'Ei' && num > 1) unit = 'Eier';
+    return s + sp + unit; });
+}
+
+/* ---------- Kochverlauf & Bewertungen ---------- */
+async function logCooked(r){
+  if (!D.family) return null;
+  const row = { family_id:D.family.id, user_id:D.user.id, recipe_id:r.id, recipe_name:String(r.n).slice(0, 80) };
+  const tmp = { ...row, id:'tmp' + Date.now(), cooked_at:new Date().toISOString() }; D.log.unshift(tmp);
+  try { const res = await save(() => sb.from('cook_log').insert(row).select().single()); if (res && res.data) Object.assign(tmp, res.data); else throw new Error('x');
+    setTimeout(checkBadges, 300); return tmp; }
+  catch(e){ D.log = D.log.filter(x => x !== tmp); return null; }
+}
+function ratingOf(rid){ const rs = D.ratings.filter(x => x.recipe_id === rid); return { n: rs.length, avg: rs.length ? rs.reduce((a, x) => a + x.stars, 0) / rs.length : 0 }; }
+const cookedTimes = rid => D.log.filter(l => l.recipe_id === rid).length;
+const FACES = [[1, '😖', 'Gar nicht'], [2, '😕', 'Na ja'], [3, '🙂', 'Okay'], [4, '😋', 'Lecker'], [5, '🤩', 'Mega!']];
+function openRate(logId){
+  const log = D.log.find(l => l.id === logId); if (!log) return; const r = rec(log.recipe_id) || { n: log.recipe_name, e:'🍽️' };
+  const mine = D.ratings.find(x => x.log_id === logId && x.user_id === D.user.id);
+  sheetFn = null;
+  openSheet(`${sheetHead('')}
+    <div class="rate-hero"><span class="rate-em">${r.e}</span><div class="h1" style="text-align:center;font-size:24px">Wie war ${esc(r.n)}?</div>
+    <p class="muted" style="text-align:center;margin:6px 0 18px">Eure Bewertungen helfen der App, öfter Familien-Hits vorzuschlagen.</p></div>
+    <div class="rate-row">${FACES.map(([v, e, l]) => `<button class="rate-b" data-action="rate-set" data-id="${logId}" data-v="${v}" aria-pressed="${mine && mine.stars === v}" style="--i:${v}"><span>${e}</span><small>${l}</small></button>`).join('')}</div>
+    <button class="linkbtn" style="display:block;margin:18px auto 0;color:var(--muted)" data-action="close">Später</button>`);
+}
+function rateBanner(){
+  const since = Date.now() - 36 * 36e5;
+  const log = D.log.find(l => !String(l.id).startsWith('tmp') && Date.parse(l.cooked_at) > since && !D.ratings.some(x => x.log_id === l.id && x.user_id === D.user.id));
+  if (!log || L.rateSkip === log.id) return '';
+  const r = rec(log.recipe_id) || { n: log.recipe_name, e:'🍽️' };
+  return `<div class="banner rate-ban"><span style="font-size:24px">${r.e}</span><span style="flex:1"><b>Wie war ${esc(r.n)}?</b><br><span class="muted" style="font-size:13px">Tipp kurz an, wie's geschmeckt hat</span></span><button class="btn btn-herb btn-sm" data-action="rate" data-v="${log.id}">Bewerten</button><button class="icon-btn sm" data-action="rate-skip" data-v="${log.id}" aria-label="Ausblenden">${I.x}</button></div>`;
+}
+
+/* ---------- Erfolge ---------- */
+const isVeg = r => r && !r.i.some(k => MEAT.includes(k) || FISH.includes(k));
+function kitchenStats(){
+  const log = D.log, byR = {}, byU = {}, types = { pasta:0, veg:0, meat:0, sweet:0, fish:0, quick:0 };
+  log.forEach(l => { byR[l.recipe_id] = (byR[l.recipe_id] || 0) + 1; if (l.user_id) byU[l.user_id] = (byU[l.user_id] || 0) + 1;
+    const r = rec(l.recipe_id); if (!r) return;
+    if (r.i.some(k => ['nudeln','lasagne','gnocchi','reisnudeln'].includes(k))) types.pasta++;
+    if (r.meal === 'suess') types.sweet++; else if (r.i.some(k => FISH.includes(k))) types.fish++; else if (r.i.some(k => MEAT.includes(k))) types.meat++; else types.veg++;
+    if (r.t <= 20) types.quick++; });
+  const days = [...new Set(log.map(l => isoDay(new Date(l.cooked_at))))].sort().reverse();
+  let streak = 0, best = 0; for (let i = 0; i < days.length; i++){ const prev = i && (Date.parse(days[i - 1]) - Date.parse(days[i])) / 864e5; streak = i && prev === 1 ? streak + 1 : 1; best = Math.max(best, streak); }
+  const top = Object.entries(byR).sort((a, b) => b[1] - a[1]);
+  const topCook = Object.entries(byU).sort((a, b) => b[1] - a[1])[0];
+  const week = log.filter(l => Date.parse(l.cooked_at) > Date.now() - 7 * 864e5).length;
+  const rated = {}; D.ratings.forEach(x => { (rated[x.recipe_id] = rated[x.recipe_id] || []).push(x.stars); });
+  const bestRated = Object.entries(rated).map(([id, a]) => [id, a.reduce((s, v) => s + v, 0) / a.length, a.length]).sort((a, b) => b[1] - a[1] || b[2] - a[2])[0];
+  return { total: log.length, distinct: Object.keys(byR).length, week, top, topCook, types, streak: best,
+    cooks: Object.keys(byU).length, ratings: D.ratings.filter(x => x.user_id === D.user.id).length, five: D.ratings.filter(x => x.stars === 5).length,
+    veg: types.veg, sweet: types.sweet, breakfast: log.filter(l => (rec(l.recipe_id) || {}).meal === 'fruehstueck').length,
+    planned: nextDays(7).filter(d => planFor(isoDay(d))).length, bestRated, avgTime: log.length ? Math.round(log.reduce((a, l) => a + ((rec(l.recipe_id) || {}).t || 30), 0) / log.length) : 0 };
+}
+const BADGES = [
+  ['first','🍳','Erster Teller','Das erste Gericht gekocht', s => s.total >= 1],
+  ['ten','🔟','Zehner-Club','10 Gerichte gekocht', s => s.total >= 10],
+  ['fifty','🏅','Küchen-Profis','50 Gerichte gekocht', s => s.total >= 50],
+  ['variety','🌈','Abwechslung','10 verschiedene Gerichte', s => s.distinct >= 10],
+  ['veggie','🥦','Grüner Daumen','5 vegetarische Gerichte', s => s.veg >= 5],
+  ['streak','🔥','Dranbleiber','3 Tage hintereinander gekocht', s => s.streak >= 3],
+  ['team','👨‍👩‍👧','Teamwork','3 verschiedene Köche in der Familie', s => s.cooks >= 3],
+  ['critic','⭐','Feinschmecker','10 Bewertungen abgegeben', s => s.ratings >= 10],
+  ['planner','📅','Vorausplaner','Die ganze Woche geplant', s => s.planned >= 7],
+  ['early','🥞','Frühaufsteher','Ein Frühstück gekocht', s => s.breakfast >= 1],
+  ['sweet','🍰','Naschkatze','3 Desserts gekocht', s => s.sweet >= 3],
+  ['star','🤩','Volltreffer','Ein Gericht mit 5 Sternen bewertet', s => s.five >= 1],
+];
+function checkBadges(){
+  if (!D.family) return; const s = kitchenStats(), have = new Set(L.badges || []), got = BADGES.filter(b => b[4](s)).map(b => b[0]);
+  const fresh = got.filter(k => !have.has(k)); L.badges = got; saveLocal();
+  if (fresh.length && L.badgesInit){ const b = BADGES.find(x => x[0] === fresh[0]); setTimeout(() => { burst(window.innerWidth / 2, window.innerHeight / 3); toast(`🏆 Neuer Erfolg: ${b[1]} ${b[2]}`); }, 600); }
+  L.badgesInit = true; saveLocal();
+}
+
+/* ---------- Familie: Küche, Neuigkeiten, Rückblick ---------- */
+function timeAgo(ts){ const m = Math.round((Date.now() - Date.parse(ts)) / 6e4); if (m < 1) return 'gerade eben'; if (m < 60) return `vor ${m} Min.`; const h = Math.round(m / 60); if (h < 24) return `vor ${h} Std.`; const d = Math.round(h / 24); return d === 1 ? 'gestern' : `vor ${d} Tagen`; }
+function feedItems(){
+  const out = [];
+  D.wishes.forEach(w => w.created_at && out.push({ t: w.created_at, who: w.user_id, txt: `wünscht sich <b>${esc((rec(w.recipe_id) || {}).n || 'etwas')}</b>`, e:'🙋' }));
+  D.log.forEach(l => out.push({ t: l.cooked_at, who: l.user_id, txt: `hat <b>${esc((rec(l.recipe_id) || {}).n || l.recipe_name)}</b> gekocht`, e:'🍳' }));
+  D.ratings.forEach(x => out.push({ t: x.created_at, who: x.user_id, txt: `findet <b>${esc((rec(x.recipe_id) || {}).n || 'das Essen')}</b> ${FACES[x.stars - 1][1]}`, e:'⭐' }));
+  D.shop.forEach(x => x.created_at && x.added_by && !x.checked && out.push({ t: x.created_at, who: x.added_by, txt: `braucht ${x.ing_key ? `<b>${esc(ingName(x.ing_key))}</b>` : `<b>${esc(x.label)}</b>`}`, e:'🛒' }));
+  D.plan.forEach(p => p.updated_at && p.set_by && out.push({ t: p.updated_at, who: p.set_by, txt: `plant <b>${esc((rec(p.recipe_id) || {}).n || '')}</b> ein`, e:'📅' }));
+  return out.filter(x => x.t && !isNaN(Date.parse(x.t))).sort((a, b) => Date.parse(b.t) - Date.parse(a.t)).slice(0, 6);
+}
+function familyExtras(){
+  const s = kitchenStats(), got = BADGES.filter(b => b[4](s)).length, feed = feedItems();
+  return `<button class="kitchen-card" data-action="kitchen">
+      <div class="kc-head"><b>Eure Küche</b><span>Statistik &amp; Erfolge ›</span></div>
+      <div class="kc-stats"><span><b>${s.total}</b><small>gekocht</small></span><span><b>${s.distinct}</b><small>Gerichte</small></span><span><b>${got}/${BADGES.length}</b><small>Erfolge</small></span><span><b>${s.week}</b><small>diese Woche</small></span></div></button>
+    <button class="wrapped-card" data-action="story"><span class="wc-glow"></span><span class="wc-em">✨</span><span><b>Euer Küchen-Rückblick</b><small>Eure Highlights als Story ansehen</small></span>${I.chev}</button>
+    ${feed.length ? `<div class="h2">Neuigkeiten</div><div class="list feed">${feed.map(f => { const p = prof(f.who); return `<div class="row"><span class="avatar sm">${p.avatar || '🙂'}</span><span class="grow"><span><b>${esc(p.name || 'Jemand')}</b> ${f.txt}</span><small>${f.e} ${timeAgo(f.t)}</small></span></div>`; }).join('')}</div>` : ''}`;
+}
+function openKitchen(keep){
+  sheetFn = openKitchen; const s = kitchenStats();
+  const recent = D.log.slice(0, 12);
+  openSheet(`${sheetHead('Eure Küche')}
+    <div class="kstats">${[[s.total,'Gerichte gekocht','🍳'],[s.distinct,'verschiedene','🌈'],[s.week,'diese Woche','📆'],[s.streak,'Tage am Stück','🔥']].map(([v, l, e]) => `<div><span>${e}</span><b>${v}</b><small>${l}</small></div>`).join('')}</div>
+    ${s.top.length ? `<div class="h2">Am häufigsten gekocht</div><div class="list">${s.top.slice(0, 3).map(([id, n], i) => { const r = rec(id) || { n:'?', e:'🍽️' }; return `<button class="row" data-action="open-recipe" data-id="${id}"><span class="medal">${['🥇','🥈','🥉'][i]}</span><span class="grow"><b>${esc(r.n)}</b><small>${n}× gekocht${(rt => rt.n ? ` · ⭐ ${rt.avg.toFixed(1).replace('.', ',')}` : '')(ratingOf(id))}</small></span>${I.chev}</button>`; }).join('')}</div>` : ''}
+    <div class="h2">Erfolge <span class="chip c-muted">${BADGES.filter(b => b[4](s)).length} von ${BADGES.length}</span></div>
+    <div class="badges">${BADGES.map(b => { const ok = b[4](s); return `<div class="badge ${ok ? 'ok' : ''}"><span>${ok ? b[1] : '🔒'}</span><b>${b[2]}</b><small>${b[3]}</small></div>`; }).join('')}</div>
+    <div class="h2">Kochverlauf</div>
+    ${recent.length ? `<div class="list">${recent.map(l => { const r = rec(l.recipe_id) || { n: l.recipe_name, e:'🍽️' }, rs = D.ratings.filter(x => x.log_id === l.id);
+      return `<div class="row"><span style="font-size:24px">${r.e}</span><span class="grow"><b>${esc(r.n)}</b><small>${esc(prof(l.user_id).name || '')} · ${timeAgo(l.cooked_at)}${rs.length ? ' · ' + rs.map(x => FACES[x.stars - 1][1]).join('') : ''}</small></span>${!rs.some(x => x.user_id === D.user.id) && !String(l.id).startsWith('tmp') ? `<button class="btn btn-ghost btn-sm" data-action="rate" data-v="${l.id}">Bewerten</button>` : ''}</div>`; }).join('')}</div>`
+      : `<div class="card empty"><div class="g">🍳</div><b>Noch nichts gekocht</b>Tippe nach dem Essen im Rezept auf „Heute gekocht" – dann füllt sich hier euer Kochverlauf.</div>`}`, keep);
+}
+
+/* ---------- Rückblick als Story ---------- */
+function openStory(){
+  const s = kitchenStats(), fam = D.family ? D.family.name : 'Eure Familie';
+  const typeKey = Object.entries(s.types).filter(([k]) => k !== 'quick').sort((a, b) => b[1] - a[1])[0];
+  const persona = !s.total ? ['🍳','Die Küchen-Entdecker','Ihr fangt gerade erst an – das wird lecker!']
+    : s.avgTime && s.avgTime <= 20 && s.types.quick >= s.total / 2 ? ['⚡','Die Blitzköche','Schnell, lecker, fertig – ihr kocht im Turbo-Modus.']
+    : ({ pasta:['🍝','Die Pasta-Profis','Nudeln gehen bei euch einfach immer.'], veg:['🥦','Die Gemüse-Gang','Bunt, frisch und meistens ohne Fleisch.'], meat:['🥩','Die Fleisch-Fans','Ein ordentliches Stück gehört bei euch dazu.'], sweet:['🍰','Die Naschkatzen','Bei euch gibt\'s auch mal Süßes – zu Recht!'], fish:['🐟','Die Fischköpfe','Ihr wisst, was gut ist: Fisch!'] }[typeKey && typeKey[1] ? typeKey[0] : 'veg'] || ['🍳','Die Allesköche','Ihr probiert einfach alles.']);
+  const top = s.top[0] && rec(s.top[0][0]), cook = s.topCook && prof(s.topCook[0]), best = s.bestRated && rec(s.bestRated[0]);
+  const slides = [
+    `<div class="st-k">Was gibt's? · Rückblick</div><div class="st-big st-pop">✨</div><h2>${esc(fam)}</h2><p>Das war eure Küche bisher. Bereit?</p><div class="st-hint">Tippen zum Weitermachen</div>`,
+    `<div class="st-k">Gekocht</div><div class="st-num" data-n="${s.total}">0</div><h2>${s.total === 1 ? 'Gericht' : 'Gerichte'}</h2><p>${s.distinct} davon verschieden${s.week ? ` · ${s.week} allein diese Woche` : ''}</p>`,
+    top ? `<div class="st-k">Euer Lieblingsessen</div><div class="st-big st-pop">${top.e}</div><h2>${esc(top.n)}</h2><p>${s.top[0][1]}× auf dem Tisch</p>` : `<div class="st-k">Euer Lieblingsessen</div><div class="st-big st-pop">🤔</div><h2>Noch offen</h2><p>Kocht ein paar Gerichte – dann wissen wir's.</p>`,
+    cook ? `<div class="st-k">Chef de Cuisine</div><div class="st-big st-pop">${cook.avatar}</div><h2>${esc(cook.name)}</h2><p>stand am häufigsten am Herd: ${s.topCook[1]}×</p>` : `<div class="st-k">Chef de Cuisine</div><div class="st-big st-pop">👨‍🍳</div><h2>Wer wird's?</h2><p>Wer am meisten kocht, landet hier.</p>`,
+    best ? `<div class="st-k">Bester Teller</div><div class="st-big st-pop">${best.e}</div><h2>${esc(best.n)}</h2><p>${'⭐'.repeat(Math.round(s.bestRated[1]))} – ${s.bestRated[1].toFixed(1).replace('.', ',')} von 5</p>` : `<div class="st-k">Bester Teller</div><div class="st-big st-pop">⭐</div><h2>Noch keine Sterne</h2><p>Nach dem Essen kurz bewerten – dann seht ihr hier euren Hit.</p>`,
+    `<div class="st-k">Euer Küchen-Typ</div><div class="st-big st-pop">${persona[0]}</div><h2>${persona[1]}</h2><p>${persona[2]}</p>`,
+    `<div class="st-k">Danke fürs Kochen!</div><div class="st-big st-pop">💚</div><h2>Bis zum nächsten Rückblick</h2><p>${BADGES.filter(b => b[4](s)).length} von ${BADGES.length} Erfolgen geschafft</p><button class="st-btn" data-action="story-close">Fertig</button>`,
+  ];
+  const el = document.createElement('div'); el.id = 'story'; el.innerHTML = `<div class="st-bars">${slides.map(() => '<i><b></b></i>').join('')}</div><button class="st-x" data-action="story-close" aria-label="Schließen">${I.x}</button>${slides.map((h, i) => `<section class="st-s s${i}">${h}</section>`).join('')}<div class="st-nav"><span data-st="-1"></span><span data-st="1"></span></div>`;
+  $('#screen').appendChild(el); let i = -1, t = null;
+  const show = n => { i = Math.max(0, Math.min(slides.length - 1, n)); el.querySelectorAll('.st-s').forEach((x, k) => x.classList.toggle('on', k === i));
+    el.querySelectorAll('.st-bars i').forEach((b, k) => { b.className = k < i ? 'done' : k === i ? 'run' : ''; });
+    const num = el.querySelector(`.s${i} .st-num`); if (num){ const n2 = +num.dataset.n, t0 = performance.now(); (function f(tt){ const k = Math.min(1, (tt - t0) / 1100); num.textContent = Math.round(n2 * (1 - Math.pow(1 - k, 3))); if (k < 1) requestAnimationFrame(f); })(t0); }
+    if (i === slides.length - 1) setTimeout(() => burst(innerWidth / 2, innerHeight / 2), 300);
+    clearTimeout(t); if (i < slides.length - 1) t = setTimeout(() => show(i + 1), 5200); };
+  el.addEventListener('click', e => { const n = e.target.closest('[data-st]'); if (n) show(i + +n.dataset.st); });
+  el.__close = () => { clearTimeout(t); el.classList.add('out'); setTimeout(() => el.remove(), 300); };
+  requestAnimationFrame(() => show(0));
+}
+
+/* ---------- Glücksrad: „Kann mich nicht entscheiden" ---------- */
+function openSlot(){
+  let pool = suggest().filter(s => s.r.meal !== 'suess' && s.missing.length <= 1).slice(0, 14);
+  if (pool.length < 3) pool = suggest().filter(s => s.r.meal !== 'suess').slice(0, 14);
+  if (!pool.length){ toast('Gerade passt nichts – trag ein paar Zutaten ein'); return; }
+  pool = pool.map(x => x.r).sort(() => Math.random() - .5);
+  const win = Math.floor(Math.random() * pool.length), reps = 5, items = [];
+  for (let k = 0; k < reps; k++) pool.forEach(r => items.push(r));
+  const target = (reps - 1) * pool.length + win, H = 74, w = pool[win];
+  sheetFn = null;
+  openSheet(`${sheetHead('Überrasch mich!')}
+    <div class="slot no-drag"><div class="slot-win"></div><div class="slot-reel" id="slotReel">${items.map(r => `<div class="slot-item"><span>${r.e}</span><b>${esc(r.n)}</b></div>`).join('')}</div></div>
+    <div class="slot-res" id="slotRes" hidden><div class="muted" style="font-weight:700;text-align:center">Heute gibt's …</div><div class="h1" style="text-align:center;margin:4px 0 14px">${w.e} ${esc(w.n)}</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><button class="btn btn-tomato" data-action="cook" data-id="${w.id}">👨‍🍳 Kochen</button><button class="btn btn-ghost" data-action="open-recipe" data-id="${w.id}">Rezept</button></div>
+      <button class="btn btn-line btn-block" style="margin-top:8px" data-action="slot">🔄 Nochmal drehen</button></div>`);
+  const reel = $('#slotReel'); if (!reel) return;
+  const y = -(target * H) + H, anim = reel.animate([{ transform:'translateY(0)' }, { transform:`translateY(${y}px)` }], { duration:3400, easing:'cubic-bezier(.1,.7,.12,1)', fill:'forwards' });
+  let last = -1; const tk = setInterval(() => { const m = new DOMMatrix(getComputedStyle(reel).transform); const idx = Math.round(-m.m42 / H); if (idx !== last){ last = idx; buzz(4); } }, 40);
+  anim.onfinish = () => { clearInterval(tk); const box = $('.slot'); if (!box) return; box.classList.add('done'); buzz([20, 40, 30]); burstAt(box); const res = $('#slotRes'); if (res) res.hidden = false; };
+}
+
+/* ---------- Saison-Kalender ---------- */
+const SEASON = [
+  ['kohl','rotkohl','lauch','karotten','kartoffeln','apfel','sellerie'], ['kohl','rotkohl','lauch','karotten','kartoffeln','apfel','sellerie'],
+  ['lauch','karotten','kohl','spinat','fruehlingszwiebeln'], ['spinat','fruehlingszwiebeln','kraeuter','salat'],
+  ['spinat','salat','fruehlingszwiebeln','kraeuter','erbsen'], ['erbsen','zucchini','gurke','salat','beeren','kraeuter','blumenkohl'],
+  ['zucchini','tomaten','paprika','beeren','gurke','gruenebohnen','blumenkohl','aubergine'], ['tomaten','paprika','zucchini','aubergine','beeren','gruenebohnen','mais'],
+  ['kuerbis','apfel','tomaten','paprika','zucchini','mais','champignons','brokkoli'], ['kuerbis','apfel','kohl','rotkohl','champignons','lauch','brokkoli'],
+  ['kuerbis','kohl','rotkohl','lauch','apfel','karotten','sellerie','champignons'], ['kohl','rotkohl','lauch','apfel','karotten','sellerie','kartoffeln'],
+];
+const seasonNowKeys = () => SEASON[new Date().getMonth()].filter(k => ING[k]);
+function inSeason(r){ const s = seasonNowKeys(), hit = r.i.filter(k => s.includes(k) && !['kartoffeln','karotten'].includes(k)); return hit.length ? hit : null; }
+function seasonRow(){
+  const ks = seasonNowKeys(); if (!ks.length) return '';
+  const M = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'][new Date().getMonth()];
+  return `<div class="season-row"><div class="sr-k">🍂 Frisch im ${M}</div><div class="sr-chips">${ks.map(k => `<button data-action="season-ing" data-k="${k}">${ingEmoji(k)} ${ingName(k)}</button>`).join('')}</div></div>`;
+}
+
+/* ---------- Bessere Suche: Umlaute, Tippfehler, Zutaten ---------- */
+const norm = s => String(s || '').toLowerCase().replace(/ß/g, 'ss').normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/ae/g, 'a').replace(/oe/g, 'o').replace(/ue/g, 'u');
+function editDist(a, b, max){
+  if (Math.abs(a.length - b.length) > max) return max + 1;
+  let prev = Array.from({ length: b.length + 1 }, (_, j) => j);
+  for (let i = 1; i <= a.length; i++){ const cur = [i]; let best = i;
+    for (let j = 1; j <= b.length; j++){ cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1)); best = Math.min(best, cur[j]); }
+    if (best > max) return max + 1; prev = cur; }
+  return prev[b.length];
+}
+function searchScore(r, q){
+  const toks = norm(q).split(/\s+/).filter(Boolean); if (!toks.length) return 1;
+  const name = norm(r.n), words = name.split(/[^a-z0-9]+/).filter(Boolean), ings = [...r.i, ...r.o].map(k => norm(ingName(k)));
+  let score = 0;
+  for (const t of toks){
+    const tol = t.length >= 7 ? 2 : 1; let s = 0;
+    if (name.startsWith(t)) s = 100; else if (words.some(w => w.startsWith(t))) s = 80; else if (name.includes(t)) s = 60;
+    else if (ings.some(i => i.includes(t))) s = 40;
+    else if (t.length >= 4 && words.some(w => editDist(w, t, tol) <= tol || (w.length > t.length && editDist(w.slice(0, t.length), t, tol) <= tol))) s = 25;
+    else if (t.length >= 4 && ings.some(i => editDist(i, t, tol) <= tol)) s = 20;
+    if (!s) return 0; score += s;
+  }
+  return score;
+}
+UI.rf = {};
+function passFilters(r){ const f = UI.rf;
+  return (!f.quick || r.t <= 20) && (!f.veg || isVeg(r)) && (!f.have || r.i.every(k => D.fridge.includes(k))) && (!f.season || inSeason(r)); }
+function filterChips(){ return `<div class="fchips">${[['quick','⏱ Bis 20 Min'],['veg','🥦 Vegetarisch'],['have','✅ Alles da'],['season','🍂 Saison']].map(([k, l]) => `<button data-action="rf" data-v="${k}" aria-pressed="${!!UI.rf[k]}">${l}</button>`).join('')}</div>`; }
+
+/* ---------- Einkaufsliste: nach Supermarkt-Bereichen, teilen, Einkaufs-Modus ---------- */
+const AISLES = [['obst','🍎 Obst'],['gemuese','🥦 Gemüse'],['getreide','🍞 Brot, Nudeln & Reis'],['milch','🥛 Milch, Käse & Eier'],['kuehl','🧊 Kühlregal'],['fleisch','🥩 Fleisch & Fisch'],['dose','🥫 Dosen & Gläser'],['backen','🧁 Backen & Süßes'],['wuerz','🧂 Soßen & Gewürze']];
+function aisleOf(x){ if (!x.ing_key) return 'other'; const c = CATS.find(c => c[3].includes(x.ing_key)); return c ? c[0] : 'other'; }
+function aisles(items){ const g = [...AISLES, ['other','🧺 Sonstiges']].map(([id, t]) => [t, items.filter(x => aisleOf(x) === id)]).filter(x => x[1].length); return g; }
+async function shareList(){
+  const open = openShop(); if (!open.length) return;
+  const txt = `🛒 Einkaufsliste – ${D.family.name}\n` + aisles(open).map(([t, it]) => `\n${t}\n` + it.map(x => '• ' + (x.ing_key ? ingName(x.ing_key) : x.label)).join('\n')).join('\n') + `\n\nErstellt mit „Was gibt's?"`;
+  try { if (navigator.share){ await navigator.share({ title:'Einkaufsliste', text: txt }); return; } } catch(e){ if (e && e.name === 'AbortError') return; }
+  try { await navigator.clipboard.writeText(txt); toast('Liste kopiert – jetzt z. B. in WhatsApp einfügen'); } catch(e){ location.href = 'https://wa.me/?text=' + encodeURIComponent(txt); }
+}
+let shopWake = null;
+function openShopMode(){ UI.shopMode = true; try { navigator.wakeLock && navigator.wakeLock.request('screen').then(l => shopWake = l).catch(() => {}); } catch(e){} renderShopMode(true); }
+function closeShopMode(){ UI.shopMode = false; try { shopWake && shopWake.release(); } catch(e){} shopWake = null; const o = $('.shopmode'); if (o){ o.classList.add('out'); setTimeout(() => { if (!UI.shopMode) $('#overlay').innerHTML = ''; render(); }, 280); } }
+function renderShopMode(first){
+  if (!UI.shopMode) return;
+  const all = D.shop, open = openShop(), done = all.filter(x => x.checked), n = all.length, k = done.length, pct = n ? k / n : 0, C = 2 * Math.PI * 26;
+  const html = `<div class="shopmode ${first ? 'enter' : ''}" role="dialog" aria-label="Einkaufs-Modus">
+    <header class="sm-top"><button class="icon-btn" data-action="shop-mode-x" aria-label="Schließen">${I.x}</button>
+      <div><b>Einkaufs-Modus</b><small>Bildschirm bleibt an · ${open.length ? `${open.length} noch offen` : 'alles erledigt'}</small></div>
+      <svg class="sm-ring" viewBox="0 0 60 60"><circle cx="30" cy="30" r="26"/><circle class="p" cx="30" cy="30" r="26" style="stroke-dasharray:${C};stroke-dashoffset:${C * (1 - pct)}"/><text x="30" y="35">${k}/${n}</text></svg></header>
+    <main class="sm-list">${open.length ? aisles(open).map(([t, it]) => `<div class="sm-h">${t}</div>${it.map(x => `<button class="sm-item" data-action="sm-tick" data-id="${x.id}"><span class="sm-box"></span><span class="sm-name">${shopName(x)}</span></button>`).join('')}`).join('')
+      : `<div class="sm-done"><div class="sm-done-em">🎉</div><b>Alles im Wagen!</b><span>Die Sachen sind jetzt automatisch im Kühlschrank.</span><button class="btn btn-herb" data-action="shop-mode-x">Fertig</button></div>`}
+      ${done.length && open.length ? `<div class="sm-h">✓ Im Wagen</div>${done.map(x => `<button class="sm-item done" data-action="sm-tick" data-id="${x.id}"><span class="sm-box">✓</span><span class="sm-name">${shopName(x)}</span></button>`).join('')}` : ''}</main></div>`;
+  const cur = $('.shopmode');
+  if (cur && !first){ morph(cur, html.replace(/^<div class="shopmode[^>]*>/, '').replace(/<\/div>$/, '')); }
+  else $('#overlay').innerHTML = html;
+}
+
+/* ---------- Wochenplan in den Kalender ---------- */
+async function exportICS(){
+  const pad = n => String(n).padStart(2, '0'), ymd = d => d.getFullYear() + pad(d.getMonth() + 1) + pad(d.getDate());
+  const stamp = new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d+/, '');
+  const ev = D.plan.map(p => { const r = rec(p.recipe_id); if (!r) return ''; const d = new Date(p.day + 'T12:00:00'), e = new Date(d); e.setDate(e.getDate() + 1);
+    return ['BEGIN:VEVENT', `UID:${p.day}-${p.recipe_id}@wasgibts`, `DTSTAMP:${stamp}`, `DTSTART;VALUE=DATE:${ymd(d)}`, `DTEND;VALUE=DATE:${ymd(e)}`, `SUMMARY:🍽️ ${r.n}`,
+      `DESCRIPTION:Zutaten: ${r.i.map(ingName).join(', ')}\\nGeplant mit „Was gibt's?"`, 'END:VEVENT'].join('\r\n'); }).filter(Boolean);
+  const ics = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Was gibts//Wochenplan//DE', 'CALSCALE:GREGORIAN', ...ev, 'END:VCALENDAR'].join('\r\n');
+  const file = new File([ics], 'wochenplan.ics', { type:'text/calendar' });
+  try { if (navigator.canShare && navigator.canShare({ files:[file] })){ await navigator.share({ files:[file], title:'Wochenplan' }); return; } } catch(e){ if (e && e.name === 'AbortError') return; }
+  const a = document.createElement('a'); a.href = URL.createObjectURL(file); a.download = 'wochenplan.ics'; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1500);
+  toast('📆 Kalender-Datei erstellt – öffnen zum Eintragen');
+}
+
+/* ---------- Rezept als Bild teilen ---------- */
+async function shareRecipe(id){
+  const r = rec(id); if (!r) return; toast('Bild wird erstellt …');
+  try { await document.fonts.load('800 80px "Bricolage Grotesque"'); await document.fonts.load('700 40px Figtree'); } catch(e){}
+  const W = 1080, H = 1350, cv = document.createElement('canvas'); cv.width = W; cv.height = H; const c = cv.getContext('2d');
+  const g = c.createLinearGradient(0, 0, W, H); g.addColorStop(0, '#2F7A4C'); g.addColorStop(1, '#173F28'); c.fillStyle = g; c.fillRect(0, 0, W, H);
+  c.fillStyle = 'rgba(255,255,255,.06)'; c.beginPath(); c.arc(W - 120, 160, 300, 0, 7); c.fill(); c.beginPath(); c.arc(140, H - 140, 240, 0, 7); c.fill();
+  c.fillStyle = '#fff'; c.font = '800 44px "Bricolage Grotesque"'; c.fillText("Was gibt's?", 80, 120); c.fillStyle = '#FF8A6E'; c.fillText('', 0, 0);
+  c.fillStyle = 'rgba(255,255,255,.95)'; c.beginPath(); c.arc(W / 2, 360, 170, 0, 7); c.fill();
+  c.font = '190px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(r.e, W / 2, 372);
+  c.fillStyle = '#fff'; c.textBaseline = 'alphabetic'; c.font = '800 84px "Bricolage Grotesque"';
+  const lines = []; let line = ''; String(r.n).split(' ').forEach(w => { const t = line ? line + ' ' + w : w; if (c.measureText(t).width > W - 160){ lines.push(line); line = w; } else line = t; }); lines.push(line);
+  lines.slice(0, 2).forEach((l, i) => c.fillText(l, W / 2, 650 + i * 92));
+  const y0 = 650 + Math.min(2, lines.length) * 92 + 10;
+  c.font = '700 38px Figtree'; c.fillStyle = 'rgba(255,255,255,.85)'; c.fillText(`⏱ ${r.t} Minuten  ·  ${r.i.length} Hauptzutaten`, W / 2, y0);
+  const bx = 90, by = y0 + 50, bw = W - 180, bh = H - by - 170;
+  c.fillStyle = 'rgba(255,255,255,.12)'; c.beginPath(); c.roundRect(bx, by, bw, bh, 40); c.fill();
+  c.textAlign = 'left'; c.fillStyle = '#fff'; c.font = '800 34px "Bricolage Grotesque"'; c.fillText('Zutaten', bx + 44, by + 66);
+  c.font = '600 36px Figtree'; [...r.i, ...r.o].slice(0, 10).forEach((k, i) => { const col = i % 2, row = Math.floor(i / 2); c.fillText(`${ingEmoji(k)}  ${ingName(k)}`, bx + 44 + col * (bw / 2 - 20), by + 130 + row * 58); });
+  c.textAlign = 'center'; c.font = '700 32px Figtree'; c.fillStyle = 'rgba(255,255,255,.9)'; c.fillText('Gefunden mit der Familien-Koch-App „Was gibt\'s?"', W / 2, H - 92);
+  c.font = '600 28px Figtree'; c.fillStyle = 'rgba(255,255,255,.6)'; c.fillText(location.host + location.pathname.replace(/index\.html$/, ''), W / 2, H - 48);
+  const blob = await new Promise(ok => cv.toBlob(ok, 'image/png')); const file = new File([blob], `${r.n.replace(/[^\wäöüÄÖÜß-]+/g, '-')}.png`, { type:'image/png' });
+  try { if (navigator.canShare && navigator.canShare({ files:[file] })){ await navigator.share({ files:[file], title: r.n, text: `Heute gibt's ${r.n} ${r.e}` }); return; } } catch(e){ if (e && e.name === 'AbortError') return; }
+  const a = document.createElement('a'); a.href = URL.createObjectURL(file); a.download = file.name; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1500); toast('📤 Bild gespeichert');
+}
+
+/* ---------- Erste-Schritte-Tour und „Neu in 3.0" ---------- */
+const TOUR = [
+  ['🧊', ['🥕','🧀','🥚'], 'Sag, was da ist', 'Tippe im Kühlschrank an, was ihr habt – oder mach einfach ein Foto. Die App erkennt die Zutaten.', 't1'],
+  ['👨‍👩‍👧', ['🥦','❤️','🚫'], 'Wer isst mit?', 'Jeder hat sein Profil: vegetarisch, keine Pilze, Allergien. Vorgeschlagen wird nur, was allen schmeckt.', 't2'],
+  ['🙋', ['📅','🛒','🗳️'], 'Wünschen & planen', 'Wünscht euch Gerichte, plant die Woche und schreibt die Einkaufsliste – alles gemeinsam und live.', 't3'],
+  ['👨‍🍳', ['🔥','⏱','🎉'], 'Los geht\'s!', 'Der Kochmodus erklärt jeden Schritt – mit Herdstufe, Timern und Mengen für eure Personenzahl.', 't4'],
+];
+function openTour(){
+  if ($('#tour')) return; const el = document.createElement('div'); el.id = 'tour';
+  el.innerHTML = `<button class="tour-skip" data-action="tour-end">Überspringen</button><div class="tour-track no-drag">${TOUR.map(([m, s, h, p, c], i) => `<section class="tour-s ${c}"><div class="tour-art"><span class="ta-main">${m}</span>${s.map((x, k) => `<span class="ta-s s${k}">${x}</span>`).join('')}</div><div class="tour-n">${i + 1} / ${TOUR.length}</div><h2>${h}</h2><p>${p}</p></section>`).join('')}</div>
+    <div class="tour-foot"><div class="tour-dots">${TOUR.map((_, i) => `<i class="${i ? '' : 'on'}"></i>`).join('')}</div><button class="btn btn-herb tour-next" data-action="tour-next">Weiter</button></div>`;
+  $('#screen').appendChild(el);
+  const tr = el.querySelector('.tour-track');
+  tr.addEventListener('scroll', () => { const i = Math.round(tr.scrollLeft / tr.clientWidth); el.querySelectorAll('.tour-dots i').forEach((d, k) => d.classList.toggle('on', k === i)); el.querySelector('.tour-next').textContent = i === TOUR.length - 1 ? 'Los geht\'s!' : 'Weiter'; el.querySelectorAll('.tour-s').forEach((s, k) => s.classList.toggle('on', k === i)); }, { passive:true });
+  el.querySelector('.tour-s').classList.add('on');
+}
+function endTour(){ const el = $('#tour'); L.tourDone = Date.now(); L.seen30 = true; saveLocal(); if (el){ el.classList.add('out'); setTimeout(() => el.remove(), 320); } }
+function openWhatsNew(){
+  sheetFn = null;
+  const items = [['🫧','Flüssiger als je zuvor','Neue Animationen, weichere Übergänge, Fenster zum Wegwischen'],['🧭','Neue Leisten','Schwebende Tab-Leiste und eine Titelleiste aus Glas'],['🎰','Überrasch mich','Kann sich keiner entscheiden? Dreh am Rad!'],['⭐','Bewerten','Nach dem Essen kurz sagen, wie\'s war – Familien-Hits kommen öfter'],['✨','Euer Küchen-Rückblick','Eure Highlights als Story – unter „Familie"'],['🛒','Einkaufs-Modus','Große Liste nach Supermarkt sortiert, Bildschirm bleibt an'],['🍂','Saison-Kalender','Was gerade frisch ist, kommt öfter auf den Tisch'],['👥','Mengen umrechnen','Im Kochmodus für 1 bis 8 Personen'],['⏱','Mehrere Timer','Laufen sogar weiter, wenn du den Kochmodus schließt'],['📤','Teilen','Rezept als Bild, Einkaufsliste per WhatsApp, Wochenplan in den Kalender']];
+  openSheet(`${sheetHead('')}<div class="wn-hero"><span>🎉</span><div class="h1" style="text-align:center">Update 3.0 ist da!</div><p class="muted" style="text-align:center;margin:6px 0 16px">Das größte Update bisher – und ein paar Überraschungen 🎁</p></div>
+    <div class="wn-list">${items.map(([e, t, s], i) => `<div class="wn-i" style="--i:${i}"><span>${e}</span><div><b>${t}</b><small>${s}</small></div></div>`).join('')}</div>
+    <button class="btn btn-herb btn-block" style="margin-top:16px" data-action="wn-ok">Los geht's</button>`);
+}
+function firstRunInfo(){
+  if (!D.user || !D.family || !isActive() || $('.sheet') || $('#tour') || UI.cook) return;
+  if (!L.tourDone && !L.seenVersion && !L.cookedCount){ openTour(); return; }
+  if (!L.seen30){ L.seen30 = true; L.tourDone = L.tourDone || Date.now(); saveLocal(); openWhatsNew(); }
+}
+
+/* ---------- Adventskalender (1.–24. Dezember) ---------- */
+const ADV_TIPS = ['Zwiebeln schneiden ohne Tränen: vorher 10 Minuten in den Kühlschrank legen.','Nudelwasser gehört gesalzen wie Meerwasser – ungefähr 1 Teelöffel pro Liter.','Kräuter bleiben länger frisch wie ein Blumenstrauß im Wasserglas.','Bananen lassen Obst daneben schneller reifen – praktisch bei harten Avocados.','Ein Holzlöffel quer über dem Topf verhindert, dass er überkocht.','Plätzchenteig wird mürber, wenn er eine Stunde im Kühlschrank ruht.','Brot nie in den Kühlschrank – dort wird es schneller altbacken.','Knoblauch lässt sich leichter schälen, wenn man die Zehe kurz andrückt.','Eier sind frisch, wenn sie in Wasser am Boden liegen bleiben.','Ein Spritzer Zitrone hält aufgeschnittene Äpfel hell.','Reste vom Vortag? Freitags gibt\'s bei vielen Familien „Restekönig".','Zimt passt nicht nur zu Süßem – probier ihn mal im Chili.','Kartoffeln mit kaltem Wasser aufsetzen, dann garen sie gleichmäßig.','Gefrorene Beeren direkt verwenden – nicht auftauen, sonst werden sie matschig.','Butter für Plätzchen: kalt für Mürbeteig, weich für Rührteig.','Ein Stück Apfel in der Keksdose hält Lebkuchen weich.','Pfanne erst heiß werden lassen, dann Öl – dann klebt nichts an.','Gewürze ohne Fett kurz anrösten – dann duften sie viel stärker.','Suppe zu salzig? Eine rohe Kartoffel mitkochen und wieder herausnehmen.','Teig ausrollen klappt am besten zwischen zwei Lagen Backpapier.','Schokolade schmilzt am schonendsten über einem Wasserbad.','Rotkohl schmeckt aufgewärmt am zweiten Tag sogar noch besser.','Am Heiligabend gibt\'s in vielen Familien Kartoffelsalat mit Würstchen – ganz ohne Stress.','Frohe Weihnachten! 🎄 Danke, dass ihr mit „Was gibt\'s?" kocht.'];
+function advDay(){ const d = new Date(); return d.getMonth() === 11 ? Math.min(24, d.getDate()) : Math.max(1, Math.min(24, d.getDate())); }
+function advRecipe(n){
+  const by = re => RX().filter(r => re.test(r.n)).sort((a, b) => a.n.localeCompare(b.n));
+  const sweet = by(/apfel|äpfel|zimt|keks|cookie|hefe|kuchen|waffel|crêpe|schoko|pudding|kaiserschmarrn|plätzchen|grieß|brownie|muffin/i), cozy = by(/suppe|eintopf|auflauf|gulasch|rotkohl|kürbis|braten|knödel|gratin|ragout/i);
+  const pool = n % 2 ? (sweet.length ? sweet : cozy) : (cozy.length ? cozy : sweet);
+  return pool.length ? pool[(n * 7 + 3) % pool.length] : RX()[n]; }
+const ADV_ORDER = [7,18,3,22,11,1,15,9,24,5,13,20,2,17,8,23,12,4,19,10,6,16,21,14];
+function adventCard(){
+  if (!adOn()) return ''; const d = advDay(), open = (L.advent || []).includes(d);
+  return `<button class="adv-card" data-action="advent"><span class="adv-glow"></span><span class="adv-snow" aria-hidden="true">❄️</span>
+    <span class="adv-k">Adventskalender</span><b>${open ? `Tür ${d} ist offen ✓` : `Tür ${d} wartet auf dich`}</b><span class="adv-s">${open ? 'Schau dir die Überraschung nochmal an' : 'Heute: ein Rezept-Tipp und ein Küchen-Geheimnis'}</span><span class="adv-n">${d}</span></button>`;
+}
+function openAdvent(keep, opened){
+  sheetFn = k => openAdvent(k, UI.advOpen);
+  const d = advDay(), done = new Set(L.advent || []), sel = opened || UI.advOpen;
+  const r = sel ? advRecipe(sel) : null;
+  openSheet(`${sheetHead('Adventskalender 🎄')}
+    <div class="adv-grid">${ADV_ORDER.map(n => `<button class="adv-door ${done.has(n) ? 'open' : ''} ${n === d && !done.has(n) ? 'today' : ''} ${n > d ? 'locked' : ''}" data-action="adv-door" data-v="${n}"><span class="ad-f"><b>${n}</b></span><span class="ad-b">${done.has(n) ? (advRecipe(n) || {}).e || '🎁' : ''}</span></button>`).join('')}</div>
+    ${r ? `<div class="adv-out" id="advOut"><div class="adv-day">Tür ${sel}</div><button class="rc" data-action="open-recipe" data-id="${r.id}">${photoEm(r)}<div class="main"><div class="t">${esc(r.n)}</div><div class="s"><span>⏱ ${r.t} Min</span><span class="chip c-tomato">Rezept des Tages</span></div></div>${I.chev}</button>
+      <div class="card adv-tip">💡 ${esc(ADV_TIPS[sel - 1])}</div></div>` : `<p class="muted" style="text-align:center;margin-top:14px">Jeden Tag geht eine neue Tür auf – mit einem Rezept und einem Küchen-Geheimnis.</p>`}`, keep);
+}
+
+/* ---------- Schnee im Advent ---------- */
+function ensureSnow(){
+  const on = adOn() && !UI.cook; let s = $('#snow');
+  if (on && !s){ s = document.createElement('div'); s.id = 'snow'; s.setAttribute('aria-hidden', 'true'); s.innerHTML = Array.from({ length:22 }, (_, i) => `<i style="--x:${(i * 47) % 100}%;--d:${6 + (i * 7) % 7}s;--t:${-(i * 1.3) % 9}s;--s:${3 + (i * 5) % 4}px"></i>`).join(''); $('#screen').appendChild(s); }
+  if (!on && s) s.remove();
+}
+
+/* ---------- Neue Aktionen ---------- */
+document.addEventListener('click', async e => {
+  const t = e.target.closest('[data-action]'); if (!t) return;
+  const a = t.dataset.action;
+  try { switch (a){
+    case 'slot': openSlot(); break;
+    case 'rate': openRate(t.dataset.v); break;
+    case 'rate-skip': L.rateSkip = t.dataset.v; saveLocal(); render(); break;
+    case 'rate-set': { const id = t.dataset.id, st = +t.dataset.v, log = D.log.find(l => l.id === id); if (!log) break;
+      D.ratings = D.ratings.filter(x => !(x.log_id === id && x.user_id === D.user.id));
+      const row = { log_id:id, family_id:D.family.id, user_id:D.user.id, recipe_id:log.recipe_id, stars:st };
+      D.ratings.push({ ...row, created_at:new Date().toISOString() }); burstAt(t); buzz([15, 30, 15]);
+      setTimeout(() => { closeSheet(); render(); }, 380); toast(st >= 4 ? `${FACES[st - 1][1]} Gemerkt – kommt öfter!` : `${FACES[st - 1][1]} Danke, gemerkt`);
+      await save(() => sb.from('ratings').upsert(row, { onConflict:'log_id,user_id' })); checkBadges(); break; }
+    case 'kitchen': openKitchen(); break;
+    case 'story': openStory(); break;
+    case 'story-close': { const s = $('#story'); s && s.__close && s.__close(); break; }
+    case 'season-ing': UI.rtab = 'all'; UI.q = ingName(t.dataset.k); UI.rlimit = 30; go('recipes'); break;
+    case 'rf': UI.rf[t.dataset.v] = !UI.rf[t.dataset.v]; UI.rlimit = 30; buzz(6); render(); break;
+    case 'shop-share': shareList(); break;
+    case 'shop-mode': openShopMode(); break;
+    case 'shop-mode-x': closeShopMode(); break;
+    case 'sm-tick': { const id = t.dataset.id, it = D.shop.find(x => String(x.id) === id); if (!it) break; buzz(10); t.classList.add('tick'); const wasOpen = openShop().length;
+      setTimeout(() => { toggleShop(it.id); renderShopMode(); if (wasOpen && !openShop().length){ burst(innerWidth / 2, innerHeight / 2); buzz([30, 60, 30]); } }, 160); break; }
+    case 'plan-ics': exportICS(); break;
+    case 'share-recipe': shareRecipe(t.dataset.id); break;
+    case 'cook-serv': { const c = UI.cook; if (!c) break; c.servings = c.servings >= 8 ? 1 : c.servings + 1; const s = $('#ckServ'); if (s) s.textContent = c.servings;
+      const st = c.steps && c.steps[c.step], tx = $('.ck-main.in .ck-text'); if (st && tx) tx.textContent = scaleQty(st.text, c.servings / 4); buzz(6); toast(`👥 Mengen für ${c.servings} ${c.servings === 1 ? 'Person' : 'Personen'}`); break; }
+    case 'timer-x': UI.timers = UI.timers.filter(x => String(x.id) !== t.dataset.v); tickTimer(); toast('Timer gestoppt'); break;
+    case 'tour': openTour(); break;
+    case 'tour-next': { const tr = $('#tour .tour-track'); if (!tr) break; const i = Math.round(tr.scrollLeft / tr.clientWidth); if (i >= TOUR.length - 1) endTour(); else tr.scrollTo({ left:(i + 1) * tr.clientWidth, behavior:'smooth' }); break; }
+    case 'tour-end': endTour(); break;
+    case 'wn-ok': closeSheet(); render(); break;
+    case 'tz': L.tz = +t.dataset.v; saveLocal(); document.documentElement.style.setProperty('--tz', L.tz); render(); break;
+    case 'preview': L.preview = t.dataset.v || undefined; if (L.season === false) L.season = true; saveLocal(); applyTheme(); render(); break;
+    case 'advent': UI.advOpen = null; openAdvent(); break;
+    case 'adv-door': { const n = +t.dataset.v, d = advDay();
+      if (n > d){ t.animate([{ transform:'rotate(0)' }, { transform:'rotate(-6deg)' }, { transform:'rotate(5deg)' }, { transform:'rotate(0)' }], { duration:380 }); toast(`🎅 Noch ${n - d} ${n - d === 1 ? 'Tag' : 'Tage'} Geduld!`); break; }
+      const first = !(L.advent || []).includes(n); L.advent = [...new Set([...(L.advent || []), n])]; saveLocal(); UI.advOpen = n;
+      if (first){ t.classList.add('opening'); buzz([10, 30, 10]); setTimeout(() => { openAdvent(true, n); burstAt($('#advOut') || t); render(); }, 650); }
+      else openAdvent(true, n); break; }
+  } } catch(err){ toast(errText(err)); }
+});
+window.addEventListener('keydown', e => { if (e.key === 'Escape'){ const s = $('#story'); if (s && s.__close) s.__close(); if ($('#tour')) endTour(); if (UI.shopMode) closeShopMode(); } });
+window.addEventListener('wg:data', () => { if (UI.shopMode) renderShopMode(); });
 
 /* ---------- Start ---------- */
 /* Neue Versionen automatisch laden: sobald ein neuer Service Worker übernimmt, einmal neu laden */
