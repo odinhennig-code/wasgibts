@@ -1,6 +1,6 @@
 // Service Worker: macht die App installierbar und offline startbar.
 // Bei jeder neuen Version die Zahl erhöhen, damit Handys das Update laden.
-const CACHE = 'wasgibts-v29';
+const CACHE = 'wasgibts-v30';
 const FILES = ['./', './index.html', './styles.css', './app.js', './emu.js', './data.js', './config.js', './manifest.webmanifest', './icon.svg', './fonts/Figtree.woff', './fonts/Bricolage.woff', './lib/qrcode.min.js', ...Array.from({ length: 10 }, (_, i) => `./rezepte/${i + 1}.js`)];
 
 self.addEventListener('install', e => {
@@ -9,14 +9,24 @@ self.addEventListener('install', e => {
 self.addEventListener('activate', e => {
   e.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim()));
 });
-// Eigene Dateien: erst Netz, bei Offline aus dem Speicher. Datenbank-Anfragen nie zwischenspeichern.
+// Eigene Dateien: Schriften, Bibliotheken und Rezepte sofort aus dem Speicher (ändern sich kaum).
+// Alles andere: erst Netz – aber höchstens 1,5 s warten, sonst sofort aus dem Speicher (schneller Start bei schlechtem Netz).
+const STATIC = /\/(fonts|lib|rezepte|icons)\/|\.(png|svg|woff2?)$/;
 self.addEventListener('fetch', e => {
   const url = new URL(e.request.url);
   if (e.request.method !== 'GET' || url.origin !== location.origin) return;
-  e.respondWith(
-    fetch(e.request, { cache: 'no-cache' }).then(r => { const copy = r.clone(); caches.open(CACHE).then(c => c.put(e.request, copy)); return r; })
-      .catch(() => caches.match(e.request).then(r => r || caches.match('./index.html')))
-  );
+  const fromNet = () => fetch(e.request, { cache: 'no-cache' }).then(r => { if (r.ok){ const copy = r.clone(); caches.open(CACHE).then(c => c.put(e.request, copy)); } return r; });
+  if (STATIC.test(url.pathname)){
+    e.respondWith(caches.match(e.request).then(hit => hit || fromNet()));
+    return;
+  }
+  e.respondWith(new Promise(resolve => {
+    let done = false; const finish = r => { if (!done && r){ done = true; resolve(r); } };
+    const net = fromNet();
+    const timer = setTimeout(() => caches.match(e.request).then(hit => finish(hit)), 1500);
+    net.then(r => { clearTimeout(timer); finish(r); })
+       .catch(() => { clearTimeout(timer); caches.match(e.request).then(hit => finish(hit)).then(() => { if (!done) caches.match('./index.html').then(r => finish(r || Response.error())); }); });
+  }));
 });
 
 // Push-Nachrichten aus dem Admin-Panel anzeigen

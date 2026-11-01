@@ -592,8 +592,9 @@ function viewFamily(){
 }
 
 /* ---------- Reiter „Mehr" ---------- */
-const VERSION = '3.0.1';
+const VERSION = '3.0.2';
 const CHANGELOG = [
+  { v:'3.0.2', d:'1. November 2026', items:['Behoben: Nach einem Update startete die App manchmal mitten in der Benutzung plötzlich neu – das passiert jetzt nur noch direkt beim Öffnen oder unbemerkt im Hintergrund','Schnellerer Start: Bei langsamem Netz wartet die App nicht mehr auf jede Datei, sondern startet nach spätestens 1,5 Sekunden aus dem Speicher','Schriften, Symbole und Rezepte kommen sofort aus dem Speicher'] },
   { v:'3.0.1', d:'1. November 2026', items:['Behoben: Oben war beim Scrollen ein andersfarbiger Streifen zu sehen – Statusleiste und Titelleiste sind jetzt eine durchgehende Fläche in App-Farbe','Behoben: In Kühlschrank, Rezepte, Familie und Einkaufsliste blitzten beim Scrollen ganz oben feine farbige Linien durch – die Leiste schließt jetzt in jedem Menü lückenlos ab','Keine sichtbaren Scrollbalken mehr in der Computer-Ansicht'] },
   { v:'3.0', d:'1. November 2026', items:['Das große Update: alles läuft flüssiger – weichere Seitenwechsel, Listen gleiten nacheinander herein, jeder Knopf gibt beim Antippen nach, Animationen ohne rechenintensive Unschärfe','Neue schwebende Tab-Leiste aus Glas mit gleitender Markierung – wird beim Scrollen kleiner','Neue Titelleiste aus Glas: Beim Scrollen erscheint oben der Titel, Antippen springt nach oben','Ziehen zum Aktualisieren und Fenster zum Wegwischen nach unten','🎰 Überrasch mich: Dreh am Rad, wenn sich keiner entscheiden kann','⭐ Bewerten nach dem Essen – Familien-Hits werden öfter vorgeschlagen','✨ Euer Küchen-Rückblick als Story, Kochverlauf, Statistik und 12 Erfolge unter „Familie"','Neuigkeiten aus der Familie: wer was gewünscht, gekocht oder bewertet hat','🛒 Einkaufs-Modus: große Liste nach Supermarkt-Bereichen, Bildschirm bleibt an; Einkaufsliste teilen (z. B. per WhatsApp)','🍂 Saison-Kalender: Was gerade frisch ist, kommt öfter auf den Tisch','🎄 Im Dezember: Advents-Look mit Schnee und Adventskalender mit 24 Türchen','👥 Kochmodus rechnet Mengen auf 1–8 Personen um, mehrere Timer laufen gleichzeitig – auch nach dem Schließen','📤 Rezept als Bild teilen, 📆 Wochenplan in den Kalender','Bessere Suche: findet auch Tippfehler, Umlaute und Zutaten – mit Filtern (bis 20 Min, vegetarisch, alles da, Saison)','Kurze Tour für neue Nutzer, Textgröße einstellbar, Lade-Platzhalter statt Kreisel'] },
   { v:'2.8', d:'1. November 2026', items:['Am Computer bedienst du das iPhone jetzt wie ein echtes: Sperrbildschirm mit Uhr und Mitteilungen – nach oben wischen zum Entsperren','Home-Bildschirm mit Widgets (Vorschlag für heute, Einkaufsliste) und App-Icon – die App öffnet und schließt mit der iOS-Zoom-Animation','Home-Strich unten nach oben ziehen (oder Esc) bringt dich zum Home-Bildschirm','Kontrollzentrum oben rechts: WLAN, Bluetooth, Flugmodus, Stumm, Helligkeit, Lautstärke, Fokus, Taschenlampe, Dunkelmodus','Die Tasten am Gehäuse funktionieren: Seitentaste sperrt, Lauter/Leiser zeigen die Lautstärke, Action-Taste schaltet stumm','Neue Wünsche aus der Familie erscheinen oben als Mitteilung'] },
@@ -2280,7 +2281,14 @@ window.addEventListener('wg:data', () => { if (UI.shopMode) renderShopMode(); })
 if ('serviceWorker' in navigator) navigator.serviceWorker.addEventListener('message', e => { const t = e.data && e.data.tab; if (t && D.user && ORDER.includes(t)){ closeSheet(); go(t); scheduleReload(50); } });
 if ('serviceWorker' in navigator && location.protocol === 'https:'){
   const hadController = !!navigator.serviceWorker.controller; let reloaded = false;
-  navigator.serviceWorker.addEventListener('controllerchange', () => { if (hadController && !reloaded){ reloaded = true; location.reload(); } });
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (!hadController || reloaded) return;
+    // Update gleich beim Start: sofort neu laden (fällt hinter dem Intro kaum auf).
+    // Sonst nicht mitten in der Benutzung neu starten – erst, wenn die App im Hintergrund ist.
+    if (performance.now() < 5000){ reloaded = true; location.reload(); return; }
+    const later = () => { if (document.hidden && !reloaded){ reloaded = true; location.reload(); } };
+    document.addEventListener('visibilitychange', later);
+  });
   navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(r => { r.update(); document.addEventListener('visibilitychange', () => { if (!document.hidden) r.update(); }); }).catch(()=>{});
 }
 layout(); render();
