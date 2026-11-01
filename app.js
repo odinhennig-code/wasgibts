@@ -124,7 +124,12 @@ async function loadAll(force){
     }
   }
   if (!force && (g !== gen || busyWriting())) return false;   // in der Zwischenzeit selbst etwas geändert: verwerfen
+  const seenW = loadAll.seen;   // neue Wünsche anderer → Banner auf dem iPhone am Computer
   Object.assign(D, N);
+  loadAll.seen = new Set(D.wishes.map(w => w.id));
+  if (seenW && window.__wgBanner) D.wishes.filter(w => !seenW.has(w.id) && w.user_id !== D.user.id && !String(w.id).startsWith('tmp'))
+    .forEach(w => window.__wgBanner(`${prof(w.user_id).name} wünscht sich etwas`, (rec(w.recipe_id) || {}).n || ''));
+  try { window.dispatchEvent(new Event('wg:data')); } catch(e){}
   return true;
 }
 let reloadT = null, writing = 0;
@@ -563,8 +568,9 @@ function viewFamily(){
 }
 
 /* ---------- Reiter „Mehr" ---------- */
-const VERSION = '2.7';
+const VERSION = '2.8';
 const CHANGELOG = [
+  { v:'2.8', d:'1. November 2026', items:['Am Computer bedienst du das iPhone jetzt wie ein echtes: Sperrbildschirm mit Uhr und Mitteilungen – nach oben wischen zum Entsperren','Home-Bildschirm mit Widgets (Vorschlag für heute, Einkaufsliste) und App-Icon – die App öffnet und schließt mit der iOS-Zoom-Animation','Home-Strich unten nach oben ziehen (oder Esc) bringt dich zum Home-Bildschirm','Kontrollzentrum oben rechts: WLAN, Bluetooth, Flugmodus, Stumm, Helligkeit, Lautstärke, Fokus, Taschenlampe, Dunkelmodus','Die Tasten am Gehäuse funktionieren: Seitentaste sperrt, Lauter/Leiser zeigen die Lautstärke, Action-Taste schaltet stumm','Neue Wünsche aus der Familie erscheinen oben als Mitteilung'] },
   { v:'2.7', d:'1. November 2026', items:['Am Computer: nur noch das iPhone in der Mitte – ohne Text daneben','Das iPhone sieht jetzt echter aus: Titan-Rahmen mit Kantenlicht, schwarzer Glasrand, Dynamic Island mit Kameralinse, Spiegelung auf dem Glas und alle Seitentasten'] },
   { v:'2.6', d:'31. Oktober 2026', items:['Neu: Sind Benachrichtigungen aus, fragt die App nach dem Start – mit dem klaren Versprechen: keine nervigen Benachrichtigungen, nur selten, bei Updates und wenn deine Familie dich braucht','Neu: Hinweis-Karte auf „Heute", solange Benachrichtigungen aus sind','Besser angemeldet bleiben: die Anmeldung wird zusätzlich gesichert und nach dem Aufwecken des Handys sofort aufgefrischt','Die App bittet das Handy, ihren Speicher nicht automatisch zu löschen'] },
   { v:'2.5', d:'31. Oktober 2026', items:['Neu: Installations-Anleitung – die App erkennt, ob du ein iPhone oder Android-Handy hast und in welchem Browser du bist, und zeigt dir jeden Schritt','Neu: Auf Android-Handys mit Chrome reicht ein Tipp auf „Jetzt installieren"','Neu: Kommst du aus TikTok, Instagram & Co., erklärt die App, wie du die Seite zuerst im Browser öffnest – mit „Link kopieren"','Neu: Beim ersten Start vom Startbildschirm bestätigt die App, dass alles geklappt hat','Unter Mehr → „App installieren" jederzeit wieder aufrufbar'] },
@@ -1739,6 +1745,23 @@ try { mq.addEventListener('change', layout); } catch(e){ mq.addListener && mq.ad
 window.addEventListener('resize', layout);
 const tickClock = () => { const d=new Date(); $('#clock').textContent=d.getHours()+':'+String(d.getMinutes()).padStart(2,'0'); };
 setInterval(tickClock, 1000); tickClock();
+
+
+/* ---------- Schnittstelle für das iPhone am Computer (emu.js) ---------- */
+window.__wgEmu = () => {
+  if (!D.user) return { user:false };
+  const out = { user:true, name: D.profile && D.profile.name, shop: D.family ? openShop().length : 0 };
+  try {
+    if (D.family){ const p = planFor(isoDay(new Date())), r = p && rec(p.recipe_id); if (r) out.planned = r.n;
+      const top = suggest().find(s => s.missing.length === 0 && s.r.meal !== 'suess'); if (top) out.pick = top.r.n;
+      out.wishes = D.wishes.filter(w => w.user_id !== D.user.id).slice(-2).reverse().map(w => ({ name: prof(w.user_id).name, dish: (rec(w.recipe_id) || {}).n || 'etwas' }));
+      const ex = expiringSoon(); if (ex.length) out.expiring = ex.map(x => `${ingName(x.k)} (${expLabel(x.d)})`).join(', '); }
+  } catch(e){}
+  return out;
+};
+window.__wgGo = tab => { if (D.user && D.family && ORDER.includes(tab)){ closeSheet(); go(tab); } };
+window.__wgCloseSheet = () => { closeSheet(); render(); };
+window.__wgTheme = th => { L.theme = th; saveLocal(); render(); };
 
 /* ---------- Start-Intro ---------- */
 (() => { const sp = $('#splash'), root = document.documentElement; if (!sp) return;

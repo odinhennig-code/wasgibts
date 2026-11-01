@@ -848,3 +848,138 @@ html:not(.framed) #splash{position:fixed}
 /* Querformat (Kochmodus) */
 .framed.cooking #phone::before{border-radius:65px}
 .framed.cooking .b5{display:none}
+
+/* =====================================================================
+   iPhone-Emulator (Computer-Ansicht): Sperrbildschirm, Home-Bildschirm,
+   Kontrollzentrum, Lautstärke, Action-Taste
+   ===================================================================== */
+#emu,#emu-bar,#emu-hud,#emu-ccbar,#emu-cc,#emu-dim,.emu-zoom,.emu-banner{display:none}
+.framed #island{z-index:120}
+.framed #emu{display:block;position:absolute;inset:0;z-index:100;border-radius:53px;overflow:hidden;color:#fff;font-family:-apple-system,"SF Pro Text","Figtree",sans-serif;user-select:none}
+.framed #emu[data-s="app"]{display:none}
+.emu-wall{position:absolute;inset:-20px;background:
+  radial-gradient(70% 45% at 18% 12%,#7fd6a0 0,transparent 60%),
+  radial-gradient(60% 45% at 92% 30%,#f2b25c 0,transparent 62%),
+  radial-gradient(80% 60% at 30% 78%,#1f6f4a 0,transparent 65%),
+  radial-gradient(70% 50% at 95% 95%,#e0703c 0,transparent 60%),
+  linear-gradient(170deg,#2f8a5a,#174d33 55%,#0e2e20)}
+#emu[data-s="lock"] .emu-wall{filter:saturate(1.1)}
+#emu[data-s="home"] .emu-wall{filter:blur(0)}
+.emu-sb{position:absolute;left:0;right:0;top:0;height:54px;display:flex;align-items:center;justify-content:space-between;padding:10px 34px 0 46px;font-weight:600;font-size:16.5px;z-index:5;text-shadow:0 1px 2px rgba(0,0,0,.15)}
+.emu-ic{display:flex;gap:6px;align-items:center}
+/* Sperrbildschirm */
+.emu-lock{position:absolute;inset:0;z-index:3;display:none;flex-direction:column;align-items:center;cursor:grab;touch-action:none}
+#emu[data-s="lock"] .emu-lock{display:flex}
+.emu-lockic{margin-top:58px;height:20px}.emu-lockic .ic8{width:15px;height:15px;color:#fff;opacity:.9}
+.emu-date{margin-top:4px;font-weight:600;font-size:19px;letter-spacing:-.01em;text-shadow:0 1px 6px rgba(0,0,0,.18)}
+.emu-clock{font-family:-apple-system,"SF Pro Display","Bricolage Grotesque",sans-serif;font-weight:700;font-size:104px;line-height:.95;letter-spacing:-.02em;margin-top:2px;
+  color:rgba(255,255,255,.92);text-shadow:0 2px 18px rgba(0,0,0,.18);font-variant-numeric:tabular-nums}
+.emu-notes{position:absolute;left:12px;right:12px;bottom:126px;display:flex;flex-direction:column;gap:8px}
+.emu-note{display:flex;gap:10px;padding:12px 14px;border-radius:24px;background:rgba(255,255,255,.2);backdrop-filter:blur(22px) saturate(1.6);-webkit-backdrop-filter:blur(22px) saturate(1.6);
+  box-shadow:inset 0 0 0 .5px rgba(255,255,255,.35),0 6px 20px rgba(0,0,0,.08);animation:emuIn .5s calc(var(--i)*80ms) cubic-bezier(.2,.9,.25,1) both;cursor:pointer}
+.emu-note img{width:36px;height:36px;border-radius:9px;flex:none}
+.emu-note > div{flex:1;min-width:0}
+.emu-nh{display:flex;justify-content:space-between;font-size:13px;opacity:.95}.emu-nh span{opacity:.75}
+.emu-nt{font-weight:600;font-size:14.5px;margin-top:1px}.emu-ns{font-size:14px;opacity:.9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@keyframes emuIn{from{opacity:0;transform:translateY(16px) scale(.97)}}
+.emu-round{position:absolute;bottom:46px;width:50px;height:50px;border-radius:50%;border:0;display:grid;place-items:center;cursor:pointer;
+  background:rgba(255,255,255,.18);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);box-shadow:inset 0 0 0 .5px rgba(255,255,255,.35)}
+.emu-round .ic8{width:22px;height:22px;color:#fff}
+.emu-round.l{left:46px}.emu-round.r{right:46px}
+.emu-hint{position:absolute;bottom:28px;font-size:13px;font-weight:600;opacity:.8;animation:emuHint 2.6s ease-in-out infinite}
+@keyframes emuHint{0%,60%,100%{transform:none;opacity:.8}30%{transform:translateY(-5px);opacity:1}}
+/* Home-Bildschirm */
+.emu-home{position:absolute;inset:0;z-index:2;display:none;padding:66px 22px 0}
+#emu[data-s="home"] .emu-home{display:block}
+.emu-widgets{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.emu-w{position:relative;height:150px;border-radius:22px;border:0;padding:14px 14px 30px;text-align:left;color:#fff;cursor:pointer;display:flex;flex-direction:column;gap:3px;
+  background:rgba(255,255,255,.2);backdrop-filter:blur(22px) saturate(1.6);-webkit-backdrop-filter:blur(22px) saturate(1.6);box-shadow:inset 0 0 0 .5px rgba(255,255,255,.4),0 8px 22px rgba(0,0,0,.1);font-family:inherit}
+.emu-wk{display:flex;align-items:center;gap:5px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;opacity:.9}
+.emu-wk .ic8{width:14px;height:14px;color:#fff}
+.emu-w b{font-size:18px;line-height:1.15;font-weight:700;margin-top:4px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.emu-w b.emu-num{font-size:44px;line-height:1;margin-top:6px}
+.emu-ws{font-size:12.5px;opacity:.85}
+.emu-wl{position:absolute;left:0;right:0;bottom:-20px;text-align:center;font-size:12px;font-weight:500;text-shadow:0 1px 3px rgba(0,0,0,.3)}
+.emu-grid{display:grid;grid-template-columns:repeat(4,1fr);row-gap:22px;margin-top:38px}
+.emu-app{border:0;background:none;padding:0;display:flex;flex-direction:column;align-items:center;gap:5px;color:#fff;cursor:pointer;font-family:inherit}
+.emu-app img{width:62px;height:62px;border-radius:14px;box-shadow:0 4px 12px rgba(0,0,0,.18),inset 0 0 0 .5px rgba(255,255,255,.3);transition:transform .15s}
+.emu-app:active img{transform:scale(.92);filter:brightness(.85)}
+.emu-app span{font-size:12px;font-weight:500;text-shadow:0 1px 3px rgba(0,0,0,.3)}
+.emu-search{position:absolute;left:50%;bottom:120px;transform:translateX(-50%);display:flex;align-items:center;gap:5px;padding:7px 14px;border-radius:999px;font-size:13px;font-weight:600;
+  background:rgba(255,255,255,.2);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);box-shadow:inset 0 0 0 .5px rgba(255,255,255,.35)}
+.emu-search .ic8{width:12px;height:12px;color:#fff}
+.emu-dock{position:absolute;left:12px;right:12px;bottom:12px;height:92px;border-radius:38px;display:flex;align-items:center;justify-content:flex-start;padding:0 20px;
+  background:rgba(255,255,255,.22);backdrop-filter:blur(26px) saturate(1.7);-webkit-backdrop-filter:blur(26px) saturate(1.7);box-shadow:inset 0 0 0 .5px rgba(255,255,255,.45),inset 0 1px 0 rgba(255,255,255,.35)}
+/* Aus (Seitentaste) */
+.emu-off{position:absolute;inset:0;background:#000;z-index:10;display:none}
+#emu[data-s="off"]{background:#000}
+#emu[data-s="off"] .emu-off{display:block}
+#emu[data-s="off"] .emu-sb{display:none}
+/* App öffnen/schließen */
+.framed .emu-zoom{display:grid;place-items:center;position:absolute;z-index:110;background:var(--bg);overflow:hidden;pointer-events:none}
+.emu-zoom img{width:62px;height:62px;border-radius:14px}
+/* Home-Strich zum Wischen */
+.framed #emu-bar{display:block;position:absolute;left:90px;right:90px;bottom:0;height:34px;z-index:125;cursor:grab;touch-action:none}
+.framed.cooking #emu-bar{display:none}
+.framed #homebar{z-index:126;pointer-events:none}
+html[data-emu="lock"] .framed #homebar,html.framed[data-emu="lock"] #homebar,html.framed[data-emu="home"] #homebar{background:#fff}
+html.framed[data-emu="off"] #homebar{opacity:0}
+/* Lautstärke-Anzeige (links, neben den Tasten) */
+.framed #emu-hud{display:flex;flex-direction:column;align-items:center;gap:8px;position:absolute;left:10px;top:150px;width:46px;padding:12px 0;border-radius:24px;z-index:130;
+  background:rgba(40,40,44,.55);backdrop-filter:blur(20px) saturate(1.6);-webkit-backdrop-filter:blur(20px) saturate(1.6);box-shadow:inset 0 0 0 .5px rgba(255,255,255,.25);
+  opacity:0;transform:translateX(-20px) scale(.9);transition:opacity .25s,transform .35s cubic-bezier(.3,1.4,.5,1);pointer-events:none}
+.framed #emu-hud.on{opacity:1;transform:none}
+#emu-hud .ic8{width:16px;height:16px;color:#fff}
+.emu-hud-track{position:relative;width:8px;height:120px;border-radius:5px;background:rgba(255,255,255,.25);overflow:hidden}
+.emu-hud-track i{position:absolute;left:0;right:0;bottom:0;height:56%;background:#fff;border-radius:5px;transition:height .15s}
+/* Action-Taste: Dynamic Island zeigt Stumm/Klingeln */
+.emu-isl{display:none}
+#island.emu-on{width:236px!important}
+#island.emu-on .emu-isl{display:flex;align-items:center;justify-content:space-between;height:100%;padding:0 22px 0 18px;color:#fff;font:600 13px -apple-system,"Figtree",sans-serif;animation:fade .25s .1s both}
+.emu-isl .ic8{width:18px;height:18px;color:#fff}.emu-isl .ic8.mute{color:#ff6b5e}
+.framed .btn-side{cursor:pointer}
+.framed .btn-side::after{content:"";position:absolute;inset:-4px -10px}
+.framed .btn-side:active{filter:brightness(1.3)}
+/* Kontrollzentrum */
+.framed #emu-ccbar{display:block;position:absolute;right:0;top:0;width:150px;height:40px;z-index:124;cursor:s-resize}
+.framed #emu-cc{display:block;position:absolute;inset:0;z-index:115;border-radius:53px;overflow:hidden;color:#fff;font-family:-apple-system,"Figtree",sans-serif;
+  background:rgba(20,20,24,.38);backdrop-filter:blur(30px) saturate(1.5) brightness(.8);-webkit-backdrop-filter:blur(30px) saturate(1.5) brightness(.8);
+  opacity:0;pointer-events:none;transition:opacity .28s}
+.framed #emu-cc.on{opacity:1;pointer-events:auto}
+#emu-cc .cc-in{position:absolute;inset:0;padding:64px 22px 0;transform:translateY(-30px) scale(.96);transition:transform .38s cubic-bezier(.2,.9,.25,1)}
+#emu-cc.on .cc-in{transform:none}
+.cc-top{position:absolute;top:18px;left:30px;right:30px;display:flex;justify-content:space-between;font-size:22px;font-weight:300;opacity:.9}
+.cc-grid{display:grid;grid-template-columns:repeat(4,72px);grid-auto-rows:72px;gap:14px;justify-content:center}
+.cc-tile{border-radius:22px;background:rgba(255,255,255,.18);box-shadow:inset 0 0 0 .5px rgba(255,255,255,.3);position:relative}
+.cc-conn{grid-column:span 2;grid-row:span 2;border-radius:30px;display:grid;grid-template-columns:1fr 1fr;place-items:center;padding:12px}
+.cc-b{width:56px;height:56px;border-radius:50%;border:0;display:grid;place-items:center;cursor:pointer;background:rgba(255,255,255,.2);box-shadow:inset 0 0 0 .5px rgba(255,255,255,.3);transition:background .2s}
+.cc-b .ic8{width:24px;height:24px;color:#fff}
+.cc-b[aria-pressed="true"]{background:#fff}.cc-b[aria-pressed="true"] .ic8{color:#1d1d1f}
+.cc-b.on-green[aria-pressed="true"]{background:#34c759}.cc-b.on-green[aria-pressed="true"] .ic8{color:#fff}
+.cc-b.on-blue[aria-pressed="true"]{background:#0a84ff}.cc-b.on-blue[aria-pressed="true"] .ic8{color:#fff}
+.cc-b.on-orange[aria-pressed="true"]{background:#ff9f0a}.cc-b.on-orange[aria-pressed="true"] .ic8{color:#fff}
+.cc-np{grid-column:span 2;grid-row:span 2;border-radius:30px;padding:16px;display:flex;flex-direction:column;justify-content:space-between;cursor:pointer;border:0;color:#fff;text-align:left;font-family:inherit}
+.cc-np img{width:50px;height:50px;border-radius:12px}
+.cc-np b{font-size:14px}.cc-np small{font-size:12.5px;opacity:.7;display:block}
+.cc-round{display:grid;place-items:center;border-radius:50%;background:rgba(255,255,255,.18);border:0;cursor:pointer;box-shadow:inset 0 0 0 .5px rgba(255,255,255,.3);transition:background .2s}
+.cc-round .ic8{width:26px;height:26px;color:#fff}
+.cc-round[aria-pressed="true"]{background:#fff}.cc-round[aria-pressed="true"] .ic8{color:#1d1d1f}
+.cc-round.red[aria-pressed="true"]{background:#fff}.cc-round.red[aria-pressed="true"] .ic8{color:#ff3b30}
+.cc-slider{grid-row:span 2;border-radius:24px;overflow:hidden;position:relative;cursor:ns-resize;background:rgba(255,255,255,.18);box-shadow:inset 0 0 0 .5px rgba(255,255,255,.3);touch-action:none}
+.cc-slider .fill{position:absolute;left:0;right:0;bottom:0;background:#fff}
+.cc-slider .ic8{position:absolute;left:50%;bottom:16px;width:24px;height:24px;margin-left:-12px;color:#8e8e93;z-index:1;mix-blend-mode:normal}
+.cc-focus{grid-column:span 2;border-radius:999px;display:flex;align-items:center;gap:10px;padding:0 16px;border:0;color:#fff;font:600 15px inherit;cursor:pointer;font-family:inherit}
+.cc-focus .ic8{width:22px;height:22px;color:#fff}
+.cc-focus[aria-pressed="true"]{background:#fff;color:#5e5ce6}.cc-focus[aria-pressed="true"] .ic8{color:#5e5ce6}
+.cc-hint{position:absolute;left:0;right:0;bottom:40px;text-align:center;font-size:12px;opacity:.6}
+/* Helligkeit */
+.framed #emu-dim{display:block;position:absolute;inset:0;z-index:140;background:#000;opacity:0;pointer-events:none;border-radius:53px}
+/* Mitteilungs-Banner oben */
+.framed .emu-banner{display:flex;gap:10px;position:absolute;left:10px;right:10px;top:10px;z-index:121;padding:12px 14px;border-radius:26px;color:#fff;cursor:pointer;
+  background:rgba(40,40,44,.6);backdrop-filter:blur(26px) saturate(1.6);-webkit-backdrop-filter:blur(26px) saturate(1.6);box-shadow:inset 0 0 0 .5px rgba(255,255,255,.25),0 10px 30px rgba(0,0,0,.25);
+  font-family:-apple-system,"Figtree",sans-serif;animation:emuBan .5s cubic-bezier(.2,1.2,.3,1) both}
+.emu-banner.out{animation:emuBanOut .35s ease-in both}
+@keyframes emuBan{from{transform:translateY(-120%) scale(.9);opacity:0}}
+@keyframes emuBanOut{to{transform:translateY(-120%) scale(.95);opacity:0}}
+.emu-banner img{width:38px;height:38px;border-radius:9px;flex:none}
+.emu-banner > div{flex:1;min-width:0}

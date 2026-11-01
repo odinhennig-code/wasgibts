@@ -134,6 +134,72 @@ function action(){
   islT = setTimeout(() => island.classList.remove('wide', 'emu-on'), 1600);
 }
 
+
+/* ---------- Kontrollzentrum (oben rechts herunterziehen) ---------- */
+const cc = document.createElement('div'); cc.id = 'emu-cc';
+const ccbar = document.createElement('div'); ccbar.id = 'emu-ccbar'; ccbar.title = 'Kontrollzentrum';
+const dim = document.createElement('div'); dim.id = 'emu-dim';
+const POWER = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 3v8"/><path d="M6.3 6.8a8 8 0 1 0 11.4 0"/></svg>';
+const CELL = '<svg width="24" height="20" viewBox="0 0 18 12" fill="currentColor"><rect x="0" y="8" width="3" height="4" rx="1"/><rect x="5" y="5" width="3" height="7" rx="1"/><rect x="10" y="2.5" width="3" height="9.5" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg>';
+cc.innerHTML = `<div class="cc-in">
+  <div class="cc-top"><span>+</span><span>${POWER}</span></div>
+  <div class="cc-grid">
+    <div class="cc-tile cc-conn" style="grid-column:1/3;grid-row:1/3">
+      <button class="cc-b on-orange" data-cc="plane" aria-pressed="false" aria-label="Flugmodus">${ic('plane')}</button>
+      <button class="cc-b on-green" data-cc="cell" aria-pressed="true" aria-label="Mobile Daten">${CELL}</button>
+      <button class="cc-b on-blue" data-cc="wifi" aria-pressed="true" aria-label="WLAN">${ic('wifi')}</button>
+      <button class="cc-b on-blue" data-cc="bt" aria-pressed="true" aria-label="Bluetooth">${ic('bt')}</button>
+    </div>
+    <button class="cc-tile cc-np" data-cc="open" style="grid-column:3/5;grid-row:1/3"><img src="icon-192.png" alt=""><span><b>Was gibt's?</b><small class="cc-pick">Heute</small></span></button>
+    <button class="cc-round" data-cc="rotate" aria-pressed="false" aria-label="Ausrichtungssperre" style="grid-column:1;grid-row:3">${ic('rotate')}</button>
+    <button class="cc-round red" data-cc="silent" aria-pressed="false" aria-label="Stumm" style="grid-column:2;grid-row:3">${ic('bellf')}</button>
+    <div class="cc-slider" data-cc="bright" style="grid-column:3;grid-row:3/5"><i class="fill" style="height:70%"></i>${ic('sun')}</div>
+    <div class="cc-slider" data-cc="vol" style="grid-column:4;grid-row:3/5"><i class="fill" style="height:56%"></i>${ic('vol')}</div>
+    <button class="cc-tile cc-focus" data-cc="focus" aria-pressed="false" style="grid-column:1/3;grid-row:4">${ic('moon')} Fokus</button>
+    <button class="cc-round" data-cc="torch" aria-pressed="false" aria-label="Taschenlampe" style="grid-column:1;grid-row:5">${ic('torch')}</button>
+    <button class="cc-round" data-cc="dark" aria-pressed="false" aria-label="Dunkelmodus" style="grid-column:2;grid-row:5">${ic('moon')}</button>
+    <button class="cc-round" data-cc="lock" aria-label="iPhone sperren" style="grid-column:3;grid-row:5">${ic('lock')}</button>
+    <button class="cc-round" data-cc="cam" aria-label="Kamera" style="grid-column:4;grid-row:5">${ic('cam')}</button>
+  </div>
+  <div class="cc-hint">Tippe ins Leere oder drück Esc zum Schließen</div></div>`;
+screen.appendChild(cc); screen.appendChild(ccbar); screen.appendChild(dim);
+const ccSet = (k, v) => { const b = cc.querySelector(`[data-cc="${k}"]`); if (b) b.setAttribute('aria-pressed', String(v)); };
+function ccOpen(){ if (state === 'off' || cooking()) return; const x = data(); cc.querySelector('.cc-pick').textContent = x.planned || x.pick ? 'Heute: ' + (x.planned || x.pick) : 'Heute';
+  ccSet('silent', silent); ccSet('dark', document.documentElement.getAttribute('data-theme') === 'dark' || (!document.documentElement.getAttribute('data-theme') && matchMedia('(prefers-color-scheme: dark)').matches));
+  cc.classList.add('on'); }
+function ccClose(){ cc.classList.remove('on'); }
+ccbar.addEventListener('click', ccOpen);
+ccbar.addEventListener('pointerdown', e => { const y0 = e.clientY; const mv = ev => { if (ev.clientY - y0 > 25){ ccOpen(); off(); } }; const off = () => { window.removeEventListener('pointermove', mv); window.removeEventListener('pointerup', off); }; window.addEventListener('pointermove', mv); window.addEventListener('pointerup', off); });
+cc.addEventListener('click', e => {
+  const t = e.target.closest('[data-cc]');
+  if (!t){ if (e.target === cc || e.target.classList.contains('cc-in') || e.target.classList.contains('cc-grid')) ccClose(); return; }
+  const k = t.dataset.cc, on = t.getAttribute('aria-pressed') === 'true';
+  if (['plane','cell','wifi','bt','rotate','focus','torch'].includes(k)){ t.setAttribute('aria-pressed', String(!on)); if (k === 'plane' && !on){ ccSet('cell', false); ccSet('wifi', false); ccSet('bt', false); } }
+  if (k === 'silent'){ action(); t.setAttribute('aria-pressed', String(silent)); t.innerHTML = ic(silent ? 'mute' : 'bellf'); }
+  if (k === 'dark'){ window.__wgTheme && window.__wgTheme(on ? 'light' : 'dark'); t.setAttribute('aria-pressed', String(!on)); }
+  if (k === 'lock'){ ccClose(); power(); }
+  if (k === 'open'){ ccClose(); if (state === 'lock') unlock(); setTimeout(() => openApp('home'), state === 'home' ? 0 : 380); }
+  if (k === 'cam') t.animate([{ transform:'scale(1)' }, { transform:'scale(.9)' }, { transform:'scale(1)' }], { duration:220 });
+});
+cc.querySelectorAll('.cc-slider').forEach(sl => {
+  const setV = e => { const r = sl.getBoundingClientRect(), p = Math.max(0, Math.min(1, (r.bottom - e.clientY) / r.height)); sl.querySelector(".fill").style.height = (p * 100) + '%';
+    if (sl.dataset.cc === 'bright') dim.style.opacity = String((1 - p) * .6); else volume = Math.round(p * 16); };
+  sl.addEventListener('pointerdown', e => { setV(e); sl.setPointerCapture(e.pointerId); const mv = ev => setV(ev), up = () => { sl.removeEventListener('pointermove', mv); sl.removeEventListener('pointerup', up); }; sl.addEventListener('pointermove', mv); sl.addEventListener('pointerup', up); });
+});
+window.addEventListener('keydown', e => { if (e.key === 'Escape' && cc.classList.contains('on')){ ccClose(); e.stopImmediatePropagation(); } }, true);
+
+/* ---------- Mitteilungs-Banner (z. B. neuer Essenswunsch) ---------- */
+window.__wgBanner = (title, text) => {
+  if (!framed() || state === 'off') return;
+  if (state === 'lock'){ fill(); return; }
+  const b = document.createElement('div'); b.className = 'emu-banner';
+  b.innerHTML = `<img src="icon-192.png" alt=""><div><div class="emu-nh"><b>Was gibt's?</b><span>jetzt</span></div><div class="emu-nt">${esc(title)}</div><div class="emu-ns">${esc(text || '')}</div></div>`;
+  screen.appendChild(b);
+  const go = () => { b.classList.add('out'); setTimeout(() => b.remove(), 360); };
+  b.addEventListener('click', () => { go(); if (state === 'home') openApp(); });
+  setTimeout(go, 4200);
+};
+
 /* ---------- Bedienung ---------- */
 emu.addEventListener('click', e => {
   const t = e.target.closest('[data-emu]'); if (!t) return;
