@@ -563,8 +563,9 @@ function viewFamily(){
 }
 
 /* ---------- Reiter „Mehr" ---------- */
-const VERSION = '2.6';
+const VERSION = '2.7';
 const CHANGELOG = [
+  { v:'2.7', d:'1. November 2026', items:['Am Computer: nur noch das iPhone in der Mitte – ohne Text daneben','Das iPhone sieht jetzt echter aus: Titan-Rahmen mit Kantenlicht, schwarzer Glasrand, Dynamic Island mit Kameralinse, Spiegelung auf dem Glas und alle Seitentasten'] },
   { v:'2.6', d:'31. Oktober 2026', items:['Neu: Sind Benachrichtigungen aus, fragt die App nach dem Start – mit dem klaren Versprechen: keine nervigen Benachrichtigungen, nur selten, bei Updates und wenn deine Familie dich braucht','Neu: Hinweis-Karte auf „Heute", solange Benachrichtigungen aus sind','Besser angemeldet bleiben: die Anmeldung wird zusätzlich gesichert und nach dem Aufwecken des Handys sofort aufgefrischt','Die App bittet das Handy, ihren Speicher nicht automatisch zu löschen'] },
   { v:'2.5', d:'31. Oktober 2026', items:['Neu: Installations-Anleitung – die App erkennt, ob du ein iPhone oder Android-Handy hast und in welchem Browser du bist, und zeigt dir jeden Schritt','Neu: Auf Android-Handys mit Chrome reicht ein Tipp auf „Jetzt installieren"','Neu: Kommst du aus TikTok, Instagram & Co., erklärt die App, wie du die Seite zuerst im Browser öffnest – mit „Link kopieren"','Neu: Beim ersten Start vom Startbildschirm bestätigt die App, dass alles geklappt hat','Unter Mehr → „App installieren" jederzeit wieder aufrufbar'] },
   { v:'2.4.2', d:'31. Oktober 2026', items:['Behoben: Auf dem iPhone blieb die Leiste ganz oben nach dem Start-Intro grün – sie hat jetzt von Anfang an die App-Farbe','Halloween-Farben und Hell/Dunkel werden schon beim Laden gesetzt, damit das iPhone gleich die richtige Farbe übernimmt'] },

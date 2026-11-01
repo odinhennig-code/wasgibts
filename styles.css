@@ -806,3 +806,45 @@ html:not(.framed) #splash{position:fixed}
 .pp-banner b{font-size:16px}.pp-banner small{font-size:13px;color:var(--muted);font-weight:600}
 .pp-banner .ic8.pp-b-ic{width:32px;height:32px;color:var(--herb)}
 @media (prefers-reduced-motion: reduce){ .pp-hero .ic8.pp-bell,.pp-ring{animation:none} }
+
+/* =====================================================================
+   Computer-Ansicht: nur ein realistisches iPhone in der Mitte (2.7)
+   ===================================================================== */
+.framed #side{display:none!important}
+.framed #stage{gap:0}
+.framed body{background:
+  radial-gradient(60% 55% at 50% 42%, var(--stage-2), transparent 70%),
+  var(--stage)}
+:root{--stage:#E6E9E3;--stage-2:#F6F7F3}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--stage:#060807;--stage-2:#18201A}}
+:root[data-theme="dark"]{--stage:#060807;--stage-2:#18201A}
+/* Rahmen: Titan mit Kantenlicht, darin der schwarze Glasrand */
+.framed #phone{padding:17px;border-radius:70px;background:#1e1f21;
+  box-shadow:
+    inset 0 0 0 1px #9a9ca0, inset 0 0 0 2px #3a3b3e, inset 0 0 0 3.5px #6e7074, inset 0 0 0 5px #242528,
+    0 0 0 1px rgba(0,0,0,.55),
+    0 1px 2px rgba(0,0,0,.25), 0 24px 40px -12px rgba(0,0,0,.35), 0 70px 110px -30px rgba(0,0,0,.45)}
+.framed #phone::before{content:"";position:absolute;inset:5px;border-radius:65px;background:#030303;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.05);pointer-events:none}
+.framed #screen{border-radius:53px;z-index:1}
+/* leichte Spiegelung auf dem Glas */
+.glare{display:none}
+.framed .glare{display:block;position:absolute;inset:17px;border-radius:53px;z-index:95;pointer-events:none;
+  background:linear-gradient(118deg,rgba(255,255,255,.075) 0%,rgba(255,255,255,.025) 22%,transparent 38%)}
+/* Dynamic Island mit Kameralinse */
+.framed #island{top:12px;width:122px;height:35px;background:#000;box-shadow:0 0 0 .5px rgba(255,255,255,.04)}
+.framed #island::after{content:"";position:absolute;right:13px;top:50%;width:11px;height:11px;margin-top:-5.5px;border-radius:50%;
+  background:radial-gradient(circle at 35% 35%,#2b3a5c 0 18%,#0d1220 40%,#05070c 70%);box-shadow:0 0 0 1.5px #0b0d12}
+/* Statusleiste wie iOS */
+.framed #statusbar{font-family:-apple-system,"SF Pro Text","Figtree",sans-serif;font-weight:600;font-size:16.5px;letter-spacing:-.01em;padding:10px 34px 0 44px}
+/* Seitentasten: Action-Taste, Lauter, Leiser, Seitentaste, Kamerasteuerung */
+.framed .btn-side{width:4px;border-radius:2px;background:linear-gradient(90deg,#2b2c2f,#8d8f93 45%,#4a4b4e);box-shadow:0 0 0 .5px rgba(0,0,0,.6)}
+.framed .b1{left:-3px;top:142px;height:34px}
+.framed .b2{left:-3px;top:206px;height:64px}
+.framed .b3{left:-3px;top:284px;height:64px}
+.framed .b4{left:auto;right:-3px;top:228px;height:100px;background:linear-gradient(270deg,#2b2c2f,#8d8f93 45%,#4a4b4e)}
+.framed .b5{right:-2px;top:470px;height:66px;width:3px;background:linear-gradient(270deg,#1f2022,#5d5f62)}
+.framed #homebar{width:138px;bottom:9px;opacity:.9}
+/* Querformat (Kochmodus) */
+.framed.cooking #phone::before{border-radius:65px}
+.framed.cooking .b5{display:none}
