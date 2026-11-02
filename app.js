@@ -592,8 +592,9 @@ function viewFamily(){
 }
 
 /* ---------- Reiter „Mehr" ---------- */
-const VERSION = '3.0.3';
+const VERSION = '3.0.4';
 const CHANGELOG = [
+  { v:'3.0.4', d:'2. November 2026', items:['Die Leiste ganz oben (Uhrzeit, Akku) ist jetzt durchsichtig – die App läuft darunter einfach weiter, ohne farbigen Balken'] },
   { v:'3.0.3', d:'2. November 2026', items:['Neue Preise für „Plus": 0,99 € im Monat oder 10 € im Jahr'] },
   { v:'3.0.2', d:'1. November 2026', items:['Behoben: Nach einem Update startete die App manchmal mitten in der Benutzung plötzlich neu – das passiert jetzt nur noch direkt beim Öffnen oder unbemerkt im Hintergrund','Schnellerer Start: Bei langsamem Netz wartet die App nicht mehr auf jede Datei, sondern startet nach spätestens 1,5 Sekunden aus dem Speicher','Schriften, Symbole und Rezepte kommen sofort aus dem Speicher'] },
   { v:'3.0.1', d:'1. November 2026', items:['Behoben: Oben war beim Scrollen ein andersfarbiger Streifen zu sehen – Statusleiste und Titelleiste sind jetzt eine durchgehende Fläche in App-Farbe','Behoben: In Kühlschrank, Rezepte, Familie und Einkaufsliste blitzten beim Scrollen ganz oben feine farbige Linien durch – die Leiste schließt jetzt in jedem Menü lückenlos ab','Keine sichtbaren Scrollbalken mehr in der Computer-Ansicht'] },
