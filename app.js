@@ -396,7 +396,8 @@ function viewHome(){
     : `<div class="card empty"><div class="g">🧊</div><b>Mit dem, was da ist, passt noch kein Rezept</b>Trag im Kühlschrank ein, was du hast, oder schau unten, was mit einem Einkauf geht.<button class="btn btn-line btn-block" style="margin-top:12px" data-tab="fridge">Kühlschrank öffnen</button></div>`}
     ${all.length > 2 ? `<button class="slot-btn" data-action="slot"><span class="slot-ic">🎰</span><span><b>Kann mich nicht entscheiden</b><small>Dreh am Rad – die App sucht aus</small></span>${I.chev}</button>` : ''}
     ${almost.length?`<div class="h2">Mit einem kleinen Einkauf <span class="chip c-muted">${almost.length}</span></div><div class="stack">${almost.slice(0,6).map(suggestionCard).join('')}</div>`:''}
-    ${showPlusWidget() ? plusWidget() : ''}`;
+    ${showPlusWidget() ? plusWidget() : ''}
+    ${sponsorWidget()}`;
 }
 /* Heute im Wochenplan */
 function todayPlanned(){
@@ -592,8 +593,9 @@ function viewFamily(){
 }
 
 /* ---------- Reiter „Mehr" ---------- */
-const VERSION = '3.0.4';
+const VERSION = '3.1';
 const CHANGELOG = [
+  { v:'3.1', d:'4. November 2026', items:['Neuer Sponsor: PiHILL – handgemachte Häkel- und Deko-Stücke. Mit eigener Infoseite, zu finden auf der Startseite und unter „Mehr"','🎬 1 Tag Plus gratis: Alle 2 Wochen einen 15-Sekunden-Spot von PiHILL ansehen (ohne Ton)','✨ Plus-Extra: eigene Farbthemen für die App (Blau, Beere, Lila, Bernstein)'] },
   { v:'3.0.4', d:'2. November 2026', items:['Die Leiste ganz oben (Uhrzeit, Akku) ist jetzt durchsichtig – die App läuft darunter einfach weiter, ohne farbigen Balken'] },
   { v:'3.0.3', d:'2. November 2026', items:['Neue Preise für „Plus": 0,99 € im Monat oder 10 € im Jahr'] },
   { v:'3.0.2', d:'1. November 2026', items:['Behoben: Nach einem Update startete die App manchmal mitten in der Benutzung plötzlich neu – das passiert jetzt nur noch direkt beim Öffnen oder unbemerkt im Hintergrund','Schnellerer Start: Bei langsamem Netz wartet die App nicht mehr auf jede Datei, sondern startet nach spätestens 1,5 Sekunden aus dem Speicher','Schriften, Symbole und Rezepte kommen sofort aus dem Speicher'] },
@@ -642,11 +644,13 @@ function hwCard(){
 function viewMore(){
   return header('Mehr', `Version ${VERSION}`) +
     `<button class="plus-card" data-action="plus"><div class="pc-glow"></div><span class="plus-badge">✨ PLUS</span><b>Mehr für deine Familie</b><span>KI-Rezepte · unbegrenzt Fotos · Wochenplan-Assistent · sortierte Einkaufsliste</span><span class="pc-cta">${L.plusInterest ? '💚 Du bist vorgemerkt' : 'Ansehen und vormerken ›'}</span></button>` +
+    sponsorRow() +
     `<div class="h2">Hilfe</div>
     <div class="list" style="margin-bottom:10px"><button class="row" data-action="tour"><span style="font-size:22px">👋</span><span class="grow"><b>Kurze Tour durch die App</b><small>In 4 Schritten erklärt</small></span>${I.chev}</button></div>
     ${FAQ.map(([q,a])=>`<details class="faq"><summary>${esc(q)}</summary><p>${esc(a)}</p></details>`).join('')}
     <div class="h2">Darstellung</div>
     <div class="seg" role="group" aria-label="Farbschema">${[['system','System'],['light','Hell'],['dark','Dunkel']].map(([k,l])=>`<button data-action="theme" data-v="${k}" aria-pressed="${(L.theme||'system')===k}">${l}</button>`).join('')}</div>
+    ${accentPicker()}
     ${(() => { const se = L.preview || seasonByDate(); if (!se) return ''; const on = seasonNow() === se;
       return `<div class="list" style="margin-top:10px"><button class="row" data-action="season" aria-pressed="${on}"><span style="font-size:22px">${se === 'advent' ? '🎄' : '🎃'}</span><span class="grow"><b>${se === 'advent' ? 'Advents-Look' : 'Halloween-Look'}</b><small>${se === 'advent' ? 'Bis 26. Dezember' : 'Nur bis 2. November'} · ${on ? 'an' : 'aus'}</small></span><span class="switch" aria-checked="${on}" aria-hidden="true"></span></button></div>`; })()}
     <div class="h2">Textgröße</div>
@@ -955,6 +959,7 @@ function render(){
   else if (D.profile && D.profile.banned) v = viewBanned();
   else if (!isActive() || !D.family) v = viewNoFamily();
   else v = ({home:viewHome, fridge:viewFridge, recipes:viewRecipes, family:viewFamily, more:viewMore}[UI.tab])();
+  if (configured && !UI.loading && D.user && !(D.profile && D.profile.banned) && isActive() && D.family) v += sponsorFoot();
   const key = UI.tab + '|' + (!configured ? 'setup' : UI.loading ? 'load' : !D.user ? 'auth' : D.profile?.banned ? 'ban' : (!isActive() || !D.family) ? 'nofam' : 'app');
   const prev = $('#views .view:not(.leaving)');
   if (!slideDx && prev && prev.dataset.key === key){ const top = prev.scrollTop; morph(prev, v); if (prev.scrollTop !== top) prev.scrollTop = top; }
@@ -1441,6 +1446,7 @@ function openPlus(popup){
     <div class="stack" style="margin-top:16px">${perks.map(([e,t])=>`<div class="perk-row"><span>${e}</span>${t}</div>`).join('')}</div>
     <div class="plus-prices"><div><b>0,99 €</b><small>pro Monat</small></div><div class="best"><b>10 €</b><small>pro Jahr · spart 16 %</small></div></div>
     <p class="muted" style="font-size:13px;text-align:center;margin:4px 0 12px">Ein Abo gilt für die ganze Familie. Plus startet bald.</p>
+    ${adOffer()}
     ${L.plusInterest ? `<div class="card" style="text-align:center;background:var(--herb-soft);font-weight:800">💚 Danke! Wir sagen dir Bescheid, sobald Plus startet.</div>`
       : `<button class="btn btn-herb btn-block" data-action="plus-interest">Ich hätte Interesse</button>`}
     <button class="btn btn-block" style="background:none;color:var(--muted);margin-top:6px" data-action="close">${popup ? 'Nein danke' : 'Schließen'}</button>`);
@@ -1670,6 +1676,11 @@ document.addEventListener('click', async e => {
       openSheet(`${sheetHead('Update-Log')}<div class="card" style="padding:4px 16px">${CHANGELOG.map((c,n)=>`<div class="log"><span class="v">${c.v}</span><div><b>${n===0?'<span class="new-badge">NEU</span> ':''}${c.d}</b><ul>${c.items.map(i=>`<li>${esc(i)}</li>`).join('')}</ul></div></div>`).join('')}</div>`);
       $('[data-action=changelog] .new-badge')?.remove(); break;
     case 'plus': openPlus(false); break;
+    case 'sponsor': openSponsor(); break;
+    case 'sponsor-shop': window.open(SPONSOR.url, '_blank', 'noopener'); break;
+    case 'ad': openAd(); break;
+    case 'ad-close': closeAd(); break;
+    case 'accent': if (!plusActive()){ openPlus(false); break; } L.accent = t.dataset.v; saveLocal(); applyAccent(); render(); buzz(8); break;
     case 'plus-hide': L.plusHideUntil = Date.now() + 2*DAY; saveLocal(); render(); toast('Plus-Hinweise für 2 Tage ausgeblendet'); break;
     case 'plus-interest': { L.plusInterest = true; saveLocal(); openPlus(false); buzz(20);
       try { await sb.from('feedback').insert({ user_id:D.user.id, kind:'plus', message:'Interesse an Was gibt\'s? Plus', app_version:VERSION }); } catch(err){} break; }
@@ -1812,6 +1823,84 @@ window.__wgEmu = () => {
 window.__wgGo = tab => { if (D.user && D.family && ORDER.includes(tab)){ closeSheet(); go(tab); } };
 window.__wgCloseSheet = () => { closeSheet(); render(); };
 window.__wgTheme = th => { L.theme = th; saveLocal(); render(); };
+
+/* =========================================================================
+   Sponsor: PiHILL
+   ========================================================================= */
+const SPONSOR = { name:'PiHILL', url:'https://www.etsy.com/de/shop/PiHILL', logo:'sponsor/pihill.png', logoW:'sponsor/pihill-white.png', video:'sponsor/pihill-spot.mp4', poster:'sponsor/pihill-start.jpg' };
+const AD_EVERY = 14*DAY, PLUS_DAY = DAY;
+const plusActive = () => (L.plusUntil||0) > Date.now();
+const adReady = () => Date.now() - (L.adLast||0) >= AD_EVERY;
+const fmtDay = ms => new Date(ms).toLocaleDateString('de-DE', { day:'numeric', month:'long' });
+const fmtLeft = ms => { const h = Math.max(1, Math.round((ms - Date.now())/36e5)); return h >= 2 ? `noch ${h} Stunden` : 'noch knapp 1 Stunde'; };
+function sponsorFoot(){
+  return `<button class="sp-foot" data-action="sponsor" aria-label="Gesponsert von PiHILL – mehr erfahren"><span>Gesponsert von</span><img src="${SPONSOR.logo}" alt="PiHILL"></button>`;
+}
+function sponsorWidget(){
+  return `<div class="spw"><span class="spw-ad">Anzeige</span>
+    <button class="spw-main" data-action="sponsor"><img src="${SPONSOR.logo}" alt="PiHILL"><span class="grow"><b>Handgemacht mit viel Liebe</b><small>Gehäkelt, gestrickt &amp; Deko, die leuchtet – von unserem Sponsor PiHILL</small></span>${I.chev}</button>
+    ${adReady() ? `<button class="spw-ad-btn" data-action="ad">🎬 15 Sek. ansehen – <b>1 Tag Plus gratis</b></button>` : ''}</div>`;
+}
+function sponsorRow(){
+  return `<div class="list" style="margin:14px 0 4px"><button class="row" data-action="sponsor"><img src="${SPONSOR.logo}" alt="" style="width:40px;height:40px;object-fit:contain"><span class="grow"><b>Unser Sponsor: PiHILL</b><small>Handgemachtes aus Wolle, Holz &amp; Licht</small></span>${I.chev}</button>
+    ${plusActive() ? `<div class="row" style="cursor:default"><span style="font-size:22px">✨</span><span class="grow"><b>Plus ist aktiv</b><small>${fmtLeft(L.plusUntil)} · dank PiHILL</small></span></div>`
+      : adReady() ? `<button class="row" data-action="ad"><span style="font-size:22px">🎬</span><span class="grow"><b>1 Tag Plus gratis</b><small>Kurzen Spot von PiHILL ansehen (15 Sek.)</small></span>${I.chev}</button>`
+      : `<div class="row" style="cursor:default"><span style="font-size:22px">🎬</span><span class="grow"><b>Nächster Gratis-Tag Plus</b><small>ab ${fmtDay((L.adLast||0) + AD_EVERY)}</small></span></div>`}</div>`;
+}
+function adOffer(){
+  if (plusActive()) return `<div class="card" style="text-align:center;background:var(--herb-soft);font-weight:800;margin-bottom:10px">✨ Plus ist aktiv – ${fmtLeft(L.plusUntil)}</div>`;
+  if (adReady()) return `<button class="btn btn-line btn-block" style="margin-bottom:10px" data-action="ad">🎬 15 Sek. Spot ansehen – 1 Tag Plus gratis</button>`;
+  return `<p class="muted" style="font-size:13px;text-align:center;margin:0 0 10px">🎬 Der nächste Gratis-Tag Plus ist ab ${fmtDay((L.adLast||0) + AD_EVERY)} wieder da.</p>`;
+}
+function openSponsor(){
+  const groups = [
+    ['🧶','Gehäkelt &amp; gestrickt','Ponchos, Strickjacken und Loop-Schals – Einzelstücke'],
+    ['✨','Deko, die leuchtet','Lichterkugeln in Häkeloptik, Holz-Weihnachtsbäume, Kürbis, Leuchtpilz und Laternen'],
+    ['🪢','Makramee &amp; Fensterdeko','Boho-Wanddeko aus Baumwollgarn und gehäkelte Fensterbilder'],
+    ['🎁','Für jede Jahreszeit','Osteranhänger, Weihnachtsanhänger und kleine Geschenke'],
+  ];
+  openSheet(`<div class="sp-sheet">
+    <div class="sp-hero"><span class="spw-ad">Anzeige</span><img src="${SPONSOR.logo}" alt="PiHILL"></div>
+    <div class="h1" style="text-align:center;margin-top:6px">Handgemacht mit viel Liebe</div>
+    <p class="muted" style="text-align:center;margin:6px 0 16px">PiHILL ist ein kleiner Etsy-Shop für Handgemachtes. Jedes Stück entsteht in Handarbeit und ist ein Unikat – PiHILL unterstützt „Was gibt's?" als Sponsor.</p>
+    <div class="stack">${groups.map(([e,t,d]) => `<div class="perk-row" style="align-items:flex-start"><span>${e}</span><div><b>${t}</b><div class="muted" style="font-size:13.5px;font-weight:600">${d}</div></div></div>`).join('')}</div>
+    <div class="sp-facts"><div><b>ab 4,90 €</b><small>Preise</small></div><div><b>⭐ 5,0</b><small>Bewertung</small></div><div><b>Etsy</b><small>sicher bezahlen</small></div></div>
+    <button class="btn btn-herb btn-block" data-action="sponsor-shop">Zum Shop auf Etsy ↗</button>
+    ${adReady() && !plusActive() ? `<button class="btn btn-line btn-block" style="margin-top:8px" data-action="ad">🎬 Spot ansehen – 1 Tag Plus gratis</button>` : ''}
+    <button class="btn btn-block" style="background:none;color:var(--muted);margin-top:6px" data-action="close">Schließen</button></div>`);
+}
+/* Werbespot: 15 Sekunden, ohne Ton – bis zum Ende ansehen schaltet 1 Tag Plus frei (alle 2 Wochen) */
+let adT = null;
+function openAd(){
+  if (!adReady()){ toast(`Der nächste Gratis-Tag ist ab ${fmtDay((L.adLast||0) + AD_EVERY)} wieder da`); return; }
+  closeSheet(); closeAd();
+  (document.documentElement.classList.contains('framed') && $('#screen') || document.body).insertAdjacentHTML('beforeend', `<div class="adbox" role="dialog" aria-label="Werbespot von PiHILL">
+    <video id="adv" src="${SPONSOR.video}" poster="${SPONSOR.poster}" muted playsinline autoplay preload="auto" disablepictureinpicture></video>
+    <div class="ad-top"><span class="spw-ad">Anzeige · PiHILL</span><span class="ad-left" id="adLeft">15</span></div>
+    <div class="ad-bar"><i id="adBar"></i></div>
+    <div class="ad-msg" id="adMsg">Bis zum Ende ansehen für <b>1 Tag Plus gratis</b></div>
+    <button class="ad-x" data-action="ad-close" aria-label="Schließen">✕</button></div>`);
+  const v = $('#adv'); let max = 0;
+  v.addEventListener('timeupdate', () => { if (v.currentTime > max + 1.5) v.currentTime = max; max = Math.max(max, v.currentTime);
+    const d = v.duration || 15; $('#adBar').style.width = (100*v.currentTime/d) + '%'; $('#adLeft').textContent = Math.max(0, Math.ceil(d - v.currentTime)); });
+  v.addEventListener('ended', () => { if (max < (v.duration || 15) - 1.5) return;
+    L.adLast = Date.now(); L.plusUntil = Math.max(Date.now(), L.plusUntil||0) + PLUS_DAY; saveLocal();
+    $('#adMsg').innerHTML = '🎉 <b>Plus ist jetzt 24 Stunden aktiv!</b> Danke an PiHILL'; $('#adLeft').textContent = '✓'; buzz([20,40,20]);
+    try { sb.from('feedback').insert({ user_id:D.user.id, kind:'werbung', message:'PiHILL-Spot angesehen', app_version:VERSION }).then(()=>{}, ()=>{}); } catch(e){}
+    adT = setTimeout(() => { closeAd(); render(); openPlus(false); }, 1800); });
+  v.addEventListener('error', () => { $('#adMsg').textContent = 'Der Spot konnte nicht geladen werden. Bitte später nochmal versuchen.'; });
+  const pr = v.play(); if (pr && pr.catch) pr.catch(() => { v.controls = false; v.addEventListener('click', () => v.play(), { once:true }); $('#adMsg').innerHTML = 'Antippen zum Abspielen'; });
+}
+function closeAd(){ clearTimeout(adT); const b = document.querySelector('.adbox'); if (b) b.remove(); }
+/* Plus-Extra: eigene Farbthemen */
+const ACCENTS = [['','Grün','#2F7A4C'],['blue','Blau','#2D6CB5'],['berry','Beere','#B03A6B'],['violet','Lila','#6B4BC4'],['amber','Bernstein','#C77A12']];
+function applyAccent(){ const a = plusActive() ? (L.accent || '') : ''; if (a) document.documentElement.setAttribute('data-accent', a); else document.documentElement.removeAttribute('data-accent'); }
+function accentPicker(){
+  return `<div class="h2" style="margin-top:16px">Farbthema <span class="chip c-muted">✨ Plus</span></div>
+    <div class="acc-row">${ACCENTS.map(([k,n,c]) => `<button class="acc" data-action="accent" data-v="${k}" aria-pressed="${plusActive() && (L.accent||'') === k}" aria-label="${n}" style="--c:${c}"><i></i><small>${n}</small></button>`).join('')}</div>
+    ${plusActive() ? '' : '<p class="muted" style="font-size:13px;margin:6px 0 0">Mit Plus wählbar – z. B. 1 Tag gratis über den Spot von PiHILL.</p>'}`;
+}
+applyAccent(); setInterval(applyAccent, 60e3);
 
 /* ---------- Start-Intro ---------- */
 (() => { const sp = $('#splash'), root = document.documentElement; if (!sp) return;
