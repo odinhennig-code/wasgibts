@@ -593,8 +593,9 @@ function viewFamily(){
 }
 
 /* ---------- Reiter „Mehr" ---------- */
-const VERSION = '3.2.1';
+const VERSION = '3.2.2';
 const CHANGELOG = [
+  { v:'3.2.2', d:'5. November 2026', items:['Behoben: Auf dem iPhone blieb der Bereich hinter Uhrzeit und Akku grün (Farbe vom Startbildschirm) – jetzt hat er immer die Farbe der App, auch im Dunkelmodus'] },
   { v:'3.2.1', d:'5. November 2026', items:['🎉 Partystimmung: Heute um 20 Uhr kommt das große Update – mit Countdown in der ganzen App'] },
   { v:'3.2', d:'5. November 2026', items:['📸 Eigenes Profilbild: Foto machen oder aus der Galerie wählen','🎨 Profilfarbe und ✍️ Status („Über mich") – sieht die ganze Familie','👤 Neue Profilkarte: Familie antippen zeigt Bild, Status, wie oft gekocht, Lieblingsgerichte und Abzeichen'] },
   { v:'3.1', d:'4. November 2026', items:['Neuer Sponsor: PiHILL – handgemachte Häkel- und Deko-Stücke. Mit eigener Infoseite, zu finden auf der Startseite und unter „Mehr"','🎬 1 Tag Plus gratis: Alle 2 Wochen einen 15-Sekunden-Spot von PiHILL ansehen (ohne Ton)','✨ Plus-Extra: eigene Farbthemen für die App (Blau, Beere, Lila, Bernstein)'] },
@@ -1834,6 +1835,9 @@ window.__wgGo = tab => { if (D.user && D.family && ORDER.includes(tab)){ closeSh
 window.__wgCloseSheet = () => { closeSheet(); render(); };
 window.__wgTheme = th => { L.theme = th; saveLocal(); render(); };
 
+/* Statusleisten-Farbe: Safari (iOS 26) färbt den Bereich hinter Uhrzeit/Akku nach dem obersten festen Element – #sbcol gibt die App-Farbe vor */
+new MutationObserver(() => { const r = document.documentElement; if (!document.getElementById('story')) r.classList.remove('sb-story'); r.classList.toggle('sb-tour', !!document.getElementById('tour')); }).observe(document.getElementById('screen') || document.body, { childList:true, subtree:false });
+
 /* =========================================================================
    Party: Countdown zum großen Update
    ========================================================================= */
@@ -2206,7 +2210,7 @@ function openStory(){
     `<div class="st-k">Euer Küchen-Typ</div><div class="st-big st-pop">${persona[0]}</div><h2>${persona[1]}</h2><p>${persona[2]}</p>`,
     `<div class="st-k">Danke fürs Kochen!</div><div class="st-big st-pop">💚</div><h2>Bis zum nächsten Rückblick</h2><p>${BADGES.filter(b => b[4](s)).length} von ${BADGES.length} Erfolgen geschafft</p><button class="st-btn" data-action="story-close">Fertig</button>`,
   ];
-  const el = document.createElement('div'); el.id = 'story'; el.innerHTML = `<div class="st-bars">${slides.map(() => '<i><b></b></i>').join('')}</div><button class="st-x" data-action="story-close" aria-label="Schließen">${I.x}</button>${slides.map((h, i) => `<section class="st-s s${i}">${h}</section>`).join('')}<div class="st-nav"><span data-st="-1"></span><span data-st="1"></span></div>`;
+  document.documentElement.classList.add('sb-story'); const el = document.createElement('div'); el.id = 'story'; el.innerHTML = `<div class="st-bars">${slides.map(() => '<i><b></b></i>').join('')}</div><button class="st-x" data-action="story-close" aria-label="Schließen">${I.x}</button>${slides.map((h, i) => `<section class="st-s s${i}">${h}</section>`).join('')}<div class="st-nav"><span data-st="-1"></span><span data-st="1"></span></div>`;
   $('#screen').appendChild(el); let i = -1, t = null;
   const show = n => { i = Math.max(0, Math.min(slides.length - 1, n)); el.querySelectorAll('.st-s').forEach((x, k) => x.classList.toggle('on', k === i));
     el.querySelectorAll('.st-bars i').forEach((b, k) => { b.className = k < i ? 'done' : k === i ? 'run' : ''; });

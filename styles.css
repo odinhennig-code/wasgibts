@@ -1362,3 +1362,8 @@ html.party #views::after{content:"";position:absolute;left:0;right:0;top:0;heigh
   background-image:radial-gradient(circle,#C2408F 1.6px,transparent 2.2px),radial-gradient(circle,#F0A23C 1.6px,transparent 2.2px),radial-gradient(circle,#6B3FD4 1.4px,transparent 2px);
   background-size:46px 38px,58px 44px,70px 52px;background-position:6px 10px,24px 30px,40px 4px;-webkit-mask-image:linear-gradient(#000,transparent);mask-image:linear-gradient(#000,transparent)}
 @media (prefers-reduced-motion:reduce){.pty-conf i{animation:none}}
+/* 3.2.2 Statusleisten-Farbe für iOS 26 */
+#sbcol{display:none}
+html:not(.framed) #sbcol{display:block;position:fixed;left:0;right:0;top:0;height:max(env(safe-area-inset-top,0px),1px);background:var(--sb,var(--bg));z-index:1000;pointer-events:none}
+html.sb-story{--sb:transparent}
+html.sb-tour{--sb:var(--bg)}
