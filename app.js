@@ -357,7 +357,7 @@ function viewNoFamily(){
 /* ---------- Ansichten: App ---------- */
 function header(title, sub){
   return `<div class="top"><div><div class="muted" style="font-weight:700">${sub}</div><div class="h1">${title}</div></div>
-    <button class="avatar" data-tab="family" aria-label="Familie und Profil">${avIn(D.profile)}</button></div>`;
+    <button class="avatar" data-tab="family" aria-label="Familie und Profil">${avIn(D.profile)}</button></div>` + (partyOn() && UI.tab !== 'home' ? partyChip() : '');
 }
 function suggestionCard(s){
   return `<button class="rc" data-action="open-recipe" data-id="${s.r.id}">
@@ -373,7 +373,7 @@ function viewHome(){
   const top = ready0.find(s => s.r.meal !== 'suess'), ready = top ? [top, ...ready0.filter(s => s !== top)] : [];
   const h = new Date().getHours(), greet = (h<11?'Guten Morgen':h<17?'Hallo':'Guten Abend') + (hwOn() ? ' · Happy Halloween 🎃' : adOn() ? ' · Schöne Adventszeit 🎄' : '');
   const p = isAdmin() ? pendingReq() : [];
-  return header(`Was gibt's heute, ${esc(D.profile.name)}?`, greet) + annBanner() + installBanner() + pushBanner() + hwCard() + adventCard() + rateBanner() +
+  return header(`Was gibt's heute, ${esc(D.profile.name)}?`, greet) + partyCard() + annBanner() + installBanner() + pushBanner() + hwCard() + adventCard() + rateBanner() +
     (p.length ? `<button class="banner" data-tab="family"><span class="avatar sm">${avIn(prof(p[0].user_id))}</span><span style="flex:1"><b>${esc(prof(p[0].user_id).name)}</b> möchte deiner Familie beitreten</span>${I.chev}</button>` : '') +
     (expiringSoon().length ? `<button class="banner" style="background:var(--tomato-soft)" data-tab="fridge"><span style="font-size:22px">⏰</span><span style="flex:1"><b>Bald aufbrauchen:</b> ${expiringSoon().map(x=>`${esc(ingName(x.k))} (${expLabel(x.d)})`).join(', ')}</span>${I.chev}</button>` : '') +
     `<div class="filters card">
@@ -593,8 +593,9 @@ function viewFamily(){
 }
 
 /* ---------- Reiter „Mehr" ---------- */
-const VERSION = '3.2';
+const VERSION = '3.2.1';
 const CHANGELOG = [
+  { v:'3.2.1', d:'5. November 2026', items:['🎉 Partystimmung: Heute um 20 Uhr kommt das große Update – mit Countdown in der ganzen App'] },
   { v:'3.2', d:'5. November 2026', items:['📸 Eigenes Profilbild: Foto machen oder aus der Galerie wählen','🎨 Profilfarbe und ✍️ Status („Über mich") – sieht die ganze Familie','👤 Neue Profilkarte: Familie antippen zeigt Bild, Status, wie oft gekocht, Lieblingsgerichte und Abzeichen'] },
   { v:'3.1', d:'4. November 2026', items:['Neuer Sponsor: PiHILL – handgemachte Häkel- und Deko-Stücke. Mit eigener Infoseite, zu finden auf der Startseite und unter „Mehr"','🎬 1 Tag Plus gratis: Alle 2 Wochen einen 15-Sekunden-Spot von PiHILL ansehen (ohne Ton)','✨ Plus-Extra: eigene Farbthemen für die App (Blau, Beere, Lila, Bernstein)'] },
   { v:'3.0.4', d:'2. November 2026', items:['Die Leiste ganz oben (Uhrzeit, Akku) ist jetzt durchsichtig – die App läuft darunter einfach weiter, ohne farbigen Balken'] },
@@ -1834,6 +1835,32 @@ window.__wgCloseSheet = () => { closeSheet(); render(); };
 window.__wgTheme = th => { L.theme = th; saveLocal(); render(); };
 
 /* =========================================================================
+   Party: Countdown zum großen Update
+   ========================================================================= */
+const PARTY = { at: Date.parse('2026-11-05T20:00:00+01:00'), title: 'Das große Update' };
+const partyOn = () => Date.now() < PARTY.at + 2*3600e3;   // bis 2 Std. nach Start sichtbar
+function partyLeft(){ const ms = Math.max(0, PARTY.at - Date.now()), s = Math.floor(ms/1000);
+  const h = Math.floor(s/3600), m = Math.floor(s%3600/60), x = s%60, z = n => String(n).padStart(2,'0');
+  return { ms, h, m, x, txt: h ? `${h}:${z(m)}:${z(x)}` : `${z(m)}:${z(x)}` }; }
+function partyChip(){ const l = partyLeft();
+  return `<button class="party-chip" data-tab="home"><span>🎉</span><b>${l.ms ? 'Großes Update in' : 'Das Update ist da!'}</b>${l.ms ? `<span class="pc-t" data-cd>${l.txt}</span>` : ''}</button>`; }
+function partyCard(){ if (!partyOn()) return ''; const l = partyLeft();
+  return `<div class="party-card"><div class="pty-conf" aria-hidden="true">${'🎉🎊✨🥳🎈🍕'.match(/\p{Extended_Pictographic}/gu).map((e,i) => `<i style="--i:${i}">${e}</i>`).join('')}</div>
+    <span class="pty-k">${l.ms ? 'Heute · 20:00 Uhr' : 'Jetzt live'}</span>
+    <b class="pty-t">${l.ms ? PARTY.title + ' kommt!' : 'Das große Update ist da! 🥳'}</b>
+    ${l.ms ? `<div class="pty-cd" data-cdbig>${cdBoxes(l)}</div><span class="pty-s">Viele Verbesserungen und ein paar Überraschungen 👀</span>`
+      : `<span class="pty-s">Schließ die App einmal und öffne sie neu, falls du es noch nicht siehst.</span>`}</div>`; }
+const cdBoxes = l => [[l.h,'Std'],[l.m,'Min'],[l.x,'Sek']].map(([v,u]) => `<span><b>${String(v).padStart(2,'0')}</b><small>${u}</small></span>`).join('');
+let partyTick = null, partyWasLive = Date.now() >= PARTY.at;
+function partyLoop(){ clearInterval(partyTick); if (!partyOn()) return;
+  document.documentElement.classList.add('party');
+  partyTick = setInterval(() => { if (!partyOn()){ clearInterval(partyTick); document.documentElement.classList.remove('party'); render(); return; }
+    const l = partyLeft(); document.querySelectorAll('[data-cd]').forEach(e => e.textContent = l.txt);
+    const big = document.querySelector('[data-cdbig]'); if (big) big.innerHTML = cdBoxes(l);
+    if (!l.ms && !partyWasLive){ partyWasLive = true; render(); try { const c = document.querySelector('.party-card'); burstAt(c); setTimeout(() => burstAt(c), 400); } catch(e){} buzz([30,60,30]); } }, 1000); }
+partyLoop();
+
+/* =========================================================================
    Profil personalisieren: Foto, Farbe, Status, Profilkarte
    ========================================================================= */
 const PHOTO_RE = /^data:image\/(webp|jpeg|png);base64,[A-Za-z0-9+/=]+$/;
@@ -1969,7 +1996,8 @@ applyAccent(); setInterval(applyAccent, 60e3);
 
 /* ---------- Start-Intro ---------- */
 (() => { const sp = $('#splash'), root = document.documentElement; if (!sp) return;
-  if (hwOn() || adOn()){ const f = sp.querySelector('.sp-food'); if (f) f.innerHTML = (adOn() ? ['🎄','⭐','🍪','🎁','❄️','🦌'] : ['🎃','🦇','🍬','👻','🕸️','🍂']).map(e => `<span>${e}</span>`).join(''); }
+  if (partyOn()){ const c = sp.querySelector('.sp-claim'); if (c) c.textContent = Date.now() < PARTY.at ? '🎉 Heute 20 Uhr: das große Update!' : '🥳 Das große Update ist da!'; const f = sp.querySelector('.sp-food'); if (f) f.innerHTML = ['🎉','🎊','🥳','🎈','✨','🍕'].map(e => `<span>${e}</span>`).join(''); }
+  else if (hwOn() || adOn()){ const f = sp.querySelector('.sp-food'); if (f) f.innerHTML = (adOn() ? ['🎄','⭐','🍪','🎁','❄️','🦌'] : ['🎃','🦇','🍬','👻','🕸️','🍂']).map(e => `<span>${e}</span>`).join(''); }
   let done = false;
   const hide = () => { if (done) return; done = true; sp.classList.add('gone'); root.classList.remove('splashing'); applyTheme.last = null; applyTheme(); };
   // Nur beim ersten Öffnen zeigen – nicht noch einmal, wenn die App sich für ein Update kurz neu lädt
