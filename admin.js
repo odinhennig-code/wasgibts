@@ -248,7 +248,7 @@ function viewUsers(){
 }
 function userRows(list){
   return list.map(u => `<tr>
-      <td><div class="who"><span class="av">${esc(u.avatar || '🙂')}</span><span><b>${esc(u.name || '(ohne Profil)')}</b> ${u.banned?'<span class="chip c-tomato">gesperrt</span>':''}<small>${esc(u.email)}</small></span></div></td>
+      <td><div class="who"><span class="av">${/^data:image\/(webp|jpeg|png);base64,[A-Za-z0-9+/=]+$/.test(u.avatar||'') ? `<img src="${u.avatar}" alt="" style="width:100%;height:100%;border-radius:50%;object-fit:cover">` : esc(u.avatar || '🙂')}</span><span><b>${esc(u.name || '(ohne Profil)')}</b> ${u.banned?'<span class="chip c-tomato">gesperrt</span>':''}<small>${esc(u.email)}</small></span></div></td>
       <td>${u.family ? `${esc(u.family)} ${u.role==='admin'?'<span class="chip">Admin</span>':''}` : '<span class="muted">–</span>'}</td>
       <td>${fmtDate(u.created_at)}</td><td>${ago(u.last_seen)}</td><td class="num">${u.devices || ''}</td>
       <td style="text-align:right;white-space:nowrap">${u.devices ? `<button class="btn btn-sm" data-a="push-user" data-id="${u.id}" title="Nachricht an diese Person">🔔</button> ` : ''}${u.id === S.user.id ? '<span class="muted" style="font-size:13px">Du</span>' : `<button class="btn btn-sm ${u.banned?'':'btn-tomato'}" data-a="ban" data-id="${u.id}" data-v="${!u.banned}">${u.banned?'Entsperren':'Sperren'}</button>`}</td>

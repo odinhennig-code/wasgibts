@@ -340,7 +340,7 @@ function viewNoFamily(){
       <button class="linkbtn" data-action="logout">Abmelden</button></div>`;
   const code = UI.joinCode || L.joinCode || '';
   return `<div class="center">
-    <div class="r-hero">${p.avatar}</div>
+    <div class="r-hero">${avIn(p)}</div>
     <div class="h1" style="text-align:center">Willkommen, ${esc(p.name)}!</div>
     <p class="muted" style="text-align:center;margin:0">Tritt deiner Familie bei oder gründe eine neue.</p>
     <div class="card"><div class="field" style="margin-bottom:10px"><label for="join-code">Familien-Code</label>
@@ -357,7 +357,7 @@ function viewNoFamily(){
 /* ---------- Ansichten: App ---------- */
 function header(title, sub){
   return `<div class="top"><div><div class="muted" style="font-weight:700">${sub}</div><div class="h1">${title}</div></div>
-    <button class="avatar" data-tab="family" aria-label="Familie und Profil">${D.profile.avatar}</button></div>`;
+    <button class="avatar" data-tab="family" aria-label="Familie und Profil">${avIn(D.profile)}</button></div>`;
 }
 function suggestionCard(s){
   return `<button class="rc" data-action="open-recipe" data-id="${s.r.id}">
@@ -374,10 +374,10 @@ function viewHome(){
   const h = new Date().getHours(), greet = (h<11?'Guten Morgen':h<17?'Hallo':'Guten Abend') + (hwOn() ? ' · Happy Halloween 🎃' : adOn() ? ' · Schöne Adventszeit 🎄' : '');
   const p = isAdmin() ? pendingReq() : [];
   return header(`Was gibt's heute, ${esc(D.profile.name)}?`, greet) + annBanner() + installBanner() + pushBanner() + hwCard() + adventCard() + rateBanner() +
-    (p.length ? `<button class="banner" data-tab="family"><span class="avatar sm">${prof(p[0].user_id).avatar}</span><span style="flex:1"><b>${esc(prof(p[0].user_id).name)}</b> möchte deiner Familie beitreten</span>${I.chev}</button>` : '') +
+    (p.length ? `<button class="banner" data-tab="family"><span class="avatar sm">${avIn(prof(p[0].user_id))}</span><span style="flex:1"><b>${esc(prof(p[0].user_id).name)}</b> möchte deiner Familie beitreten</span>${I.chev}</button>` : '') +
     (expiringSoon().length ? `<button class="banner" style="background:var(--tomato-soft)" data-tab="fridge"><span style="font-size:22px">⏰</span><span style="flex:1"><b>Bald aufbrauchen:</b> ${expiringSoon().map(x=>`${esc(ingName(x.k))} (${expLabel(x.d)})`).join(', ')}</span>${I.chev}</button>` : '') +
     `<div class="filters card">
-      <div class="who sm" role="group" aria-label="Wer isst mit">${active().map(m=>{ const a=prof(m.user_id); return `<button data-action="eater" data-id="${a.id}" aria-pressed="${eat.includes(a.id)}"><span class="avatar">${a.avatar}</span>${esc(a.name)}</button>`; }).join('')}</div>
+      <div class="who sm" role="group" aria-label="Wer isst mit">${active().map(m=>{ const a=prof(m.user_id); return `<button data-action="eater" data-id="${a.id}" aria-pressed="${eat.includes(a.id)}"><span class="avatar">${avIn(a)}</span>${esc(a.name)}</button>`; }).join('')}</div>
       <div class="frow">
         <div class="seg mini" role="group" aria-label="Zeit">${[[15,'15′'],[30,'30′'],[60,'Egal']].map(([v,l])=>`<button data-action="time" data-v="${v}" aria-pressed="${UI.time===v}" aria-label="${v===60?'Zeit egal':v+' Minuten'}">${l}</button>`).join('')}</div>
         <div class="seg mini" role="group" aria-label="Lust">${[['gesund','🥗'],['egal','Egal'],['fast','🍔']].map(([v,l])=>`<button data-action="mood" data-v="${v}" aria-pressed="${UI.mood===v}" aria-label="${v==='gesund'?'Gesund':v==='fast'?'Fastfood':'Egal'}">${l}</button>`).join('')}</div>
@@ -450,7 +450,7 @@ function viewShopping(){
   const row = x => `<div class="shop-row ${x.checked?'done':''}" data-id="${x.id}">
       <button class="tick" data-action="shop-toggle" data-id="${x.id}" aria-label="${x.checked?'Wieder offen':'Abhaken'}" aria-pressed="${x.checked}">✓</button>
       <span class="grow">${shopName(x)}</span>
-      ${x.added_by && x.added_by !== D.user.id ? `<span class="avatar sm" title="${esc(prof(x.added_by).name)}">${prof(x.added_by).avatar}</span>` : ''}
+      ${x.added_by && x.added_by !== D.user.id ? `<span class="avatar sm" title="${esc(prof(x.added_by).name)}">${avIn(prof(x.added_by))}</span>` : ''}
       <button class="x" data-action="shop-del" data-id="${x.id}" aria-label="Entfernen">${I.x}</button></div>`;
   const planned = plannedMissing();
   return `<form class="shop-add" id="shopForm" autocomplete="off"><input id="shopIn" class="input" placeholder="Was fehlt? z. B. Milch" value="${esc(UI.sq||'')}" aria-label="Zur Einkaufsliste hinzufügen"><button class="btn btn-herb" type="submit" aria-label="Hinzufügen">+</button></form>
@@ -551,7 +551,7 @@ function viewRecipes(){
     const ids = [...new Set(D.wishes.map(w=>w.recipe_id))].filter(id=>rec(id) && wishersOf(id).length).sort((a,b)=>wishersOf(b).length-wishersOf(a).length);
     body = ids.length ? `<div class="stack">${ids.map(id=>{ const r=rec(id), who=wishersOf(id);
       return `<button class="rc" data-action="open-recipe" data-id="${id}">${photoEm(r)}<div class="main"><div class="t">${esc(r.n)}</div>
-        <div class="s"><span class="avatar-stack">${who.map(w=>`<span class="avatar sm">${prof(w).avatar}</span>`).join('')}</span><span>${esc(names(who.map(w=>prof(w).name)))}</span></div></div>${I.chev}</button>`; }).join('')}</div>`
+        <div class="s"><span class="avatar-stack">${who.map(w=>`<span class="avatar sm">${avIn(prof(w))}</span>`).join('')}</span><span>${esc(names(who.map(w=>prof(w).name)))}</span></div></div>${I.chev}</button>`; }).join('')}</div>`
       : `<div class="card empty"><div class="g">🙋</div><b>Noch keine Wünsche</b>Öffne ein Rezept unter „Alle" und tippe auf „Wünschen".</div>`;
   } else {
     const q = UI.q.trim().toLowerCase();
@@ -581,20 +581,21 @@ function viewFamily(){
   const p = isAdmin() ? pendingReq() : [];
   return header(esc(D.family.name), `${active().length} Mitglieder`) +
     (p.length ? `<div class="h2">Beitrittsanfragen</div><div class="stack">${p.map(m=>{ const a=prof(m.user_id); return `<div class="card" style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
-        <span class="avatar">${a.avatar}</span><div style="flex:1;min-width:140px"><b>${esc(a.name)}</b> hat sich einen Account erstellt und möchte deiner Familie beitreten.</div>
+        <span class="avatar">${avIn(a)}</span><div style="flex:1;min-width:140px"><b>${esc(a.name)}</b> hat sich einen Account erstellt und möchte deiner Familie beitreten.</div>
         <div style="display:flex;gap:8px;flex-basis:100%"><button class="btn btn-herb btn-sm" style="flex:1" data-action="accept" data-id="${a.id}">Annehmen</button><button class="btn btn-ghost btn-sm" style="flex:1" data-action="decline" data-id="${a.id}">Ablehnen</button></div></div>`; }).join('')}</div>` : '') +
     (isAdmin() ? `<button class="btn btn-herb btn-block" style="margin-top:6px" data-action="invite">${I.qr} Familienmitglied einladen</button>` : '') +
     familyExtras() +
     `<div class="h2">Mitglieder</div>
-    <div class="list">${active().map(m=>{ const a=prof(m.user_id), mine=a.id===D.user.id; return `<button class="row" data-action="edit-prefs" data-id="${a.id}"><span class="avatar">${a.avatar}</span><span class="grow"><b>${esc(a.name)}</b>${m.role==='admin'?' <span class="chip c-herb">Admin</span>':''}${mine?' <span class="chip c-muted">Du</span>':''}<small>${esc(prefText(a))}</small></span>${mine?I.chev:''}</button>`; }).join('')}</div>
+    <div class="list">${active().map(m=>{ const a=prof(m.user_id), mine=a.id===D.user.id; return `<button class="row" data-action="profile" data-id="${a.id}"><span class="avatar">${avIn(a)}</span><span class="grow"><b>${esc(a.name)}</b>${m.role==='admin'?' <span class="chip c-herb">Admin</span>':''}${mine?' <span class="chip c-muted">Du</span>':''}<small>${a.status ? esc(a.status) : esc(prefText(a))}</small></span>${I.chev}</button>`; }).join('')}</div>
     ${!isAdmin()?`<div class="list" style="margin-top:16px"><button class="row" data-action="ask-leave"><span class="grow"><b>Familie verlassen</b></span></button></div>`:''}
     ${UI.confirmLeave?`<div class="card" style="background:var(--tomato-soft);margin-top:10px"><b style="color:var(--tomato)">Familie wirklich verlassen?</b><div style="display:flex;gap:8px;margin-top:10px"><button class="btn btn-tomato btn-sm" style="flex:1" data-action="leave">Verlassen</button><button class="btn btn-ghost btn-sm" style="flex:1" data-action="cancel-leave">Abbrechen</button></div></div>`:''}
 `;
 }
 
 /* ---------- Reiter „Mehr" ---------- */
-const VERSION = '3.1';
+const VERSION = '3.2';
 const CHANGELOG = [
+  { v:'3.2', d:'5. November 2026', items:['📸 Eigenes Profilbild: Foto machen oder aus der Galerie wählen','🎨 Profilfarbe und ✍️ Status („Über mich") – sieht die ganze Familie','👤 Neue Profilkarte: Familie antippen zeigt Bild, Status, wie oft gekocht, Lieblingsgerichte und Abzeichen'] },
   { v:'3.1', d:'4. November 2026', items:['Neuer Sponsor: PiHILL – handgemachte Häkel- und Deko-Stücke. Mit eigener Infoseite, zu finden auf der Startseite und unter „Mehr"','🎬 1 Tag Plus gratis: Alle 2 Wochen einen 15-Sekunden-Spot von PiHILL ansehen (ohne Ton)','✨ Plus-Extra: eigene Farbthemen für die App (Blau, Beere, Lila, Bernstein)'] },
   { v:'3.0.4', d:'2. November 2026', items:['Die Leiste ganz oben (Uhrzeit, Akku) ist jetzt durchsichtig – die App läuft darunter einfach weiter, ohne farbigen Balken'] },
   { v:'3.0.3', d:'2. November 2026', items:['Neue Preise für „Plus": 0,99 € im Monat oder 10 € im Jahr'] },
@@ -663,7 +664,7 @@ function viewMore(){
     <div class="list"><button class="row" data-action="feedback"><span style="font-size:22px">💬</span><span class="grow"><b>Feedback senden</b><small>Fehler melden, Ideen oder Lob</small></span>${I.chev}</button></div>
     <div class="h2">Konto</div>
     <div class="list">
-      <button class="row" data-action="edit-prefs" data-id="${D.user.id}"><span class="avatar sm">${D.profile.avatar}</span><span class="grow"><b>Mein Profil</b><small>${esc(prefText(D.profile))}</small></span>${I.chev}</button>
+      <button class="row" data-action="edit-prefs" data-id="${D.user.id}"><span class="avatar sm">${avIn(D.profile)}</span><span class="grow"><b>Mein Profil</b><small>${esc(prefText(D.profile))}</small></span>${I.chev}</button>
       <button class="row" data-action="logout"><span class="grow"><b style="color:var(--tomato)">${UI.confirmLogout ? 'Wirklich abmelden? Nochmal tippen' : 'Abmelden'}</b><small>${esc(D.user.email||'')}</small></span></button>
     </div>
     ${D.appAdmin ? `<div class="h2">Betreiber</div><div class="list"><a class="row" href="admin.html" style="color:inherit;text-decoration:none"><span style="font-size:22px">🛠️</span><span class="grow"><b>Admin-Panel</b><small>Nur für dich sichtbar</small></span>${I.chev}</a></div>` : ''}
@@ -1039,7 +1040,7 @@ function openRecipe(id, keep){
   openSheet(`${sheetHead('')}
     ${recipeHero(r)}<div class="h1" style="text-align:center">${esc(r.n)}</div>
     <div style="display:flex;gap:6px;justify-content:center;margin:10px 0 16px;flex-wrap:wrap"><span class="chip c-muted">⏱ ${r.t} Min</span>${r.m==='fast'?'<span class="chip c-yolk">Fastfood-Abend</span>':r.m==='gesund'?'<span class="chip c-herb">Gesund</span>':''}${r.x.includes('scharf')?'<span class="chip c-tomato">Scharf</span>':''}${(rt => rt.n ? `<span class="chip c-yolk">⭐ ${rt.avg.toFixed(1).replace('.', ',')} · ${rt.n} ${rt.n === 1 ? 'Bewertung' : 'Bewertungen'}</span>` : '')(ratingOf(id))}${inSeason(r) ? '<span class="chip c-herb">🍂 Saison</span>' : ''}${cookedTimes(id) ? `<span class="chip c-muted">🍳 ${cookedTimes(id)}× gekocht</span>` : ''}</div>
-    ${who.length?`<div class="card" style="display:flex;gap:10px;align-items:center;margin-bottom:12px"><span class="avatar-stack">${who.map(w=>`<span class="avatar sm">${prof(w).avatar}</span>`).join('')}</span><span><b>${esc(names(who.map(w=>prof(w).name)))}</b> ${who.length>1?'wünschen':'wünscht'} sich das</span></div>`:''}
+    ${who.length?`<div class="card" style="display:flex;gap:10px;align-items:center;margin-bottom:12px"><span class="avatar-stack">${who.map(w=>`<span class="avatar sm">${avIn(prof(w))}</span>`).join('')}</span><span><b>${esc(names(who.map(w=>prof(w).name)))}</b> ${who.length>1?'wünschen':'wünscht'} sich das</span></div>`:''}
     ${blocked.length?`<div class="card" style="background:var(--tomato-soft);color:var(--tomato);margin-bottom:12px;font-weight:700">${blocked.map(b=>`${esc(b.p.name)} ${esc(b.c[0])}`).join('<br>')}</div>`:''}
     ${notes.length?`<div class="card" style="background:var(--yolk-soft);margin-bottom:12px;font-weight:700">💡 ${notes.map(esc).join('<br>💡 ')}</div>`:''}
     <div style="display:grid;grid-template-columns:1fr auto;gap:8px">
@@ -1076,7 +1077,11 @@ function openPrefs(keep){
   const a = D.profile, dis = ['champignons','zwiebeln','brokkoli','paprika','tomaten','spinat','zucchini','knoblauch','fisch','scharf','fleisch'];
   openSheet(`${sheetHead('Mein Profil')}
     <div class="field"><label for="p-name">Name</label><input id="p-name" class="input" maxlength="30" value="${esc(a.name)}"></div>
-    <div class="field"><span class="lbl2">Bild</span><div class="emoji-pick">${AVS.map(x=>`<button type="button" data-action="set-av" data-v="${x}" aria-pressed="${a.avatar===x}">${x}</button>`).join('')}</div></div>
+    <div class="pf-edit"><span class="avatar pf-big">${avIn(a)}</span>
+      <div class="pf-btns"><button type="button" class="btn btn-line btn-sm" data-action="av-photo">📷 Eigenes Foto</button>${isPhoto(a.avatar) ? `<button type="button" class="btn btn-sm" style="background:none;color:var(--muted)" data-action="set-av" data-v="🧑">Foto entfernen</button>` : ''}</div></div>
+    <div class="field"><span class="lbl2">Oder ein Symbol</span><div class="emoji-pick">${AVS.map(x=>`<button type="button" data-action="set-av" data-v="${x}" aria-pressed="${a.avatar===x}">${x}</button>`).join('')}</div></div>
+    ${hasExtras() ? `<div class="field"><span class="lbl2">Profilfarbe</span><div class="pf-cols">${PCOLS.map(c=>`<button type="button" data-action="set-pc" data-v="${c}" aria-pressed="${(a.color||'')===c}" style="--c:${c||'var(--surface-2)'}" aria-label="Farbe ${c||'keine'}">${c?'':'∅'}</button>`).join('')}</div></div>
+    <div class="field"><label for="p-status">Status / Über mich</label><input id="p-status" class="input" maxlength="60" placeholder="z. B. Lieblingsessen: Pizza 🍕" value="${esc(a.status||'')}"></div>` : ''}
     <div class="list"><div class="row"><span class="grow"><b>Vegetarisch</b><small>Kein Fleisch und kein Fisch</small></span><button class="switch" role="switch" aria-checked="${a.veg}" data-action="veg" aria-label="Vegetarisch"></button></div></div>
     <div class="list" style="margin-top:10px"><div class="row"><span class="grow"><b>Wählerischer Esser</b><small>Statt „mag ich nicht" wählst du aus, was du isst</small></span><button class="switch" role="switch" aria-checked="${!!a.picky}" data-action="picky" aria-label="Wählerischer Esser"></button></div></div>
     ${a.picky ? `<div class="h2">Das esse ich <span class="chip c-muted" data-count="likes">${(a.likes||[]).length} gewählt</span></div>
@@ -1098,7 +1103,7 @@ function pollBlock(all){
     return `<div class="h2">Abstimmung läuft <span class="chip c-tomato">${D.votes.length} von ${active().length}</span></div>
       <div class="card poll"><div style="font-weight:800;margin-bottom:10px">🗳️ Was essen wir heute?</div>
       <div class="stack" style="gap:8px">${P.options.filter(rec).map(id => { const r = rec(id), who = D.votes.filter(v=>v.recipe_id===id).map(v=>prof(v.user_id)), pct = D.votes.length ? (counts[id]||0)/D.votes.length*100 : 0;
-        return `<button class="opt ${mine&&mine.recipe_id===id?'mine':''}" data-action="vote" data-id="${id}"><i style="width:${pct}%"></i><span class="oe">${r.e}</span><span class="on">${esc(r.n)}</span><span class="avatar-stack">${who.map(p=>`<span class="avatar sm">${p.avatar}</span>`).join('')}</span><b>${counts[id]||0}</b></button>`; }).join('')}</div>
+        return `<button class="opt ${mine&&mine.recipe_id===id?'mine':''}" data-action="vote" data-id="${id}"><i style="width:${pct}%"></i><span class="oe">${r.e}</span><span class="on">${esc(r.n)}</span><span class="avatar-stack">${who.map(p=>`<span class="avatar sm">${avIn(p)}</span>`).join('')}</span><b>${counts[id]||0}</b></button>`; }).join('')}</div>
       ${canEnd ? `<button class="btn btn-herb btn-block btn-sm" style="margin-top:12px" data-action="end-poll">Abstimmung beenden</button>` : `<p class="muted" style="font-size:13px;margin:10px 0 0">${mine?'Deine Stimme ist gezählt. Du kannst sie noch ändern.':'Tippe auf dein Lieblingsgericht.'}</p>`}</div>`;
   }
   if (P && P.status === 'closed' && P.winner && fresh && rec(P.winner)){
@@ -1604,7 +1609,8 @@ function burst(cx, cy){
 }
 
 /* Namen im Profil-Fenster übernehmen, auch wenn nur mit ✕ geschlossen wird */
-function keepName(){ const i = $('#p-name'); if (!i) return; const n = i.value.trim().slice(0,30); if (n && n !== D.profile.name) updateProfile({ name:n }); }
+function keepName(){ const i = $('#p-name'); if (!i) return; const n = i.value.trim().slice(0,30); if (n && n !== D.profile.name) updateProfile({ name:n });
+  const st = $('#p-status'); if (st && hasExtras()){ const v = st.value.trim().slice(0,60); if (v !== (D.profile.status||'')) updateProfile({ status: v || null }); } }
 /* Familie per Push informieren (Wunsch, Abstimmung, Beitritt) – Server prüft Einstellungen und Missbrauch */
 function notifyFamily(type, ref, label){ try { sb.functions.invoke('send-push', { body:{ action:'event', type, ref: ref || '', label: label || '' } }).catch(()=>{}); } catch(e){} }
 
@@ -1664,8 +1670,11 @@ document.addEventListener('click', async e => {
     case 'exp-edit': UI.expScan.editing = true; UI.expQ = UI.expScan.label || ''; openExpScan(true); setTimeout(() => { const i = $('#expQ'); if (i){ i.focus(); i.select(); } }, 50); break;
     case 'exp-save': saveExpScan(); break;
     case 'rtab': UI.rtab=t.dataset.v; UI.rlimit=30; buzz(6); render(); break;
+    case 'profile': openProfile(id); break;
+    case 'av-photo': pickAvatarPhoto(); break;
+    case 'set-pc': if (!hasExtras()) break; document.querySelectorAll('[data-action=set-pc]').forEach(b=>b.setAttribute('aria-pressed', b===t)); buzz(6); updateProfile({ color: t.dataset.v || null }); refreshPfBig(); render(); break;
     case 'edit-prefs': if (id===D.user.id) openPrefs(); else toast(`Nur ${prof(id).name} kann das eigene Profil ändern`); break;
-    case 'set-av': document.querySelectorAll('[data-action=set-av]').forEach(b=>b.setAttribute('aria-pressed', b===t)); buzz(6); updateProfile({ avatar:t.dataset.v }); render(); break;
+    case 'set-av': { const wasPhoto = isPhoto(D.profile.avatar); document.querySelectorAll('[data-action=set-av]').forEach(b=>b.setAttribute('aria-pressed', b===t)); buzz(6); updateProfile({ avatar:t.dataset.v }); if (wasPhoto){ keepName(); openPrefs(true); } else refreshPfBig(); render(); break; }
     case 'veg': updateProfile({ veg: !D.profile.veg }); t.setAttribute('aria-checked', D.profile.veg); buzz(); render(); break;
     case 'picky': { keepName(); buzz(); updateProfile({ picky: !D.profile.picky }); openPrefs(true); render(); break; }
     case 'like': { const k=t.dataset.k, s=new Set(D.profile.likes||[]); s.has(k)?s.delete(k):s.add(k); updateProfile({ likes:[...s] }); t.setAttribute('aria-pressed', s.has(k)); const c=$('[data-count=likes]'); if (c) c.textContent = s.size+' gewählt'; buzz(6); break; }
@@ -1825,6 +1834,62 @@ window.__wgCloseSheet = () => { closeSheet(); render(); };
 window.__wgTheme = th => { L.theme = th; saveLocal(); render(); };
 
 /* =========================================================================
+   Profil personalisieren: Foto, Farbe, Status, Profilkarte
+   ========================================================================= */
+const PHOTO_RE = /^data:image\/(webp|jpeg|png);base64,[A-Za-z0-9+/=]+$/;
+const isPhoto = v => typeof v === 'string' && v.length < 60000 && PHOTO_RE.test(v);
+const PCOLS = ['', '#2F7A4C', '#2D6CB5', '#6B4BC4', '#B03A6B', '#D2452F', '#E08A1E', '#C9A227', '#1F8A8A', '#4E4542'];
+const okColor = c => typeof c === 'string' && /^#[0-9A-Fa-f]{6}$/.test(c);
+const hasExtras = () => !!D.profile && ('color' in D.profile) && ('status' in D.profile);   // Spalten gibt es erst nach dem Datenbank-Update
+function avIn(p){
+  p = p || {}; const c = okColor(p.color) ? ` style="--pc:${p.color}"` : '';
+  const inner = isPhoto(p.avatar) ? `<img src="${p.avatar}" alt="">` : esc(p.avatar || '🙂');
+  return `<span class="avi${c ? ' has-pc' : ''}"${c}>${inner}</span>`;
+}
+function refreshPfBig(){ const b = document.querySelector('.pf-big'); if (b) b.innerHTML = avIn(D.profile); }
+function pickAvatarPhoto(){
+  let inp = $('#avInput'); if (!inp){ inp = document.createElement('input'); inp.type = 'file'; inp.accept = 'image/*'; inp.id = 'avInput'; inp.hidden = true; document.body.appendChild(inp);
+    inp.addEventListener('change', async () => { const f = inp.files && inp.files[0]; inp.value = ''; if (!f) return;
+      try { const url = await squareImage(f, 192); keepName(); updateProfile({ avatar:url }); openPrefs(true); render(); buzz(15); toast('Profilbild gesetzt 📸'); }
+      catch(e){ toast('Das Bild konnte nicht geladen werden'); } }); }
+  inp.click();
+}
+function squareImage(file, size){
+  return new Promise((ok, bad) => { const img = new Image(), u = URL.createObjectURL(file);
+    img.onload = () => { const s = Math.min(img.naturalWidth, img.naturalHeight); const cv = document.createElement('canvas'); cv.width = cv.height = size;
+      const g = cv.getContext('2d'); g.imageSmoothingQuality = 'high';
+      g.drawImage(img, (img.naturalWidth - s)/2, (img.naturalHeight - s)/2, s, s, 0, 0, size, size); URL.revokeObjectURL(u);
+      let d = cv.toDataURL('image/webp', .8); if (!d.startsWith('data:image/webp')) d = cv.toDataURL('image/jpeg', .82);
+      if (d.length > 58000) d = cv.toDataURL('image/jpeg', .6); isPhoto(d) ? ok(d) : bad(new Error('zu groß')); };
+    img.onerror = () => { URL.revokeObjectURL(u); bad(new Error('bild')); }; img.src = u; });
+}
+function openProfile(id){
+  const a = prof(id), mine = id === D.user.id, m = (D.members||[]).find(x => x.user_id === id);
+  const cooked = D.log.filter(l => l.user_id === id), rates = D.ratings.filter(r => r.user_id === id);
+  const wishes = D.wishes.filter(w => w.user_id === id).length;
+  const byR = {}; cooked.forEach(l => byR[l.recipe_id] = (byR[l.recipe_id]||0) + 1);
+  const topR = Object.entries(byR).sort((x,y) => y[1]-x[1])[0];
+  const favs = (a.favs||[]).map(rec).filter(Boolean).slice(0,6);
+  const st = kitchenStats ? (() => { try { return kitchenStats(); } catch(e){ return null; } })() : null;
+  const isChef = st && st.topCook && st.topCook[0] === id && st.topCook[1] > 1;
+  const since = m && m.created_at ? new Date(m.created_at).toLocaleDateString('de-DE', { month:'long', year:'numeric' }) : '';
+  const pc = okColor(a.color) ? a.color : 'var(--herb)';
+  sheetFn = null;
+  openSheet(`<div class="pf-card" style="--pcc:${pc}">
+      <div class="pf-cover"></div>
+      <span class="avatar pf-hero">${avIn(a)}</span>
+      <div class="h1" style="text-align:center;margin-top:8px">${esc(a.name)}</div>
+      ${a.status ? `<p class="pf-status">${esc(a.status)}</p>` : mine && hasExtras() ? `<p class="pf-status muted">Noch kein Status – tipp auf „Profil bearbeiten"</p>` : ''}
+      <div class="pf-tags">${m && m.role === 'admin' ? '<span class="chip c-herb">Admin</span>' : ''}${isChef ? '<span class="chip c-yolk">👨‍🍳 Chef de Cuisine</span>' : ''}${a.veg ? '<span class="chip c-herb">🥦 Vegetarisch</span>' : ''}${since ? `<span class="chip c-muted">dabei seit ${since}</span>` : ''}</div>
+    </div>
+    <div class="pf-stats"><div><b>${cooked.length}</b><small>gekocht</small></div><div><b>${rates.length}</b><small>bewertet</small></div><div><b>${wishes}</b><small>Wünsche offen</small></div></div>
+    ${topR && rec(topR[0]) ? `<div class="card" style="display:flex;gap:12px;align-items:center;margin-top:12px"><span style="font-size:30px">${rec(topR[0]).e}</span><span><small class="muted" style="font-weight:700">Kocht am liebsten</small><br><b>${esc(rec(topR[0]).n)}</b> · ${topR[1]}×</span></div>` : ''}
+    ${favs.length ? `<div class="h2">Lieblingsgerichte ❤️</div><div class="stack">${favs.map(r => `<button class="rc" data-action="open-recipe" data-id="${r.id}">${photoEm(r)}<div class="main"><div class="t">${esc(r.n)}</div><div class="s"><span>⏱ ${r.t} Min</span></div></div>${I.chev}</button>`).join('')}</div>` : ''}
+    ${mine ? `<button class="btn btn-herb btn-block" style="margin-top:16px" data-action="edit-prefs" data-id="${id}">✏️ Profil bearbeiten</button>` : ''}
+    <button class="btn btn-block" style="background:none;color:var(--muted);margin-top:6px" data-action="close">Schließen</button>`);
+}
+
+/* =========================================================================
    Sponsor: PiHILL
    ========================================================================= */
 const SPONSOR = { name:'PiHILL', url:'https://www.etsy.com/de/shop/PiHILL', logo:'sponsor/pihill.png', logoW:'sponsor/pihill-white.png', video:'sponsor/pihill-spot.mp4', poster:'sponsor/pihill-start.jpg' };
@@ -1933,7 +1998,7 @@ let lastScroll = 0;
 function syncNav(fresh){
   const v = $('#views .view:not(.leaving)'), nb = $('#navbar'), tb = $('#tabbar'); if (!v || !nb) return;
   const h1 = v.querySelector('.top .h1');
-  if (fresh){ $('#navTitle').textContent = h1 ? h1.textContent : ''; const av = nb.querySelector('.nb-av'); av.textContent = D.profile ? D.profile.avatar : ''; av.hidden = !D.profile; }
+  if (fresh){ $('#navTitle').textContent = h1 ? h1.textContent : ''; const av = nb.querySelector('.nb-av'); av.innerHTML = D.profile ? avIn(D.profile) : ''; av.hidden = !D.profile; }
   const st = v.scrollTop;
   nb.classList.toggle('on', !!h1 && st > 62 && !UI.cook);
   if (h1){ const k = Math.max(0, Math.min(1, st / 70)); h1.style.opacity = String(1 - k * .7); h1.style.transform = `scale(${1 - k * .04})`; }
@@ -2108,7 +2173,7 @@ function openStory(){
     `<div class="st-k">Was gibt's? · Rückblick</div><div class="st-big st-pop">✨</div><h2>${esc(fam)}</h2><p>Das war eure Küche bisher. Bereit?</p><div class="st-hint">Tippen zum Weitermachen</div>`,
     `<div class="st-k">Gekocht</div><div class="st-num" data-n="${s.total}">0</div><h2>${s.total === 1 ? 'Gericht' : 'Gerichte'}</h2><p>${s.distinct} davon verschieden${s.week ? ` · ${s.week} allein diese Woche` : ''}</p>`,
     top ? `<div class="st-k">Euer Lieblingsessen</div><div class="st-big st-pop">${top.e}</div><h2>${esc(top.n)}</h2><p>${s.top[0][1]}× auf dem Tisch</p>` : `<div class="st-k">Euer Lieblingsessen</div><div class="st-big st-pop">🤔</div><h2>Noch offen</h2><p>Kocht ein paar Gerichte – dann wissen wir's.</p>`,
-    cook ? `<div class="st-k">Chef de Cuisine</div><div class="st-big st-pop">${cook.avatar}</div><h2>${esc(cook.name)}</h2><p>stand am häufigsten am Herd: ${s.topCook[1]}×</p>` : `<div class="st-k">Chef de Cuisine</div><div class="st-big st-pop">👨‍🍳</div><h2>Wer wird's?</h2><p>Wer am meisten kocht, landet hier.</p>`,
+    cook ? `<div class="st-k">Chef de Cuisine</div><div class="st-big st-pop">${avIn(cook)}</div><h2>${esc(cook.name)}</h2><p>stand am häufigsten am Herd: ${s.topCook[1]}×</p>` : `<div class="st-k">Chef de Cuisine</div><div class="st-big st-pop">👨‍🍳</div><h2>Wer wird's?</h2><p>Wer am meisten kocht, landet hier.</p>`,
     best ? `<div class="st-k">Bester Teller</div><div class="st-big st-pop">${best.e}</div><h2>${esc(best.n)}</h2><p>${'⭐'.repeat(Math.round(s.bestRated[1]))} – ${s.bestRated[1].toFixed(1).replace('.', ',')} von 5</p>` : `<div class="st-k">Bester Teller</div><div class="st-big st-pop">⭐</div><h2>Noch keine Sterne</h2><p>Nach dem Essen kurz bewerten – dann seht ihr hier euren Hit.</p>`,
     `<div class="st-k">Euer Küchen-Typ</div><div class="st-big st-pop">${persona[0]}</div><h2>${persona[1]}</h2><p>${persona[2]}</p>`,
     `<div class="st-k">Danke fürs Kochen!</div><div class="st-big st-pop">💚</div><h2>Bis zum nächsten Rückblick</h2><p>${BADGES.filter(b => b[4](s)).length} von ${BADGES.length} Erfolgen geschafft</p><button class="st-btn" data-action="story-close">Fertig</button>`,
