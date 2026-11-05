@@ -593,8 +593,9 @@ function viewFamily(){
 }
 
 /* ---------- Reiter „Mehr" ---------- */
-const VERSION = '3.2.4';
+const VERSION = '3.2.5';
 const CHANGELOG = [
+  { v:'3.2.5', d:'5. November 2026', items:['Die Farbe hinter Uhrzeit und Akku passt sich jetzt automatisch an jeden Bildschirm an – Werbung, Rückblick, Kochmodus, Einkaufs-Modus und offene Fenster'] },
   { v:'3.2.4', d:'5. November 2026', items:['Neuer Ladebildschirm in App-Farbe statt Grün – dadurch wird auch der Bereich hinter Uhrzeit und Akku nicht mehr grün'] },
   { v:'3.2.3', d:'5. November 2026', items:['iPhone: Der Bereich hinter Uhrzeit und Akku bekommt jetzt die Farbe der App statt eines grünen oder dunklen Balkens (App dafür einmal neu zum Startbildschirm hinzufügen)'] },
   { v:'3.2.2', d:'5. November 2026', items:['Behoben: Auf dem iPhone blieb der Bereich hinter Uhrzeit und Akku grün (Farbe vom Startbildschirm) – jetzt hat er immer die Farbe der App, auch im Dunkelmodus'] },
@@ -1803,7 +1804,7 @@ function applyTheme(){ const r=document.documentElement, th=L.theme||'system'; i
   r.classList.toggle('halloween', hwOn()); r.classList.toggle('advent', adOn());
   /* Oberer Rand (Statusleiste / Safari-Leiste) in derselben Farbe wie die App */
   const bg = UI.cook ? '#0f1d14' : getComputedStyle(r).getPropertyValue('--bg').trim();
-  if (bg && applyTheme.last !== bg){ applyTheme.last = bg; document.querySelectorAll('meta[name=theme-color]').forEach(m => { if (th !== 'system') m.removeAttribute('media'); m.setAttribute('content', bg); }); } }
+  if (bg && applyTheme.last !== bg){ applyTheme.last = bg; try { lastTop = ''; syncTopColor(); } catch(e){} } }
 window.matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change', () => applyTheme());
 
 /* ---------- Geräte-Modus: iPhone-Simulator am Computer ---------- */
@@ -1836,6 +1837,28 @@ window.__wgEmu = () => {
 window.__wgGo = tab => { if (D.user && D.family && ORDER.includes(tab)){ closeSheet(); go(tab); } };
 window.__wgCloseSheet = () => { closeSheet(); render(); };
 window.__wgTheme = th => { L.theme = th; saveLocal(); render(); };
+
+/* Farbe oben automatisch: liest, was ganz oben auf dem Bildschirm zu sehen ist (Werbung, Rückblick, Kochmodus, Fenster …),
+   mischt durchscheinende Ebenen und gibt das als Farbe für den Bereich hinter Uhrzeit und Akku an iPhone/Android weiter */
+function parseCol(str){ const m = str && str.match(/rgba?\(([^)]+)\)/); if (!m) return null; const p = m[1].split(/[ ,\/]+/).filter(Boolean).map(Number); return { r:p[0], g:p[1], b:p[2], a: p[3] == null ? 1 : p[3] }; }
+function layerCol(el){ const cs = getComputedStyle(el); if (cs.visibility === 'hidden' || +cs.opacity === 0) return null;
+  let c = parseCol(cs.backgroundColor); const op = +cs.opacity;
+  if ((!c || c.a === 0) && cs.backgroundImage && cs.backgroundImage !== 'none'){ const g = parseCol(cs.backgroundImage); if (g) c = g; }
+  if (!c || c.a === 0) return null; return { ...c, a: c.a * op }; }
+function topColor(){
+  const x = innerWidth / 2; let el = document.elementFromPoint(x, 1); const layers = [];
+  for (let n = el; n && n.nodeType === 1; n = n.parentElement){ const c = layerCol(n); if (c){ layers.push(c); if (c.a >= .999) break; } }
+  let r = 0, g = 0, b = 0, acc = 0;   // von oben nach unten zusammenmischen
+  for (const c of layers){ const w = (1 - acc) * c.a; r += c.r * w; g += c.g * w; b += c.b * w; acc += w; if (acc >= .999) break; }
+  if (acc < .999){ const bg = parseCol(getComputedStyle(document.body).backgroundColor) || { r:244, g:245, b:240 }; const w = 1 - acc; r += bg.r*w; g += bg.g*w; b += bg.b*w; }
+  return '#' + [r,g,b].map(v => Math.round(v).toString(16).padStart(2,'0')).join('');
+}
+let lastTop = '';
+function syncTopColor(){ if (document.hidden || document.documentElement.classList.contains('framed')) return; let c; try { c = topColor(); } catch(e){ return; }
+  if (c === lastTop) return; lastTop = c;
+  document.querySelectorAll('meta[name=theme-color]').forEach(m => { m.removeAttribute('media'); m.setAttribute('content', c); });
+  document.documentElement.style.setProperty('--sb', c); }
+setInterval(syncTopColor, 250); document.addEventListener('visibilitychange', () => { lastTop = ''; syncTopColor(); });
 
 /* Statusleisten-Farbe: Safari (iOS 26) färbt den Bereich hinter Uhrzeit/Akku nach dem obersten festen Element – #sbcol gibt die App-Farbe vor */
 new MutationObserver(() => { const r = document.documentElement; if (!document.getElementById('story')) r.classList.remove('sb-story'); r.classList.toggle('sb-tour', !!document.getElementById('tour')); }).observe(document.getElementById('screen') || document.body, { childList:true, subtree:false });
@@ -1979,14 +2002,14 @@ function openAd(){
     <div class="ad-msg" id="adMsg">Bis zum Ende ansehen für <b>1 Tag Plus gratis</b></div>
     <button class="ad-x" data-action="ad-close" aria-label="Schließen">✕</button></div>`);
   const v = $('#adv'); let max = 0;
-  v.addEventListener('timeupdate', () => { if (v.currentTime > max + 1.5) v.currentTime = max; max = Math.max(max, v.currentTime);
+  v.addEventListener('timeupdate', () => { if (!v.isConnected || !$('#adBar')) return; if (v.currentTime > max + 1.5) v.currentTime = max; max = Math.max(max, v.currentTime);
     const d = v.duration || 15; $('#adBar').style.width = (100*v.currentTime/d) + '%'; $('#adLeft').textContent = Math.max(0, Math.ceil(d - v.currentTime)); });
-  v.addEventListener('ended', () => { if (max < (v.duration || 15) - 1.5) return;
+  v.addEventListener('ended', () => { if (!v.isConnected) return; if (max < (v.duration || 15) - 1.5) return;
     L.adLast = Date.now(); L.plusUntil = Math.max(Date.now(), L.plusUntil||0) + PLUS_DAY; saveLocal();
     $('#adMsg').innerHTML = '🎉 <b>Plus ist jetzt 24 Stunden aktiv!</b> Danke an PiHILL'; $('#adLeft').textContent = '✓'; buzz([20,40,20]);
     try { sb.from('feedback').insert({ user_id:D.user.id, kind:'werbung', message:'PiHILL-Spot angesehen', app_version:VERSION }).then(()=>{}, ()=>{}); } catch(e){}
     adT = setTimeout(() => { closeAd(); render(); openPlus(false); }, 1800); });
-  v.addEventListener('error', () => { $('#adMsg').textContent = 'Der Spot konnte nicht geladen werden. Bitte später nochmal versuchen.'; });
+  v.addEventListener('error', () => { if (!$('#adMsg')) return; $('#adMsg').textContent = 'Der Spot konnte nicht geladen werden. Bitte später nochmal versuchen.'; });
   const pr = v.play(); if (pr && pr.catch) pr.catch(() => { v.controls = false; v.addEventListener('click', () => v.play(), { once:true }); $('#adMsg').innerHTML = 'Antippen zum Abspielen'; });
 }
 function closeAd(){ clearTimeout(adT); const b = document.querySelector('.adbox'); if (b) b.remove(); }

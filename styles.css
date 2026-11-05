@@ -1365,8 +1365,6 @@ html.party #views::after{content:"";position:absolute;left:0;right:0;top:0;heigh
 /* 3.2.2 Statusleisten-Farbe für iOS 26 */
 #sbcol{display:none}
 html:not(.framed) #sbcol{display:block;position:fixed;left:0;right:0;top:0;height:max(env(safe-area-inset-top,0px),1px);background:var(--sb,var(--bg));z-index:1000;pointer-events:none}
-html.sb-story{--sb:transparent}
-html.sb-tour{--sb:var(--bg)}
 /* 3.2.4: Ladebildschirm in App-Farbe – das iPhone übernimmt die Farbe beim Start für den Bereich hinter Uhrzeit/Akku */
 #splash,.halloween #splash,.advent #splash{background:var(--bg)}
 .sp-glow{background:radial-gradient(circle,color-mix(in srgb,var(--herb) 22%,transparent),transparent 65%)}
