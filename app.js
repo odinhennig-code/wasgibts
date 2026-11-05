@@ -190,7 +190,7 @@ const adOn = () => seasonNow() === 'advent';
 const HW_BATS = '<svg viewBox="0 0 64 28" aria-hidden="true"><path fill="currentColor" d="M32 9c1.6-3 3.2-4 4.2-4-.3 1.3-.1 2.3.6 3.1 3-3.4 8.5-6.3 15.2-6.1-2.6 1.5-3.6 3.6-3.2 6 2.9-.7 6.2-.2 9.2 1.6-3.4.4-5.5 2.1-6.3 4.9-2.6-1.5-5.6-1.5-8.4.4-.6-2.2-2.7-3.5-5.4-3.4L32 17l-5.9-5.5c-2.7-.1-4.8 1.2-5.4 3.4-2.8-1.9-5.8-1.9-8.4-.4-.8-2.8-2.9-4.5-6.3-4.9 3-1.8 6.3-2.3 9.2-1.6.4-2.4-.6-4.5-3.2-6 6.7-.2 12.2 2.7 15.2 6.1.7-.8.9-1.8.6-3.1 1 0 2.6 1 4.2 4z"/></svg>';
 const isoDay = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 const nextDays = n => Array.from({ length:n }, (_, i) => { const d = new Date(); d.setHours(12,0,0,0); d.setDate(d.getDate() + i); return d; });
-const planFor = iso => D.plan.find(p => p.day === iso);
+const planFor = iso => D.plan.find(p => p.day === iso && (!p.slot || p.slot === 'abend'));
 
 /* ---------- Einkaufsliste ---------- */
 const openShop = () => D.shop.filter(x => !x.checked);
@@ -485,11 +485,11 @@ function setPlan(iso, rid){
   const ex = planFor(iso);
   if (ex) ex.recipe_id = rid; else D.plan.push({ family_id:D.family.id, day:iso, recipe_id:rid, set_by:D.user.id });
   paintSoft();
-  return save(() => sb.from('meal_plan').upsert({ family_id:D.family.id, day:iso, recipe_id:rid, set_by:D.user.id, updated_at:new Date().toISOString() }, { onConflict:'family_id,day' }));
+  return save(() => sb.from('meal_plan').upsert({ family_id:D.family.id, day:iso, slot:'abend', recipe_id:rid, set_by:D.user.id, updated_at:new Date().toISOString() }, { onConflict:'family_id,day,slot' }));
 }
 function clearPlan(iso){
-  D.plan = D.plan.filter(p => p.day !== iso); paintSoft();
-  return save(() => sb.from('meal_plan').delete().eq('family_id', D.family.id).eq('day', iso));
+  D.plan = D.plan.filter(p => !(p.day === iso && (!p.slot || p.slot === 'abend'))); paintSoft();
+  return save(() => sb.from('meal_plan').delete().eq('family_id', D.family.id).eq('day', iso).eq('slot', 'abend'));
 }
 async function fillWeek(){
   const used = new Set(D.plan.map(p => p.recipe_id)), cands = planCandidates(), rows = [];
@@ -500,12 +500,12 @@ async function fillWeek(){
     const pick = cands.find(c => !used.has(c.r.id) && mainKey(c.r) !== prev && (c.r.m !== 'fast' || fast < 2)) || cands.find(c => !used.has(c.r.id));
     if (!pick) break;
     used.add(pick.r.id); prev = mainKey(pick.r); if (pick.r.m === 'fast') fast++;
-    const row = { family_id:D.family.id, day:iso, recipe_id:pick.r.id, set_by:D.user.id };
+    const row = { family_id:D.family.id, day:iso, slot:'abend', recipe_id:pick.r.id, set_by:D.user.id };
     rows.push(row); D.plan.push({ ...row });
   }
   if (!rows.length) return 0;
   paintSoft();
-  await save(() => sb.from('meal_plan').upsert(rows, { onConflict:'family_id,day' }));
+  await save(() => sb.from('meal_plan').upsert(rows, { onConflict:'family_id,day,slot' }));
   return rows.length;
 }
 function viewWeek(){
@@ -593,8 +593,9 @@ function viewFamily(){
 }
 
 /* ---------- Reiter „Mehr" ---------- */
-const VERSION = '3.2.5';
+const VERSION = '3.2.6';
 const CHANGELOG = [
+  { v:'3.2.6', d:'5. November 2026', items:['Wochenplan für das große Update vorbereitet'] },
   { v:'3.2.5', d:'5. November 2026', items:['Die Farbe hinter Uhrzeit und Akku passt sich jetzt automatisch an jeden Bildschirm an – Werbung, Rückblick, Kochmodus, Einkaufs-Modus und offene Fenster'] },
   { v:'3.2.4', d:'5. November 2026', items:['Neuer Ladebildschirm in App-Farbe statt Grün – dadurch wird auch der Bereich hinter Uhrzeit und Akku nicht mehr grün'] },
   { v:'3.2.3', d:'5. November 2026', items:['iPhone: Der Bereich hinter Uhrzeit und Akku bekommt jetzt die Farbe der App statt eines grünen oder dunklen Balkens (App dafür einmal neu zum Startbildschirm hinzufügen)'] },
