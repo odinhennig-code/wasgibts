@@ -593,8 +593,9 @@ function viewFamily(){
 }
 
 /* ---------- Reiter „Mehr" ---------- */
-const VERSION = '3.2.3';
+const VERSION = '3.2.4';
 const CHANGELOG = [
+  { v:'3.2.4', d:'5. November 2026', items:['Neuer Ladebildschirm in App-Farbe statt Grün – dadurch wird auch der Bereich hinter Uhrzeit und Akku nicht mehr grün'] },
   { v:'3.2.3', d:'5. November 2026', items:['iPhone: Der Bereich hinter Uhrzeit und Akku bekommt jetzt die Farbe der App statt eines grünen oder dunklen Balkens (App dafür einmal neu zum Startbildschirm hinzufügen)'] },
   { v:'3.2.2', d:'5. November 2026', items:['Behoben: Auf dem iPhone blieb der Bereich hinter Uhrzeit und Akku grün (Farbe vom Startbildschirm) – jetzt hat er immer die Farbe der App, auch im Dunkelmodus'] },
   { v:'3.2.1', d:'5. November 2026', items:['🎉 Partystimmung: Heute um 20 Uhr kommt das große Update – mit Countdown in der ganzen App'] },

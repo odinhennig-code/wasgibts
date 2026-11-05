@@ -1367,3 +1367,16 @@ html.party #views::after{content:"";position:absolute;left:0;right:0;top:0;heigh
 html:not(.framed) #sbcol{display:block;position:fixed;left:0;right:0;top:0;height:max(env(safe-area-inset-top,0px),1px);background:var(--sb,var(--bg));z-index:1000;pointer-events:none}
 html.sb-story{--sb:transparent}
 html.sb-tour{--sb:var(--bg)}
+/* 3.2.4: Ladebildschirm in App-Farbe – das iPhone übernimmt die Farbe beim Start für den Bereich hinter Uhrzeit/Akku */
+#splash,.halloween #splash,.advent #splash{background:var(--bg)}
+.sp-glow{background:radial-gradient(circle,color-mix(in srgb,var(--herb) 22%,transparent),transparent 65%)}
+.sp-word{color:var(--fg)}
+.sp-word .sp-q{color:var(--tomato,#E0533D)}
+.sp-claim{color:var(--muted)}
+.sp-icon rect{fill:var(--herb)}
+.sp-icon .sp-steam{stroke:#fff}
+.sp-icon .sp-pot,.sp-icon .sp-lid{fill:#fff}
+.sp-icon{filter:drop-shadow(0 14px 24px color-mix(in srgb,var(--herb) 35%,transparent))}
+.sp-sponsor{color:var(--muted)}
+[data-theme=dark] .sp-ph{filter:invert(1) brightness(1.6)}
+@media (prefers-color-scheme:dark){html:not([data-theme=light]) .sp-ph{filter:invert(1) brightness(1.6)}}
