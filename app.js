@@ -655,8 +655,9 @@ function viewFamily(){
 }
 
 /* ---------- Reiter „Mehr" ---------- */
-const VERSION = '4.0.1';
+const VERSION = '4.1';
 const CHANGELOG = [
+  { v:'4.1', d:'6. November 2026', items:['🛟 Neu: Hilfe & Support unter „Mehr"','💬 Live-Chat mit dem Support direkt in der App – du siehst, wenn der Support gerade online ist','📝 Anfragen mit Kategorie (Fehler, Konto, Familie, Plus, Datenschutz …) und Status','🚨 Notfall-Knopf für dringende Fälle – mit sofortigen Tipps, was du selbst tun kannst','✨ Plus-Mitglieder bekommen bevorzugt eine Antwort','⚑ Beiträge auf der Pinnwand und Notizen an Rezepten melden','✅ Status-Anzeige: Siehst sofort, ob es gerade eine Störung gibt','🔎 Häufige Fragen mit Suche','👍 Nach der Hilfe bewerten, ob es geholfen hat','Behoben: Gesperrte Personen konnten den Support nicht erreichen'] },
   { v:'4.0.1', d:'6. November 2026', items:['Wer vorübergehend gesperrt ist, sieht jetzt, bis wann die Sperre gilt und warum – danach geht es automatisch weiter','Behoben: Am Computer wurde man aus dem Admin-Bereich ständig abgemeldet, wenn die App gleichzeitig offen war – der Admin-Bereich hat jetzt eine eigene Anmeldung','Behoben: Gesperrten Personen wurden Hinweis-Fenster (z. B. „Update ist da“) über den Sperr-Bildschirm gelegt','Behoben: Auf dem Sperr-Bildschirm war die Tab-Leiste zu sehen, obwohl man sie nicht benutzen konnte','Gesperrte Personen können sich jetzt direkt aus der App an den Support wenden','Neues Admin-Dashboard mit Moderation (nur für Betreiber)'] },
   { v:'4.0', d:'6. November 2026', items:['🙏 Sorry, dass das Update später kam als angekündigt – dafür ist alles gründlich getestet','🎉 Das große Update – 20 neue Funktionen','🛒 Einkaufsliste: Menge und Notiz pro Eintrag („2 Packungen", „bio") – einfach auf den Eintrag tippen','🛒 Mehrere Listen: Supermarkt, Drogerie und Markt','🟢 Live: Ihr seht, wer gerade einkaufen ist – was ihr dann hinzufügt, sieht die Person sofort','🎤 Per Sprache hinzufügen: „Milch, Eier und Brot" sagen – alles landet auf der Liste','🙋 Einkauf zuweisen: „Mia bringt es mit"','✅ Vorbereitungs-Modus: Vor dem Kochen Zutaten und Geräte abhaken','⏱ Zeiten im Rezept antippen („10 Minuten") startet direkt einen Timer','👨‍🍳 Kochdienst: Im Wochenplan einteilen, wer wann kocht','💬 Notizen an Rezepten für die ganze Familie („Nächstes Mal mehr Käse!")','⚠️ Allergie-Warnung: Das Rezept zeigt, wer aus der Familie etwas nicht verträgt','📌 Familien-Pinnwand für kurze Nachrichten','🏆 Koch-Rangliste des Monats','🗳️ Abstimmung mit Uhrzeit – endet automatisch und meldet das Ergebnis','☕ Frühstück, Mittag und Abendessen im Wochenplan','🍕 Auswärts- und Bestell-Tage im Wochenplan','🎉 Party-Planer: Gäste und Gerichte wählen – Einkaufsliste und Plan werden gefüllt','📁 Eigene Rezept-Sammlungen (z. B. „Weihnachten")','♻️ Reste-Modus: Rezepte für alles, was bald abläuft','🖼️ Wochenplan als Bild teilen und 🔁 „Letzte Woche wiederholen"','📖 30 neue Rezepte aus der neuen Rezept-Datenbank – sie wächst ab jetzt laufend','Behoben: Ohne Internet blieb die App beim Start im Ladebildschirm hängen – jetzt siehst du den letzten Stand mit Offline-Hinweis, und sie verbindet sich automatisch neu','Behoben: Beim allerersten Start ohne Internet stürzte die App ab – jetzt gibt es eine klare Meldung mit „Nochmal versuchen"','Behoben: „Einkaufsliste teilen" warf dich aus der App, wenn Kopieren nicht ging','Behoben: Beim Teilen der Einkaufsliste fehlten Mengen und Notizen','Behoben: Auf kleinen Handys rutschte dein Profilbild oben rechts aus dem Bildschirm, wenn dein Name lang ist','Behoben: Auf kleinen Handys ragte die „Wer isst mit"-Leiste über den Rand','Behoben: Bei großer Schrift ragten die Umschalter (Woche, Wünsche …) über den Rand','Behoben: Bei großer Schrift ragte die Filterleiste auf „Heute" über den Rand','Behoben: Bei großer Schrift war das Plus-Fenster seitlich abgeschnitten','Behoben: Bei großer Schrift verschoben Saison- und Filter-Chips die ganze Seite','Behoben: Bei großer Schrift war das Rezeptfoto zu breit','Behoben: „Heute gekocht" doppelt angetippt wurde doppelt gezählt','Behoben: „1 Zutaten", „1 Mitglieder", „1 Rezepte" – Einzahl stimmt jetzt überall','Behoben: Im Rückblick stand „0 davon verschieden", wenn noch nichts gekocht war','Behoben: App-Öffnungen kurz nach Mitternacht zählten zum Vortag','Behoben: „Bald aufbrauchen" führt jetzt direkt zu passenden Rezepten','Behoben: Suchfelder und Datumsfelder hatten keine Beschriftung für Bildschirmleser','Behoben: Nach dem Schließen der Werbung lief im Hintergrund ein Fehler','Behoben: Auf dem iPhone blieb der Bereich hinter Uhrzeit und Akku grün – er passt sich jetzt jedem Bildschirm an','Admin-Panel: Einzahl-Fehler bei Familien, Personen und Wünschen behoben','Datenschutzerklärung für die neuen Familien-Funktionen aktualisiert'] },
   { v:'3.2.5', d:'5. November 2026', items:['Die Farbe hinter Uhrzeit und Akku passt sich jetzt automatisch an jeden Bildschirm an – Werbung, Rückblick, Kochmodus, Einkaufs-Modus und offene Fenster'] },
@@ -730,7 +731,7 @@ function viewMore(){
     <div class="h2">Benachrichtigungen</div>
     <div class="list">${pushRow()}</div>
     <div class="h2">Kontakt</div>
-    <div class="list"><button class="row" data-action="feedback"><span style="font-size:22px">💬</span><span class="grow"><b>Feedback senden</b><small>Fehler melden, Ideen oder Lob</small></span>${I.chev}</button></div>
+    <div class="list"><button class="row" data-action="help"><span style="font-size:22px">🛟</span><span class="grow"><b>Hilfe &amp; Support</b><small>Fragen, Live-Chat, Notfall</small></span>${supUnread() ? `<span class="sup-badge">${supUnread()}</span>` : ''}${I.chev}</button><button class="row" data-action="feedback"><span style="font-size:22px">💬</span><span class="grow"><b>Feedback senden</b><small>Ideen oder Lob</small></span>${I.chev}</button></div>
     <div class="h2">Konto</div>
     <div class="list">
       <button class="row" data-action="edit-prefs" data-id="${D.user.id}"><span class="avatar sm">${avIn(D.profile)}</span><span class="grow"><b>Mein Profil</b><small>${esc(prefText(D.profile))}</small></span>${I.chev}</button>
@@ -756,7 +757,7 @@ function viewBanned(){
     ${D.profile.banned_until ? `<p style="margin:0;font-weight:700">bis ${esc(new Date(D.profile.banned_until).toLocaleString('de-DE', { weekday:'long', day:'numeric', month:'long', hour:'2-digit', minute:'2-digit' }))} Uhr</p>` : ''}
     ${D.profile.ban_reason ? `<p style="margin:0;max-width:280px">Grund: ${esc(D.profile.ban_reason)}</p>` : ''}
     <p style="color:var(--muted);max-width:280px">Du glaubst, das ist ein Fehler? Schreib unserem Support – wir schauen es uns an.</p>
-    <button class="btn btn-herb" data-action="support">🛟 Support kontaktieren</button>
+    <button class="btn btn-herb" data-action="sup-new" data-v="sperre">🛟 Support kontaktieren</button>
     <button class="btn btn-line" data-action="logout">Abmelden</button></div>`;
 }
 
@@ -1095,6 +1096,7 @@ async function onSession(session){
   else { try { localStorage.removeItem('wg.cache'); } catch(e){} UI.offline = false; UI.auth = UI.auth==='check' ? 'check' : 'login'; D.profile=null; D.membership=null; if (channel){ sb.removeChannel(channel); channel=null; } }
   UI.loading=false; render();
   if (D.user && !D.profile?.banned) syncPush().then(() => setTimeout(maybePushPrompt, performance.now() < 6000 ? 3800 : 600));
+  if (D.user && D.profile && UI.supFor !== D.user.id){ UI.supFor = D.user.id; loadSupport().then(() => { if (SUP.tickets.some(t => t.status !== 'geloest')) supSubscribe(); if (supUnread() && UI.tab === 'more' && !$('.sheet')) render(); }).catch(()=>{}); }
   if (D.user && !UI.counted && !D.profile?.banned){ UI.counted = true; trackOpen(); setTimeout(maybePlusPopup, 8000); setTimeout(firstRunInfo, 1400); setTimeout(checkBadges, 2500); }
 }
 
@@ -1237,14 +1239,6 @@ function openFeedback(){
     <div class="seg" role="group" aria-label="Art">${[['fehler','🐞 Fehler'],['idee','💡 Idee'],['lob','❤️ Lob']].map(([k,l],n)=>`<button type="button" data-action="fb-kind" data-v="${k}" aria-pressed="${n===0}">${l}</button>`).join('')}</div>
     <div class="field" style="margin-top:14px"><label for="fb-text">Was möchtest du uns sagen?</label><textarea id="fb-text" class="input" rows="6" maxlength="2000" placeholder="Beschreib kurz, was passiert ist oder was du dir wünschst."></textarea></div>
     <button class="btn btn-herb btn-block" data-action="send-feedback">Senden</button>`);
-}
-
-function openSupport(){
-  sheetFn = null;
-  openSheet(`${sheetHead('Support')}
-    <p class="muted" style="margin:0 0 14px">Deine Nachricht geht direkt an das Team von „Was gibt's?". Die Antwort bekommst du an ${esc(D.user.email || 'deine E-Mail-Adresse')}.</p>
-    <div class="field"><label for="sup-text">Was ist passiert?</label><textarea id="sup-text" class="input" rows="6" maxlength="2000" placeholder="Erklär kurz, warum die Sperre deiner Meinung nach ein Fehler ist."></textarea></div>
-    <button class="btn btn-herb btn-block" data-action="send-support">Nachricht senden</button>`);
 }
 
 /* ---------- Kochmodus (Querformat) ---------- */
@@ -1818,12 +1812,6 @@ document.addEventListener('click', async e => {
     case 'del-recipe': { const r = rec(id); const { error } = await sb.from('custom_recipes').delete().eq('id', r.dbid); if (error) throw error;
       UI.confirmDel = null; await loadAll(true); closeSheet(); render(); toast('Rezept gelöscht'); break; }
     case 'feedback': openFeedback(); break;
-    case 'support': openSupport(); break;
-    case 'send-support': { const msg = $('#sup-text').value.trim(); if (!msg){ toast('Bitte schreib kurz etwas'); $('#sup-text').focus(); break; }
-      t.disabled = true; const pre = D.profile?.banned ? '[Gesperrt] ' : '';
-      let { error } = await sb.from('feedback').insert({ user_id:D.user.id, kind:'support', message:pre + msg, app_version:VERSION });
-      if (error) ({ error } = await sb.from('feedback').insert({ user_id:D.user.id, kind:'fehler', message:'[Support] ' + pre + msg, app_version:VERSION }));   // ältere Datenbank
-      if (error){ t.disabled = false; throw error; } closeSheet(); toast('Deine Nachricht ist beim Support angekommen 💚'); break; }
     case 'send-feedback': { const msg = $('#fb-text').value.trim(); if (!msg){ toast('Bitte schreib kurz etwas'); $('#fb-text').focus(); break; }
       t.disabled = true; const { error } = await sb.from('feedback').insert({ user_id:D.user.id, kind:$('[data-action=fb-kind][aria-pressed=true]')?.dataset.v || 'idee', message:msg, app_version:VERSION });
       if (error){ t.disabled = false; throw error; } closeSheet(); toast('Danke für dein Feedback! 💚'); break; }
@@ -2025,7 +2013,7 @@ function recipeExtras(r){
     ${last ? `<p class="muted" style="text-align:center;font-size:13px;margin:10px 0 0">🍳 Zuletzt gekocht ${agoText(last.cooked_at)}${last.user_id ? ' von ' + esc(prof(last.user_id).name) : ''}</p>` : ''}
     ${D.cap.colls ? `<button class="btn btn-ghost btn-block" style="margin-top:8px" data-action="coll-pick" data-id="${r.id}">📁 ${inColl.length ? 'In: ' + esc(inColl.map(c => c.name).join(', ')) : 'Zu einer Sammlung hinzufügen'}</button>` : ''}
     ${D.cap.notes ? `<div class="h2">💬 Notizen der Familie</div>
-      <div class="card notes">${notes.length ? notes.map(n => `<div class="note-row"><span class="avatar sm">${avIn(prof(n.user_id))}</span><div style="flex:1"><b>${esc(prof(n.user_id).name)}</b> <small class="muted">${agoText(n.created_at)}</small><div>${esc(n.body)}</div></div>${n.user_id === D.user.id ? `<button class="x" data-action="note-del" data-id="${n.id}" aria-label="Löschen">${I.x}</button>` : ''}</div>`).join('') : '<div class="muted" style="font-size:13px;padding:4px 0">Noch keine Notiz – z. B. „Nächstes Mal mehr Käse!"</div>'}
+      <div class="card notes">${notes.length ? notes.map(n => `<div class="note-row"><span class="avatar sm">${avIn(prof(n.user_id))}</span><div style="flex:1"><b>${esc(prof(n.user_id).name)}</b> <small class="muted">${agoText(n.created_at)}</small><div>${esc(n.body)}</div></div>${n.user_id === D.user.id ? `<button class="x" data-action="note-del" data-id="${n.id}" aria-label="Löschen">${I.x}</button>` : `<button class="x rep" data-action="report" data-k="note" data-id="${n.id}" aria-label="Notiz melden" title="Melden">⚑</button>`}</div>`).join('') : '<div class="muted" style="font-size:13px;padding:4px 0">Noch keine Notiz – z. B. „Nächstes Mal mehr Käse!"</div>'}
         <form class="note-add" data-rid="${r.id}" autocomplete="off"><input class="input" maxlength="200" placeholder="Notiz für alle …" aria-label="Notiz schreiben"><button class="btn btn-herb btn-sm" type="submit">Senden</button></form></div>` : ''}`;
 }
 function agoText(ts){ const d = Math.floor((Date.now() - Date.parse(ts)) / 864e5); return d <= 0 ? 'heute' : d === 1 ? 'gestern' : d < 7 ? `vor ${d} Tagen` : d < 14 ? 'vor einer Woche' : `vor ${Math.floor(d/7)} Wochen`; }
@@ -2069,7 +2057,7 @@ function boardBlock(){
   const posts = D.board.slice(0, 6);
   return `<div class="h2">📌 Pinnwand</div><div class="card board">
     <form class="board-add" autocomplete="off"><input class="input" maxlength="200" placeholder="Nachricht an die Familie, z. B. „Bin heute später da"" aria-label="Nachricht an die Familie"><button class="btn btn-herb btn-sm" type="submit">Posten</button></form>
-    ${posts.map(p => `<div class="note-row"><span class="avatar sm">${avIn(prof(p.user_id))}</span><div style="flex:1"><b>${esc(prof(p.user_id).name)}</b> <small class="muted">${agoText(p.created_at)}</small><div>${esc(p.body)}</div></div>${p.user_id === D.user.id ? `<button class="x" data-action="board-del" data-id="${p.id}" aria-label="Löschen">${I.x}</button>` : ''}</div>`).join('') || '<div class="muted" style="font-size:13px;padding:6px 2px">Noch leer.</div>'}</div>`;
+    ${posts.map(p => `<div class="note-row"><span class="avatar sm">${avIn(prof(p.user_id))}</span><div style="flex:1"><b>${esc(prof(p.user_id).name)}</b> <small class="muted">${agoText(p.created_at)}</small><div>${esc(p.body)}</div></div>${p.user_id === D.user.id ? `<button class="x" data-action="board-del" data-id="${p.id}" aria-label="Löschen">${I.x}</button>` : `<button class="x rep" data-action="report" data-k="board" data-id="${p.id}" aria-label="Beitrag melden" title="Melden">⚑</button>`}</div>`).join('') || '<div class="muted" style="font-size:13px;padding:6px 2px">Noch leer.</div>'}</div>`;
 }
 function rankBlock(){
   const now = new Date(), m0 = new Date(now.getFullYear(), now.getMonth(), 1).getTime(), by = {};
@@ -2819,3 +2807,202 @@ if (configured){
     if (ev === 'SIGNED_IN' || ev === 'SIGNED_OUT') onSession(session);
   });
 } else { UI.loading=false; render(); }
+
+
+/* =========================================================================
+   VERSION 4.2 – Hilfe & Support
+   Hilfe-Center, Live-Chat, Anfragen, Notfall, Inhalte melden, Status.
+   Gesperrte Personen erreichen den Support weiterhin.
+   ========================================================================= */
+const FAQ2 = [
+  ['Wie lade ich jemanden in meine Familie ein?', 'Unter „Familie" findest du den Familien-Code und einen QR-Code. Die andere Person gibt den Code bei der Anmeldung ein – ein Familien-Admin muss die Anfrage dann bestätigen.'],
+  ['Warum bekomme ich keine Benachrichtigungen?', 'Am iPhone gehen Benachrichtigungen nur, wenn die App über „Teilen → Zum Home-Bildschirm" installiert ist. Danach unter „Mehr" Benachrichtigungen einschalten und erlauben.'],
+  ['Wie füge ich etwas zum Kühlschrank hinzu?', 'Unter „Kühlschrank" eintippen, per Foto scannen oder aus den Vorschlägen antippen. Ablaufdaten kannst du pro Zutat eintragen.'],
+  ['Wie funktioniert die Einkaufsliste?', 'Unter „Planen → Einkauf". Tippe auf einen Eintrag, um Menge, Notiz oder Person festzulegen. Mit dem Mikrofon kannst du mehrere Sachen auf einmal sagen.'],
+  ['Kann ich eigene Rezepte speichern?', 'Ja – unter „Rezepte → Familie" auf „Neues Rezept". Eure Rezepte sieht nur eure Familie.'],
+  ['Wie ändere ich meinen Namen oder mein Profilbild?', 'Tippe oben rechts auf dein Bild. Dort kannst du Name, Bild, Farbe und Status ändern.'],
+  ['Ich habe mein Passwort vergessen.', 'Melde dich ab und tippe bei der Anmeldung auf „Passwort vergessen". Du bekommst eine E-Mail zum Zurücksetzen.'],
+  ['Wie verlasse ich eine Familie?', 'Unter „Familie" ganz unten auf „Familie verlassen". Als letzter Admin solltest du vorher jemand anderen zum Admin machen.'],
+  ['Was ist Plus?', 'Plus schaltet Extras frei. Unter „Mehr → Plus" siehst du alles – Plus-Mitglieder bekommen außerdem bevorzugt Antwort vom Support.'],
+  ['Wie lösche ich meinen Account und meine Daten?', 'Schreib uns über „Anfrage stellen → Datenschutz". Wir löschen deinen Account mit allen Daten und bestätigen es dir.'],
+  ['Die App lädt nicht oder zeigt alte Daten.', 'Ohne Internet zeigt die App den letzten Stand. Prüfe die Verbindung und zieh die Seite neu. Hilft das nicht, schau oben nach, ob es gerade eine Störung gibt.'],
+  ['Jemand schreibt unangemessene Dinge.', 'Tippe beim Beitrag auf ⚑ „Melden". Bei etwas Ernstem nutze den Notfall-Knopf – das sehen wir zuerst.'],
+];
+const SUP_CATS = [['fehler','🐞','Etwas funktioniert nicht'],['konto','👤','Konto & Anmeldung'],['familie','👨‍👩‍👧','Familie & Einladungen'],['abo','✨','Plus & Abo'],['datenschutz','🔒','Datenschutz & Daten löschen'],['sonstiges','💬','Etwas anderes']];
+const SUP_NOT = [
+  ['gehackt','🔐','Mein Konto wurde übernommen','Ändere zuerst dein Passwort: abmelden → „Passwort vergessen". Wir prüfen dein Konto und sperren fremde Zugriffe.'],
+  ['fremd','🚪','Jemand Fremdes ist in meiner Familie','Familien-Admins können die Person sofort unter „Familie" entfernen. Wir erstellen euch außerdem einen neuen Familien-Code.'],
+  ['inhalt','⚠️','Belästigung oder schlimmer Inhalt','Du kannst den Beitrag zusätzlich mit ⚑ melden. Wir schauen uns das sofort an und sperren bei Bedarf.'],
+  ['dringend','🚨','Etwas anderes Dringendes','Beschreib kurz, was passiert ist – Notfälle sehen wir als Erstes.']];
+const SUP_ICON = { chat:'💬', konto:'👤', familie:'👨‍👩‍👧', fehler:'🐞', abo:'✨', datenschutz:'🔒', sonstiges:'💬', sperre:'🛟', notfall:'🚨', melden:'⚑' };
+const SUP_STATUS = { offen:['Offen','c-yolk'], in_arbeit:['In Bearbeitung','c-herb'], geloest:['Gelöst',''] };
+const SUP = { tickets:[], msgs:{}, status:null, cfg:null, online:false, ch:null, ok:null, view:'home', tid:null, cat:null, sub:null, rep:null };
+const supUnread = () => SUP.tickets.filter(t => t.user_unread).length;
+
+async function loadSupport(){
+  if (!sb || !D.user) return;
+  if (SUP.uid !== D.user.id){ SUP.uid = D.user.id; SUP.tickets = []; SUP.msgs = {}; if (SUP.ch){ sb.removeChannel(SUP.ch); SUP.ch = null; } }
+  const safe = async q => { try { return (await q) || {}; } catch(e){ return { error:e }; } };
+  const [st, tk] = await Promise.all([
+    safe(sb.from('app_settings').select('key,value').in('key', ['status','support'])),
+    safe(sb.from('support_tickets').select('*').eq('user_id', D.user.id).order('updated_at', { ascending:false }).limit(30)),
+  ]);
+  (st.data || []).forEach(r => { if (r.key === 'status') SUP.status = r.value; if (r.key === 'support') SUP.cfg = r.value; });
+  if (tk.error){ SUP.ok = false; } else { SUP.ok = true; SUP.tickets = tk.data || []; }
+}
+function supSubscribe(){
+  if (SUP.ch || !sb || !D.user) return;
+  const ch = sb.channel('support-online', { config:{ presence:{ key: D.user.id } } });
+  ch.on('presence', { event:'sync' }, () => {
+      const st = ch.presenceState ? ch.presenceState() : {}; SUP.online = Object.values(st).some(arr => arr.some(p => p.support));
+      supRefresh(); })
+    .on('postgres_changes', { event:'*', schema:'public', table:'support_tickets' }, async () => { await loadSupport(); supRefresh(); if (!$('.sheet') && UI.tab === 'more') render(); })
+    .on('postgres_changes', { event:'INSERT', schema:'public', table:'support_messages' }, async ev => {
+      const m = ev.new; if (!m) return;
+      const list = SUP.msgs[m.ticket_id]; if (list && !list.some(x => x.id === m.id)) list.push(m);
+      if (m.from_support && !(SUP.view === 'ticket' && SUP.tid === m.ticket_id && $('.sheet'))) toast('🛟 Neue Antwort vom Support');
+      if (SUP.view === 'ticket' && SUP.tid === m.ticket_id && $('.sheet')) sb.rpc('support_seen', { tid:m.ticket_id }).then(()=>{}, ()=>{});
+      supRefresh(); })
+    .subscribe();
+  SUP.ch = ch;
+}
+function supRefresh(){ if ($('.sheet') && sheetFn && sheetFn.sup) sheetFn(true); }
+function supSheet(fn){ const f = k => fn(k); f.sup = true; sheetFn = f; return f; }
+
+async function openHelp(keep){
+  SUP.view = 'home'; supSheet(openHelp);
+  if (!keep){ supSubscribe(); loadSupport().then(supRefresh); }
+  const s = SUP.status || {}, cfg = SUP.cfg || {};
+  const plus = plusActive();
+  openSheet(`${sheetHead('Hilfe &amp; Support')}
+    ${s.state && s.state !== 'ok' ? `<div class="sup-status warn"><b>⚠️ Gerade gibt es Probleme</b><span>${esc(s.text || 'Wir arbeiten schon daran.')}</span></div>` : `<div class="sup-status"><b>✅ Alles läuft normal</b></div>`}
+    <div class="sup-online ${SUP.online ? 'on' : ''}"><i></i>${SUP.online ? 'Support ist gerade online – Antwort im Live-Chat meist in wenigen Minuten' : esc(cfg.reply || 'Wir antworten meistens innerhalb von 24 Stunden.')}</div>
+    <div class="sup-acts">
+      <button class="sup-act" data-action="sup-new" data-v="chat"><span>💬</span><b>Live-Chat</b><small>Direkt schreiben</small></button>
+      <button class="sup-act" data-action="sup-new" data-v=""><span>📝</span><b>Anfrage</b><small>Mit Kategorie</small></button>
+      <button class="sup-act red" data-action="sup-new" data-v="notfall"><span>🚨</span><b>Notfall</b><small>Sofort dringend</small></button>
+    </div>
+    <div class="sup-plus">${plus ? '✨ Du bist Plus-Mitglied – deine Anfragen werden bevorzugt beantwortet.' : '✨ ' + esc(cfg.plus || 'Plus-Mitglieder bekommen bevorzugt eine Antwort.')}</div>
+    ${SUP.tickets.length ? `<div class="h2">Meine Anfragen</div><div class="list">${SUP.tickets.slice(0, 8).map(t => `<button class="row" data-action="sup-open" data-id="${t.id}"><span style="font-size:20px">${SUP_ICON[t.category] || '💬'}</span><span class="grow"><b>${esc(t.subject)}</b><small>${(SUP_STATUS[t.status] || ['',''])[0]} · ${supAgo(t.updated_at)}</small></span>${t.user_unread ? '<span class="sup-badge">neu</span>' : ''}${I.chev}</button>`).join('')}</div>` : ''}
+    <div class="h2">Häufige Fragen</div>
+    <input class="input" id="sup-q" placeholder="Frage suchen, z. B. „Einladen"" aria-label="Häufige Fragen durchsuchen" autocomplete="off">
+    <div class="card sup-faq" id="sup-faq">${[...FAQ2, ...FAQ].map(([q, a], i) => `<details data-q="${esc((q + ' ' + a).toLowerCase())}"><summary>${esc(q)}</summary><p>${esc(a)}</p></details>`).join('')}<div class="muted sup-none" hidden>Nichts gefunden – schreib uns einfach im Live-Chat.</div></div>`, keep);
+}
+function supAgo(ts){ const m = Math.round((Date.now() - Date.parse(ts)) / 6e4); if (m < 2) return 'gerade eben'; if (m < 60) return `vor ${m} Min`; const h = Math.round(m / 60); if (h < 24) return `vor ${h} Std`; return agoText(ts); }
+
+function openSupNew(keep){
+  SUP.view = 'new'; supSheet(openSupNew);
+  const cat = SUP.cat, banned = D.profile?.banned;
+  const back = banned ? '' : `<button class="linkbtn sup-back" data-action="help">‹ Hilfe</button>`;
+  if (!cat){
+    openSheet(`${back}${sheetHead('Worum geht es?')}<div class="list">${SUP_CATS.map(([k, e, l]) => `<button class="row" data-action="sup-cat" data-v="${k}"><span style="font-size:20px">${e}</span><span class="grow"><b>${l}</b></span>${I.chev}</button>`).join('')}</div>`, keep); return;
+  }
+  if (cat === 'notfall' && !SUP.sub){
+    openSheet(`${back}${sheetHead('🚨 Notfall')}<p class="muted" style="margin:0 0 12px">Was ist passiert? Notfälle sehen wir als Erstes.</p><div class="list">${SUP_NOT.map(([k, e, l]) => `<button class="row" data-action="sup-sub" data-v="${k}"><span style="font-size:20px">${e}</span><span class="grow"><b>${l}</b></span>${I.chev}</button>`).join('')}</div>`, keep); return;
+  }
+  const n = cat === 'notfall' ? SUP_NOT.find(x => x[0] === SUP.sub) : null;
+  const title = cat === 'chat' ? '💬 Live-Chat' : cat === 'sperre' ? '🛟 Support' : n ? n[1] + ' ' + n[2] : (SUP_CATS.find(x => x[0] === cat) || [, '', 'Anfrage'])[1] + ' ' + (SUP_CATS.find(x => x[0] === cat) || [,, 'Anfrage'])[2];
+  const hint = cat === 'sperre' ? 'Erklär kurz, warum die Sperre deiner Meinung nach ein Fehler ist.' : cat === 'chat' ? 'Schreib einfach los – wir antworten hier im Chat.' : 'Beschreib kurz, was passiert ist.';
+  openSheet(`${back}${sheetHead(title)}
+    ${n ? `<div class="sup-tip">💡 ${esc(n[3])}</div>` : ''}
+    ${cat === 'sperre' ? `<p class="muted" style="margin:0 0 12px">Deine Nachricht geht direkt an das Team von „Was gibt's?". Die Antwort siehst du hier in der App.</p>` : ''}
+    ${!['chat','sperre','notfall'].includes(cat) ? `<div class="field"><label for="sup-subj">Betreff</label><input id="sup-subj" class="input" maxlength="100" placeholder="Kurz in ein paar Worten"></div>` : ''}
+    <div class="field"><label for="sup-text">${cat === 'chat' ? 'Deine Nachricht' : 'Was ist passiert?'}</label><textarea id="sup-text" class="input" rows="5" maxlength="2000" placeholder="${hint}"></textarea></div>
+    <button class="btn ${cat === 'notfall' ? 'btn-tomato' : 'btn-herb'} btn-block" data-action="sup-send">${cat === 'notfall' ? 'Notfall senden' : 'Senden'}</button>
+    ${plusActive() && cat !== 'notfall' ? '<p class="muted" style="text-align:center;font-size:13px;margin:10px 0 0">✨ Als Plus-Mitglied bevorzugt</p>' : ''}`, keep);
+}
+
+async function openTicket(keep){
+  SUP.view = 'ticket'; supSheet(openTicket);
+  const t = SUP.tickets.find(x => x.id === SUP.tid); if (!t){ openHelp(); return; }
+  if (!SUP.msgs[t.id]){ SUP.msgs[t.id] = []; sb.from('support_messages').select('*').eq('ticket_id', t.id).order('created_at').then(({ data }) => { SUP.msgs[t.id] = data || []; supRefresh(); }); }
+  if (t.user_unread){ t.user_unread = false; sb.rpc('support_seen', { tid:t.id }).then(()=>{}, ()=>{}); }
+  const ms = SUP.msgs[t.id], [sl, sc] = SUP_STATUS[t.status] || ['', ''];
+  const back = D.profile?.banned ? '' : `<button class="linkbtn sup-back" data-action="help">‹ Hilfe</button>`;
+  openSheet(`${back}${sheetHead(esc(t.subject))}
+    <div class="sup-meta"><span class="chip ${sc}">${sl}</span>${t.priority === 'notfall' ? '<span class="chip c-tomato">🚨 Notfall</span>' : t.priority === 'plus' ? '<span class="chip c-herb">✨ Plus</span>' : ''}<span class="muted">${SUP.online ? '🟢 Support online' : ''}</span></div>
+    <div class="sup-chat" id="sup-chat">${ms.map(m => `<div class="bub ${m.from_support ? 'them' : 'me'}">${m.from_support ? '<b>Support</b>' : ''}<span>${esc(m.body)}</span><small>${new Date(m.created_at).toLocaleString('de-DE', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' })}</small></div>`).join('') || '<div class="muted" style="text-align:center;padding:20px">Lädt …</div>'}
+      ${ms.length && t.last_from === 'user' && t.status !== 'geloest' ? `<div class="sup-wait">${SUP.online ? 'Der Support ist online und antwortet gleich.' : 'Wir haben deine Nachricht und melden uns hier.'}</div>` : ''}</div>
+    ${t.status === 'geloest' ? `<div class="sup-rate">${t.rating ? (t.rating > 0 ? 'Danke! Schön, dass wir helfen konnten 💚' : 'Danke für deine ehrliche Bewertung – wir werden besser.') : `<span>Hat dir das geholfen?</span><div><button class="btn btn-line btn-sm" data-action="sup-rate" data-v="1">👍 Ja</button><button class="btn btn-line btn-sm" data-action="sup-rate" data-v="-1">👎 Nein</button></div>`}</div>` : ''}
+    <form class="sup-input" id="sup-form" autocomplete="off"><textarea id="sup-reply" class="input" rows="1" maxlength="2000" placeholder="${t.status === 'geloest' ? 'Noch eine Frage? Schreib einfach weiter' : 'Nachricht schreiben …'}" aria-label="Nachricht"></textarea><button class="btn btn-herb" type="submit" aria-label="Senden">➤</button></form>
+    ${t.status !== 'geloest' ? `<button class="linkbtn" style="display:block;margin:10px auto 0;color:var(--muted);font-size:13px" data-action="sup-close">Problem gelöst? Anfrage schließen</button>` : ''}`, keep);
+  const c = $('#sup-chat'); if (c) c.scrollTop = c.scrollHeight;
+  const sh = $('.sheet'); if (sh && !keep) setTimeout(() => { sh.scrollTop = sh.scrollHeight; }, 50); else if (sh) sh.scrollTop = sh.scrollHeight;
+}
+
+function openReport(keep){
+  supSheet(openReport); SUP.view = 'report';
+  const r = SUP.rep || {};
+  openSheet(`${sheetHead('⚑ Melden')}<p class="muted" style="margin:0 0 12px">Was stimmt mit dem ${r.k === 'note' ? 'Kommentar' : 'Beitrag'} nicht? Die Person erfährt nicht, wer gemeldet hat.</p>
+    <div class="card" style="font-size:14px;margin-bottom:12px">„${esc(r.body || '')}"</div>
+    <div class="sup-chips">${['Spam','Beleidigung','Unangemessen','Etwas anderes'].map(x => `<button class="chip-btn" data-action="rep-why" data-v="${x}" aria-pressed="${r.why === x}">${x}</button>`).join('')}</div>
+    <div class="field" style="margin-top:12px"><textarea id="rep-text" class="input" rows="3" maxlength="500" placeholder="Optional: Was ist passiert?"></textarea></div>
+    <button class="btn btn-tomato btn-block" data-action="rep-send">Melden</button>`, keep);
+}
+
+async function supCreate(cat, subj, body, rep){
+  let tid = null, err = null;
+  if (SUP.ok !== false){
+    const r = await sb.rpc('support_open', { cat, subj, body, plus: plusActive(), rkind: rep ? rep.k : null, rid: rep ? rep.id : null, rtext: rep ? rep.body : null });
+    if (r.error){ err = r.error; if (!/does not exist|schema cache|function/i.test(r.error.message || '')) throw new Error(r.error.message); } else tid = r.data;
+  }
+  if (!tid){   // ältere Datenbank: als Feedback senden
+    const msg = `[${cat}] ${subj ? subj + ': ' : ''}${body}${rep ? ` (gemeldet: „${rep.body}")` : ''}`;
+    let { error } = await sb.from('feedback').insert({ user_id:D.user.id, kind:'support', message:msg, app_version:VERSION });
+    if (error) ({ error } = await sb.from('feedback').insert({ user_id:D.user.id, kind:'fehler', message:'[Support] ' + msg, app_version:VERSION }));
+    if (error) throw error;
+    return null;
+  }
+  await loadSupport(); return tid;
+}
+
+document.addEventListener('input', e => {
+  if (e.target.id === 'sup-q'){ const q = e.target.value.trim().toLowerCase(); let n = 0;
+    document.querySelectorAll('#sup-faq details').forEach(d => { const on = !q || d.dataset.q.includes(q); d.hidden = !on; if (on) n++; if (q && on) d.open = true; });
+    const no = $('#sup-faq .sup-none'); if (no) no.hidden = n > 0; }
+  if (e.target.id === 'sup-reply'){ e.target.style.height = 'auto'; e.target.style.height = Math.min(140, e.target.scrollHeight) + 'px'; }
+});
+document.addEventListener('submit', async e => {
+  if (e.target.id !== 'sup-form') return; e.preventDefault();
+  const ta = $('#sup-reply'), body = ta.value.trim(); if (!body) return;
+  const t = SUP.tickets.find(x => x.id === SUP.tid); if (!t) return;
+  ta.value = ''; const tmp = { id:'tmp' + Date.now(), ticket_id:t.id, from_support:false, body, created_at:new Date().toISOString() };
+  SUP.msgs[t.id].push(tmp); t.last_from = 'user'; if (t.status === 'geloest') t.status = 'offen'; supRefresh();
+  const { data, error } = await sb.from('support_messages').insert({ ticket_id:t.id, body, from_support:false }).select().single();
+  const list = SUP.msgs[t.id]; const i = list.indexOf(tmp);
+  if (error){ list.splice(i, 1); supRefresh(); toast('Nachricht konnte nicht gesendet werden'); ta.value = body; return; }
+  if (i >= 0){ if (list.some(x => x.id === data.id)) list.splice(i, 1); else list[i] = data; }
+  supRefresh();
+});
+document.addEventListener('click', async e => {
+  const t = e.target.closest('[data-action]'); if (!t) return;
+  const a = t.dataset.action; if (!/^(help|sup-|report$|rep-)/.test(a)) return;
+  try { switch (a){
+    case 'help': openHelp(); break;
+    case 'sup-new': await (SUP.ok === null ? loadSupport() : null); SUP.cat = t.dataset.v || null; SUP.sub = null;
+      if (SUP.cat === 'chat'){ const open = SUP.tickets.find(x => x.category === 'chat' && x.status !== 'geloest'); if (open){ SUP.tid = open.id; supSubscribe(); openTicket(); break; } }
+      if (SUP.cat === 'sperre'){ const open = SUP.tickets.find(x => x.category === 'sperre' && x.status !== 'geloest'); if (open){ SUP.tid = open.id; supSubscribe(); openTicket(); break; } }
+      openSupNew(); break;
+    case 'sup-cat': SUP.cat = t.dataset.v; openSupNew(); break;
+    case 'sup-sub': SUP.sub = t.dataset.v; openSupNew(); break;
+    case 'sup-send': {
+      const body = $('#sup-text').value.trim(); if (!body){ toast('Bitte schreib kurz etwas'); $('#sup-text').focus(); break; }
+      const cat = SUP.cat, n = SUP_NOT.find(x => x[0] === SUP.sub);
+      const subj = ($('#sup-subj') && $('#sup-subj').value.trim()) || (cat === 'chat' ? 'Live-Chat' : cat === 'sperre' ? 'Frage zur Sperre' : n ? 'Notfall: ' + n[2] : (SUP_CATS.find(x => x[0] === cat) || [,, 'Anfrage'])[2]);
+      t.disabled = true; t.textContent = 'Sende …';
+      const tid = await supCreate(cat, subj, body);
+      if (tid){ SUP.tid = tid; supSubscribe(); openTicket(); toast(cat === 'notfall' ? '🚨 Notfall ist angekommen – wir kümmern uns zuerst darum' : 'Angekommen – die Antwort siehst du hier'); }
+      else { closeSheet(); render(); toast('Deine Nachricht ist beim Support angekommen 💚'); }
+      break; }
+    case 'sup-open': SUP.tid = t.dataset.id; openTicket(); break;
+    case 'sup-rate': { const tk = SUP.tickets.find(x => x.id === SUP.tid); if (!tk) break; tk.rating = +t.dataset.v; supRefresh(); await sb.rpc('support_rate', { tid:tk.id, val:+t.dataset.v }); break; }
+    case 'sup-close': { const tk = SUP.tickets.find(x => x.id === SUP.tid); if (!tk) break; tk.status = 'geloest'; supRefresh(); const { error } = await sb.rpc('support_close', { tid:tk.id }); if (error) throw error; toast('Anfrage geschlossen ✓'); break; }
+    case 'report': { const k = t.dataset.k, id = t.dataset.id; const item = (k === 'note' ? D.notes : D.board).find(x => x.id === id); if (!item) break;
+      SUP.rep = { k, id, body: item.body, why: null }; openReport(); break; }
+    case 'rep-why': SUP.rep.why = t.dataset.v; document.querySelectorAll('[data-action=rep-why]').forEach(b => b.setAttribute('aria-pressed', b === t)); break;
+    case 'rep-send': { const r = SUP.rep; if (!r.why){ toast('Bitte wähle einen Grund'); break; }
+      t.disabled = true; const extra = $('#rep-text').value.trim();
+      await supCreate('melden', 'Meldung: ' + r.why, extra || r.why, r);
+      closeSheet(); render(); toast('Danke – wir schauen uns das an'); break; }
+  } } catch(err){ t.disabled = false; toast('Hat nicht geklappt: ' + (err && err.message || err)); }
+});
