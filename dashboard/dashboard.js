@@ -330,12 +330,12 @@ function viewFamilies(){
 }
 
 /* ---------- Feedback ---------- */
-function kindChip(k){ return ({ fehler:'<span class="chip c-tomato">🐞 Fehler</span>', idee:'<span class="chip c-yolk">💡 Idee</span>', lob:'<span class="chip c-herb">💚 Lob</span>', plus:'<span class="chip c-herb">✨ Plus</span>' })[k] || `<span class="chip">${esc(k)}</span>`; }
+function kindChip(k){ return ({ fehler:'<span class="chip c-tomato">🐞 Fehler</span>', idee:'<span class="chip c-yolk">💡 Idee</span>', lob:'<span class="chip c-herb">💚 Lob</span>', support:'<span class="chip c-tomato">🛟 Support</span>', plus:'<span class="chip c-herb">✨ Plus</span>' })[k] || `<span class="chip">${esc(k)}</span>`; }
 function viewFeedback(){
   const f = S.fb, test = (x, k) => k === 'all' ? true : k === 'open' ? !x.done : x.kind === k;
   const list = S.feedback.filter(x => test(x, f)), n = k => S.feedback.filter(x => test(x, k)).length;
   return `<div class="wrap">${top('Feedback', 'Alles aus „Mehr → Feedback senden" und „Plus"')}${errBox(['feedback'])}
-    <div class="row rise" style="margin-bottom:14px">${seg('fb', [['open',`Offen · ${n('open')}`],['all',`Alle · ${n('all')}`],['fehler','Fehler'],['idee','Ideen'],['lob','Lob'],['plus','Plus']], f, 'fb')}</div>
+    <div class="row rise" style="margin-bottom:14px">${seg('fb', [['open',`Offen · ${n('open')}`],['all',`Alle · ${n('all')}`],['support',`Support · ${n('support')}`],['fehler','Fehler'],['idee','Ideen'],['lob','Lob'],['plus','Plus']], f, 'fb')}</div>
     <div class="grid">${list.map((x,i) => `<article class="glass card rise" style="--d:${Math.min(i,8)};${x.done?'opacity:.6':''}">
       <div class="row" style="justify-content:space-between;align-items:flex-start"><div class="row" style="gap:8px">${kindChip(x.kind)}<b>${esc(x.name || 'Unbekannt')}</b><small class="muted">${fmtTime(x.created_at)}${x.app_version?` · v${esc(x.app_version)}`:''}</small></div>
         <div class="row" style="gap:6px">${x.email?`<a class="btn btn-sm" href="mailto:${esc(x.email)}">Antworten</a>`:''}<button class="btn btn-sm ${x.done?'':'btn-herb'}" data-a="fb-done" data-id="${x.id}" data-v="${!x.done}">${x.done?'Wieder öffnen':ic('checkmark')+'Erledigt'}</button><button class="btn btn-sm btn-icon btn-soft-red" data-a="fb-del" data-id="${x.id}" aria-label="Löschen">${ic('trash')}</button></div></div>

@@ -54,6 +54,10 @@ begin
   return json_build_object('banned', coalesce(p.banned, false), 'until', p.banned_until, 'reason', p.ban_reason);
 end $$;
 
+-- Support-Nachrichten (auch von gesperrten Personen) und Werbe-Zählung erlauben
+alter table public.feedback drop constraint if exists feedback_kind_check;
+alter table public.feedback add constraint feedback_kind_check check (kind in ('fehler','idee','lob','plus','werbung','support'));
+
 -- ---------- Moderations-Verlauf ----------
 create table if not exists public.mod_log (
   id         uuid primary key default gen_random_uuid(),

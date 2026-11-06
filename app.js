@@ -657,7 +657,7 @@ function viewFamily(){
 /* ---------- Reiter „Mehr" ---------- */
 const VERSION = '4.0.1';
 const CHANGELOG = [
-  { v:'4.0.1', d:'6. November 2026', items:['Wer vorübergehend gesperrt ist, sieht jetzt, bis wann die Sperre gilt und warum – danach geht es automatisch weiter','Behoben: Am Computer wurde man aus dem Admin-Bereich ständig abgemeldet, wenn die App gleichzeitig offen war – der Admin-Bereich hat jetzt eine eigene Anmeldung','Behoben: Gesperrten Personen wurden Hinweis-Fenster (z. B. „Update ist da“) über den Sperr-Bildschirm gelegt','Behoben: Auf dem Sperr-Bildschirm war die Tab-Leiste zu sehen, obwohl man sie nicht benutzen konnte','Behoben: Auf dem Sperr-Bildschirm ließ sich das Impressum nicht öffnen','Neues Admin-Dashboard mit Moderation (nur für Betreiber)'] },
+  { v:'4.0.1', d:'6. November 2026', items:['Wer vorübergehend gesperrt ist, sieht jetzt, bis wann die Sperre gilt und warum – danach geht es automatisch weiter','Behoben: Am Computer wurde man aus dem Admin-Bereich ständig abgemeldet, wenn die App gleichzeitig offen war – der Admin-Bereich hat jetzt eine eigene Anmeldung','Behoben: Gesperrten Personen wurden Hinweis-Fenster (z. B. „Update ist da“) über den Sperr-Bildschirm gelegt','Behoben: Auf dem Sperr-Bildschirm war die Tab-Leiste zu sehen, obwohl man sie nicht benutzen konnte','Gesperrte Personen können sich jetzt direkt aus der App an den Support wenden','Neues Admin-Dashboard mit Moderation (nur für Betreiber)'] },
   { v:'4.0', d:'6. November 2026', items:['🙏 Sorry, dass das Update später kam als angekündigt – dafür ist alles gründlich getestet','🎉 Das große Update – 20 neue Funktionen','🛒 Einkaufsliste: Menge und Notiz pro Eintrag („2 Packungen", „bio") – einfach auf den Eintrag tippen','🛒 Mehrere Listen: Supermarkt, Drogerie und Markt','🟢 Live: Ihr seht, wer gerade einkaufen ist – was ihr dann hinzufügt, sieht die Person sofort','🎤 Per Sprache hinzufügen: „Milch, Eier und Brot" sagen – alles landet auf der Liste','🙋 Einkauf zuweisen: „Mia bringt es mit"','✅ Vorbereitungs-Modus: Vor dem Kochen Zutaten und Geräte abhaken','⏱ Zeiten im Rezept antippen („10 Minuten") startet direkt einen Timer','👨‍🍳 Kochdienst: Im Wochenplan einteilen, wer wann kocht','💬 Notizen an Rezepten für die ganze Familie („Nächstes Mal mehr Käse!")','⚠️ Allergie-Warnung: Das Rezept zeigt, wer aus der Familie etwas nicht verträgt','📌 Familien-Pinnwand für kurze Nachrichten','🏆 Koch-Rangliste des Monats','🗳️ Abstimmung mit Uhrzeit – endet automatisch und meldet das Ergebnis','☕ Frühstück, Mittag und Abendessen im Wochenplan','🍕 Auswärts- und Bestell-Tage im Wochenplan','🎉 Party-Planer: Gäste und Gerichte wählen – Einkaufsliste und Plan werden gefüllt','📁 Eigene Rezept-Sammlungen (z. B. „Weihnachten")','♻️ Reste-Modus: Rezepte für alles, was bald abläuft','🖼️ Wochenplan als Bild teilen und 🔁 „Letzte Woche wiederholen"','📖 30 neue Rezepte aus der neuen Rezept-Datenbank – sie wächst ab jetzt laufend','Behoben: Ohne Internet blieb die App beim Start im Ladebildschirm hängen – jetzt siehst du den letzten Stand mit Offline-Hinweis, und sie verbindet sich automatisch neu','Behoben: Beim allerersten Start ohne Internet stürzte die App ab – jetzt gibt es eine klare Meldung mit „Nochmal versuchen"','Behoben: „Einkaufsliste teilen" warf dich aus der App, wenn Kopieren nicht ging','Behoben: Beim Teilen der Einkaufsliste fehlten Mengen und Notizen','Behoben: Auf kleinen Handys rutschte dein Profilbild oben rechts aus dem Bildschirm, wenn dein Name lang ist','Behoben: Auf kleinen Handys ragte die „Wer isst mit"-Leiste über den Rand','Behoben: Bei großer Schrift ragten die Umschalter (Woche, Wünsche …) über den Rand','Behoben: Bei großer Schrift ragte die Filterleiste auf „Heute" über den Rand','Behoben: Bei großer Schrift war das Plus-Fenster seitlich abgeschnitten','Behoben: Bei großer Schrift verschoben Saison- und Filter-Chips die ganze Seite','Behoben: Bei großer Schrift war das Rezeptfoto zu breit','Behoben: „Heute gekocht" doppelt angetippt wurde doppelt gezählt','Behoben: „1 Zutaten", „1 Mitglieder", „1 Rezepte" – Einzahl stimmt jetzt überall','Behoben: Im Rückblick stand „0 davon verschieden", wenn noch nichts gekocht war','Behoben: App-Öffnungen kurz nach Mitternacht zählten zum Vortag','Behoben: „Bald aufbrauchen" führt jetzt direkt zu passenden Rezepten','Behoben: Suchfelder und Datumsfelder hatten keine Beschriftung für Bildschirmleser','Behoben: Nach dem Schließen der Werbung lief im Hintergrund ein Fehler','Behoben: Auf dem iPhone blieb der Bereich hinter Uhrzeit und Akku grün – er passt sich jetzt jedem Bildschirm an','Admin-Panel: Einzahl-Fehler bei Familien, Personen und Wünschen behoben','Datenschutzerklärung für die neuen Familien-Funktionen aktualisiert'] },
   { v:'3.2.5', d:'5. November 2026', items:['Die Farbe hinter Uhrzeit und Akku passt sich jetzt automatisch an jeden Bildschirm an – Werbung, Rückblick, Kochmodus, Einkaufs-Modus und offene Fenster'] },
   { v:'3.2.4', d:'5. November 2026', items:['Neuer Ladebildschirm in App-Farbe statt Grün – dadurch wird auch der Bereich hinter Uhrzeit und Akku nicht mehr grün'] },
@@ -755,8 +755,9 @@ function viewBanned(){
     <div class="h1" style="font-size:24px">Dein Account ist ${D.profile.banned_until ? 'vorübergehend ' : ''}gesperrt</div>
     ${D.profile.banned_until ? `<p style="margin:0;font-weight:700">bis ${esc(new Date(D.profile.banned_until).toLocaleString('de-DE', { weekday:'long', day:'numeric', month:'long', hour:'2-digit', minute:'2-digit' }))} Uhr</p>` : ''}
     ${D.profile.ban_reason ? `<p style="margin:0;max-width:280px">Grund: ${esc(D.profile.ban_reason)}</p>` : ''}
-    <p style="color:var(--muted);max-width:280px">Wenn du glaubst, dass das ein Fehler ist, melde dich über die Kontaktdaten im Impressum.</p>
-    <div class="row" style="gap:10px;justify-content:center"><button class="btn btn-line" data-action="legal" data-v="impressum">Impressum</button><button class="btn btn-line" data-action="logout">Abmelden</button></div></div>`;
+    <p style="color:var(--muted);max-width:280px">Du glaubst, das ist ein Fehler? Schreib unserem Support – wir schauen es uns an.</p>
+    <button class="btn btn-herb" data-action="support">🛟 Support kontaktieren</button>
+    <button class="btn btn-line" data-action="logout">Abmelden</button></div>`;
 }
 
 /* ---------- Push-Benachrichtigungen ---------- */
@@ -1236,6 +1237,14 @@ function openFeedback(){
     <div class="seg" role="group" aria-label="Art">${[['fehler','🐞 Fehler'],['idee','💡 Idee'],['lob','❤️ Lob']].map(([k,l],n)=>`<button type="button" data-action="fb-kind" data-v="${k}" aria-pressed="${n===0}">${l}</button>`).join('')}</div>
     <div class="field" style="margin-top:14px"><label for="fb-text">Was möchtest du uns sagen?</label><textarea id="fb-text" class="input" rows="6" maxlength="2000" placeholder="Beschreib kurz, was passiert ist oder was du dir wünschst."></textarea></div>
     <button class="btn btn-herb btn-block" data-action="send-feedback">Senden</button>`);
+}
+
+function openSupport(){
+  sheetFn = null;
+  openSheet(`${sheetHead('Support')}
+    <p class="muted" style="margin:0 0 14px">Deine Nachricht geht direkt an das Team von „Was gibt's?". Die Antwort bekommst du an ${esc(D.user.email || 'deine E-Mail-Adresse')}.</p>
+    <div class="field"><label for="sup-text">Was ist passiert?</label><textarea id="sup-text" class="input" rows="6" maxlength="2000" placeholder="Erklär kurz, warum die Sperre deiner Meinung nach ein Fehler ist."></textarea></div>
+    <button class="btn btn-herb btn-block" data-action="send-support">Nachricht senden</button>`);
 }
 
 /* ---------- Kochmodus (Querformat) ---------- */
@@ -1809,6 +1818,12 @@ document.addEventListener('click', async e => {
     case 'del-recipe': { const r = rec(id); const { error } = await sb.from('custom_recipes').delete().eq('id', r.dbid); if (error) throw error;
       UI.confirmDel = null; await loadAll(true); closeSheet(); render(); toast('Rezept gelöscht'); break; }
     case 'feedback': openFeedback(); break;
+    case 'support': openSupport(); break;
+    case 'send-support': { const msg = $('#sup-text').value.trim(); if (!msg){ toast('Bitte schreib kurz etwas'); $('#sup-text').focus(); break; }
+      t.disabled = true; const pre = D.profile?.banned ? '[Gesperrt] ' : '';
+      let { error } = await sb.from('feedback').insert({ user_id:D.user.id, kind:'support', message:pre + msg, app_version:VERSION });
+      if (error) ({ error } = await sb.from('feedback').insert({ user_id:D.user.id, kind:'fehler', message:'[Support] ' + pre + msg, app_version:VERSION }));   // ältere Datenbank
+      if (error){ t.disabled = false; throw error; } closeSheet(); toast('Deine Nachricht ist beim Support angekommen 💚'); break; }
     case 'send-feedback': { const msg = $('#fb-text').value.trim(); if (!msg){ toast('Bitte schreib kurz etwas'); $('#fb-text').focus(); break; }
       t.disabled = true; const { error } = await sb.from('feedback').insert({ user_id:D.user.id, kind:$('[data-action=fb-kind][aria-pressed=true]')?.dataset.v || 'idee', message:msg, app_version:VERSION });
       if (error){ t.disabled = false; throw error; } closeSheet(); toast('Danke für dein Feedback! 💚'); break; }
