@@ -4,6 +4,7 @@
    geschützte Datenbank-Funktionen, die den Zugriff selbst prüfen.
    ========================================================================= */
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/+esm';
+const pl = (n, one, many) => `${n ?? 0} ${(n ?? 0) === 1 ? one : many}`;
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from './config.js';
 
 const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -104,10 +105,10 @@ function viewHome(){
     <div class="grid kpis">
       ${kpi('Nutzer', st.users, `+${st.users_7d ?? 0} in 7 Tagen`)}
       ${kpi('Heute aktiv', st.active_today, `${st.active_7d ?? 0} in 7 Tagen`)}
-      ${kpi('Familien', st.families, `${st.members ?? 0} Mitglieder · ${st.pending ?? 0} Anfragen`)}
-      ${kpi('Push-Geräte', c.all ?? st.push_devices, `${c.users ?? 0} Personen · ${c.auto_7d ?? 0} automatisch in 7 Tagen`)}
-      ${kpi('Eigene Rezepte', st.recipes, `${st.wishes ?? 0} Wünsche · ${st.polls ?? 0} Abstimmungen`)}
-      ${kpi('Offenes Feedback', st.feedback_open, `${st.plus ?? 0} Plus-Interessenten`)}
+      ${kpi('Familien', st.families, `${pl(st.members,'Mitglied','Mitglieder')} · ${pl(st.pending,'Anfrage','Anfragen')}`)}
+      ${kpi('Push-Geräte', c.all ?? st.push_devices, `${pl(c.users,'Person','Personen')} · ${c.auto_7d ?? 0} automatisch in 7 Tagen`)}
+      ${kpi('Eigene Rezepte', st.recipes, `${pl(st.wishes,'Wunsch','Wünsche')} · ${pl(st.polls,'Abstimmung','Abstimmungen')}`)}
+      ${kpi('Offenes Feedback', st.feedback_open, `${pl(st.plus,'Plus-Interessent','Plus-Interessenten')}`)}
     </div>
     <div class="grid two" style="margin-top:14px">
       <div class="card"><h2>Neue Nutzer · 14 Tage</h2>

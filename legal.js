@@ -7,7 +7,7 @@
    – Anschrift und E-Mail im Impressum eintragen (Platzhalter in [eckigen Klammern]).
    – Die Texte sind eine sorgfältige Vorlage, ersetzen aber keine Rechtsberatung.
    ========================================================================= */
-const STAND = '26. Oktober 2026';
+const STAND = '5. November 2026';
 const OWNER = 'Odin Hennig';
 const ADDRESS = '[Straße und Hausnummer]<br>[PLZ und Ort]<br>Deutschland';
 const MAIL = '[E-Mail-Adresse]';
@@ -39,6 +39,7 @@ export const LEGAL = {
     <p><b>Familie und Inhalte:</b> Familienname und -code, Mitgliedschaften, Kühlschrank-Inhalt mit Haltbarkeitsdaten, Einkaufsliste, Wochenplan, Wünsche, Lieblingsgerichte, Abstimmungen und eigene Rezepte. Diese Daten sehen nur die Mitglieder deiner Familie. Rechtsgrundlage: Vertrag (Art. 6 Abs. 1 lit. b DSGVO).</p>
     <p><b>Essensvorlieben, Unverträglichkeiten und „vegetarisch":</b> Damit die App passende Gerichte vorschlägt. Angaben zu Unverträglichkeiten (z. B. Laktose, Gluten, Nüsse) können Gesundheitsdaten sein. Sie sind freiwillig, werden nur dafür genutzt und nur deiner Familie angezeigt. Rechtsgrundlage: deine ausdrückliche Einwilligung durch das Eintragen (Art. 9 Abs. 2 lit. a DSGVO). Du kannst sie jederzeit im Profil löschen.</p>
     <p><b>Nutzungsangaben:</b> Zeitpunkt der letzten Nutzung (höchstens alle paar Stunden aktualisiert) und die App-Version. Zweck: Betrieb, Fehlersuche und einfache Statistiken für den Betreiber. Rechtsgrundlage: berechtigtes Interesse an einem funktionierenden Dienst (Art. 6 Abs. 1 lit. f DSGVO).</p>
+    <p><b>Familien-Funktionen:</b> Notizen an Rezepten, Nachrichten auf der Pinnwand, Rezept-Sammlungen, der Kochdienst im Wochenplan sowie Mengen, Notizen und „Wer bringt's mit" auf der Einkaufsliste. Sie sind nur für deine Familie sichtbar und werden gelöscht, wenn du sie löschst oder die Familie verlässt. Während du den Einkaufs-Modus nutzt, sieht deine Familie live, dass du gerade einkaufen bist – das wird nicht gespeichert. Rechtsgrundlage: Vertrag (Art. 6 Abs. 1 lit. b DSGVO).</p>
     <p><b>Feedback und Fehlerberichte:</b> Was du über „Feedback senden" schreibst, und automatische Fehlerberichte, wenn z. B. die Foto-Erkennung fehlschlägt (Fehlertext, App-Version, dein Konto). Rechtsgrundlage: berechtigtes Interesse (Art. 6 Abs. 1 lit. f DSGVO).</p>
     <p><b>Interesse an „Plus":</b> Wenn du „Ich hätte Interesse" tippst, speichern wir das, um dich beim Start zu informieren. Rechtsgrundlage: Einwilligung (Art. 6 Abs. 1 lit. a DSGVO).</p>
 
@@ -52,13 +53,13 @@ export const LEGAL = {
     <p>Nur wenn du sie unter „Mehr" einschaltest und dein Gerät es erlaubt. Dafür speichern wir eine technische Adresse deines Geräts. Zugestellt werden die Nachrichten über den Dienst deines Geräteherstellers bzw. Browsers (z. B. Apple, Google oder Mozilla). Wir senden Neuigkeiten zur App und Familien-Hinweise (z. B. neuer Wunsch, Abstimmung, Beitrittsanfrage). Rechtsgrundlage: Einwilligung (Art. 6 Abs. 1 lit. a DSGVO). Du kannst sie jederzeit in der App oder in den Geräte-Einstellungen ausschalten. Beim Abmelden wird die Adresse gelöscht.</p>
 
     <h3>5. Sprachsteuerung und Vorlesen</h3>
-    <p>Nur wenn du im Kochmodus das Mikrofon einschaltest. Die Spracherkennung übernimmt dein Browser bzw. Betriebssystem; je nach Gerät wird die Sprache dafür an den Anbieter gesendet (z. B. Google bei Chrome, Apple bei Safari). Wir erhalten und speichern keine Aufnahmen. Rechtsgrundlage: Einwilligung (Art. 6 Abs. 1 lit. a DSGVO) durch das Einschalten.</p>
+    <p>Nur wenn du im Kochmodus oder auf der Einkaufsliste das Mikrofon einschaltest. Die Spracherkennung übernimmt dein Browser bzw. Betriebssystem; je nach Gerät wird die Sprache dafür an den Anbieter gesendet (z. B. Google bei Chrome, Apple bei Safari). Wir erhalten und speichern keine Aufnahmen. Rechtsgrundlage: Einwilligung (Art. 6 Abs. 1 lit. a DSGVO) durch das Einschalten.</p>
 
     <h3>6. Kamera und Mikrofon</h3>
     <p>Die App greift nur darauf zu, wenn du selbst ein Foto machst oder die Sprachsteuerung startest, und nur nach Erlaubnis durch dein Gerät.</p>
 
     <h3>7. Speicherung auf deinem Gerät</h3>
-    <p>Wir setzen keine Cookies zu Werbe- oder Analysezwecken und nutzen kein Tracking. Auf deinem Gerät (Local Storage / Service Worker) speichern wir nur, was für die App nötig ist: deine Anmeldung, Einstellungen wie Farbschema oder wer mitisst, zuletzt benutzte Zutaten sowie zwischengespeicherte Rezeptfotos und Kochschritte, damit die App schnell ist und auch offline startet. Rechtsgrundlage: § 25 Abs. 2 Nr. 2 TDDDG (unbedingt erforderlich).</p>
+    <p>Wir setzen keine Cookies zu Werbe- oder Analysezwecken und nutzen kein Tracking. Auf deinem Gerät (Local Storage / Service Worker) speichern wir nur, was für die App nötig ist: deine Anmeldung, Einstellungen wie Farbschema oder wer mitisst, zuletzt benutzte Zutaten sowie zwischengespeicherte Rezeptfotos und Kochschritte sowie eine Kopie der Familiendaten, damit die App schnell ist und auch ohne Internet den letzten Stand zeigt. Diese Kopie wird beim Abmelden gelöscht. Rechtsgrundlage: § 25 Abs. 2 Nr. 2 TDDDG (unbedingt erforderlich).</p>
 
     <h3>8. Dienstleister und Empfänger</h3>
     <p><b>Supabase</b> (Supabase Inc., USA): Datenbank, Anmeldung und Server-Funktionen. Die Daten liegen in einem Rechenzentrum in der EU. Mit Supabase besteht ein Auftragsverarbeitungsvertrag.</p>
