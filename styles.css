@@ -1358,7 +1358,7 @@ html:not([data-theme=light])[data-accent=amber]{--herb:#F2B054;--herb-soft:#3A28
   background:linear-gradient(90deg,#6B3FD4,#C2408F,#F08A3C)}
 .party-chip b{flex:1;text-align:left}
 .pc-t{font-family:var(--f-display);font-weight:800;font-variant-numeric:tabular-nums;background:rgba(255,255,255,.22);padding:3px 9px;border-radius:999px}
-html.party #views::after{content:"";position:absolute;left:0;right:0;top:0;height:140px;pointer-events:none;z-index:1;opacity:.5;
+html.party:not(.banned) #views::after{content:"";position:absolute;left:0;right:0;top:0;height:140px;pointer-events:none;z-index:1;opacity:.5;
   background-image:radial-gradient(circle,#C2408F 1.6px,transparent 2.2px),radial-gradient(circle,#F0A23C 1.6px,transparent 2.2px),radial-gradient(circle,#6B3FD4 1.4px,transparent 2px);
   background-size:46px 38px,58px 44px,70px 52px;background-position:6px 10px,24px 30px,40px 4px;-webkit-mask-image:linear-gradient(#000,transparent);mask-image:linear-gradient(#000,transparent)}
 @media (prefers-reduced-motion:reduce){.pty-conf i{animation:none}}

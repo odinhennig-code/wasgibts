@@ -320,7 +320,7 @@ const I = {
 
 /* ---------- Tab-Leiste ---------- */
 function renderTabbar(){
-  const show = D.user && isActive();
+  const show = D.user && isActive() && !D.profile?.banned;
   $('#tabbar').hidden = !show; if (!show) return;
   const p = isAdmin() ? pendingReq().length : 0;
   const tabs = [['home','Heute',I.home],['fridge','Kühlschrank',I.fridge],['recipes','Planen',I.book],['family','Familie',I.family],['more','Mehr',I.more]];
@@ -657,7 +657,7 @@ function viewFamily(){
 /* ---------- Reiter „Mehr" ---------- */
 const VERSION = '4.0.1';
 const CHANGELOG = [
-  { v:'4.0.1', d:'6. November 2026', items:['Wer vorübergehend gesperrt ist, sieht jetzt, bis wann die Sperre gilt und warum – danach geht es automatisch weiter','Behoben: Am Computer wurde man aus dem Admin-Bereich ständig abgemeldet, wenn die App gleichzeitig offen war – der Admin-Bereich hat jetzt eine eigene Anmeldung','Neues Admin-Dashboard mit Moderation (nur für Betreiber)'] },
+  { v:'4.0.1', d:'6. November 2026', items:['Wer vorübergehend gesperrt ist, sieht jetzt, bis wann die Sperre gilt und warum – danach geht es automatisch weiter','Behoben: Am Computer wurde man aus dem Admin-Bereich ständig abgemeldet, wenn die App gleichzeitig offen war – der Admin-Bereich hat jetzt eine eigene Anmeldung','Behoben: Gesperrten Personen wurden Hinweis-Fenster (z. B. „Update ist da“) über den Sperr-Bildschirm gelegt','Behoben: Auf dem Sperr-Bildschirm war die Tab-Leiste zu sehen, obwohl man sie nicht benutzen konnte','Behoben: Auf dem Sperr-Bildschirm ließ sich das Impressum nicht öffnen','Neues Admin-Dashboard mit Moderation (nur für Betreiber)'] },
   { v:'4.0', d:'6. November 2026', items:['🙏 Sorry, dass das Update später kam als angekündigt – dafür ist alles gründlich getestet','🎉 Das große Update – 20 neue Funktionen','🛒 Einkaufsliste: Menge und Notiz pro Eintrag („2 Packungen", „bio") – einfach auf den Eintrag tippen','🛒 Mehrere Listen: Supermarkt, Drogerie und Markt','🟢 Live: Ihr seht, wer gerade einkaufen ist – was ihr dann hinzufügt, sieht die Person sofort','🎤 Per Sprache hinzufügen: „Milch, Eier und Brot" sagen – alles landet auf der Liste','🙋 Einkauf zuweisen: „Mia bringt es mit"','✅ Vorbereitungs-Modus: Vor dem Kochen Zutaten und Geräte abhaken','⏱ Zeiten im Rezept antippen („10 Minuten") startet direkt einen Timer','👨‍🍳 Kochdienst: Im Wochenplan einteilen, wer wann kocht','💬 Notizen an Rezepten für die ganze Familie („Nächstes Mal mehr Käse!")','⚠️ Allergie-Warnung: Das Rezept zeigt, wer aus der Familie etwas nicht verträgt','📌 Familien-Pinnwand für kurze Nachrichten','🏆 Koch-Rangliste des Monats','🗳️ Abstimmung mit Uhrzeit – endet automatisch und meldet das Ergebnis','☕ Frühstück, Mittag und Abendessen im Wochenplan','🍕 Auswärts- und Bestell-Tage im Wochenplan','🎉 Party-Planer: Gäste und Gerichte wählen – Einkaufsliste und Plan werden gefüllt','📁 Eigene Rezept-Sammlungen (z. B. „Weihnachten")','♻️ Reste-Modus: Rezepte für alles, was bald abläuft','🖼️ Wochenplan als Bild teilen und 🔁 „Letzte Woche wiederholen"','📖 30 neue Rezepte aus der neuen Rezept-Datenbank – sie wächst ab jetzt laufend','Behoben: Ohne Internet blieb die App beim Start im Ladebildschirm hängen – jetzt siehst du den letzten Stand mit Offline-Hinweis, und sie verbindet sich automatisch neu','Behoben: Beim allerersten Start ohne Internet stürzte die App ab – jetzt gibt es eine klare Meldung mit „Nochmal versuchen"','Behoben: „Einkaufsliste teilen" warf dich aus der App, wenn Kopieren nicht ging','Behoben: Beim Teilen der Einkaufsliste fehlten Mengen und Notizen','Behoben: Auf kleinen Handys rutschte dein Profilbild oben rechts aus dem Bildschirm, wenn dein Name lang ist','Behoben: Auf kleinen Handys ragte die „Wer isst mit"-Leiste über den Rand','Behoben: Bei großer Schrift ragten die Umschalter (Woche, Wünsche …) über den Rand','Behoben: Bei großer Schrift ragte die Filterleiste auf „Heute" über den Rand','Behoben: Bei großer Schrift war das Plus-Fenster seitlich abgeschnitten','Behoben: Bei großer Schrift verschoben Saison- und Filter-Chips die ganze Seite','Behoben: Bei großer Schrift war das Rezeptfoto zu breit','Behoben: „Heute gekocht" doppelt angetippt wurde doppelt gezählt','Behoben: „1 Zutaten", „1 Mitglieder", „1 Rezepte" – Einzahl stimmt jetzt überall','Behoben: Im Rückblick stand „0 davon verschieden", wenn noch nichts gekocht war','Behoben: App-Öffnungen kurz nach Mitternacht zählten zum Vortag','Behoben: „Bald aufbrauchen" führt jetzt direkt zu passenden Rezepten','Behoben: Suchfelder und Datumsfelder hatten keine Beschriftung für Bildschirmleser','Behoben: Nach dem Schließen der Werbung lief im Hintergrund ein Fehler','Behoben: Auf dem iPhone blieb der Bereich hinter Uhrzeit und Akku grün – er passt sich jetzt jedem Bildschirm an','Admin-Panel: Einzahl-Fehler bei Familien, Personen und Wünschen behoben','Datenschutzerklärung für die neuen Familien-Funktionen aktualisiert'] },
   { v:'3.2.5', d:'5. November 2026', items:['Die Farbe hinter Uhrzeit und Akku passt sich jetzt automatisch an jeden Bildschirm an – Werbung, Rückblick, Kochmodus, Einkaufs-Modus und offene Fenster'] },
   { v:'3.2.4', d:'5. November 2026', items:['Neuer Ladebildschirm in App-Farbe statt Grün – dadurch wird auch der Bereich hinter Uhrzeit und Akku nicht mehr grün'] },
@@ -756,7 +756,7 @@ function viewBanned(){
     ${D.profile.banned_until ? `<p style="margin:0;font-weight:700">bis ${esc(new Date(D.profile.banned_until).toLocaleString('de-DE', { weekday:'long', day:'numeric', month:'long', hour:'2-digit', minute:'2-digit' }))} Uhr</p>` : ''}
     ${D.profile.ban_reason ? `<p style="margin:0;max-width:280px">Grund: ${esc(D.profile.ban_reason)}</p>` : ''}
     <p style="color:var(--muted);max-width:280px">Wenn du glaubst, dass das ein Fehler ist, melde dich über die Kontaktdaten im Impressum.</p>
-    <button class="btn btn-line" data-action="logout">Abmelden</button></div>`;
+    <div class="row" style="gap:10px;justify-content:center"><button class="btn btn-line" data-action="legal" data-v="impressum">Impressum</button><button class="btn btn-line" data-action="logout">Abmelden</button></div></div>`;
 }
 
 /* ---------- Push-Benachrichtigungen ---------- */
@@ -1023,7 +1023,7 @@ function recipeHero(r){ const ph = phOf(r); if (!ph) wantPhoto(r);
 const ORDER = ['home','fridge','recipes','family','more'];
 let slideDx = 0;
 function render(){
-  applyTheme(); renderTabbar();
+  applyTheme(); renderTabbar(); document.documentElement.classList.toggle('banned', !!D.profile?.banned);
   let v;
   if (!configured) v = viewSetup();
   else if (UI.loading) v = skeletonView();
@@ -1094,7 +1094,7 @@ async function onSession(session){
   else { try { localStorage.removeItem('wg.cache'); } catch(e){} UI.offline = false; UI.auth = UI.auth==='check' ? 'check' : 'login'; D.profile=null; D.membership=null; if (channel){ sb.removeChannel(channel); channel=null; } }
   UI.loading=false; render();
   if (D.user && !D.profile?.banned) syncPush().then(() => setTimeout(maybePushPrompt, performance.now() < 6000 ? 3800 : 600));
-  if (D.user && !UI.counted){ UI.counted = true; trackOpen(); setTimeout(maybePlusPopup, 8000); setTimeout(firstRunInfo, 1400); setTimeout(checkBadges, 2500); }
+  if (D.user && !UI.counted && !D.profile?.banned){ UI.counted = true; trackOpen(); setTimeout(maybePlusPopup, 8000); setTimeout(firstRunInfo, 1400); setTimeout(checkBadges, 2500); }
 }
 
 /* ---------- Sheets ---------- */
@@ -1516,6 +1516,7 @@ function plusHint(k){
   return `<div class="plus-hint"><button class="ph-main" data-action="plus"><span class="ph-ic">${e}</span><span class="grow"><b>${t}</b><small>${d}</small></span><span class="ph-tag">PLUS</span></button><button class="pw-x" data-action="plus-hide" aria-label="Plus-Hinweise ausblenden">✕</button></div>`;
 }
 function maybePlusPopup(){
+  if (D.profile?.banned) return;
   const now = Date.now();
   if (UI.cook || $('.sheet') || !D.user || !isActive()) return;
   if ((L.opens||0) < 2 || L.plusInterest) return;
@@ -2697,7 +2698,7 @@ function openWhatsNew(){
     <button class="btn btn-herb btn-block" style="margin-top:16px" data-action="wn-ok">Los geht's</button>`);
 }
 function firstRunInfo(){
-  if (!D.user || !D.family || !isActive() || $('.sheet') || $('#tour') || UI.cook) return;
+  if (!D.user || D.profile?.banned || !D.family || !isActive() || $('.sheet') || $('#tour') || UI.cook) return;
   if (!L.tourDone && !L.seenVersion && !L.cookedCount){ openTour(); return; }
   if (!L.seen30){ L.seen30 = true; L.tourDone = L.tourDone || Date.now(); saveLocal(); openWhatsNew(); }
 }
