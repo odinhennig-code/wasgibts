@@ -49,7 +49,15 @@ if (UI.joinCode) { L.joinCode = UI.joinCode; saveLocal(); history.replaceState(n
 /* ---------- Hilfen ---------- */
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-function buzz(ms=12){ try { navigator.vibrate && navigator.vibrate(ms); } catch(e){} }
+function buzz(ms=12){
+  try {
+    if (navigator.vibrate){ navigator.vibrate(ms); return; }
+    // iPhone (Safari 18+): Antippen eines Schalters löst ein leichtes haptisches Feedback aus
+    let l = document.getElementById('hapt');
+    if (!l){ l = document.createElement('label'); l.id = 'hapt'; l.setAttribute('aria-hidden', 'true'); l.style.cssText = 'position:fixed;left:-9999px;top:0;width:1px;height:1px;overflow:hidden;opacity:0;pointer-events:none';
+      l.innerHTML = '<input type="checkbox" switch tabindex="-1">'; document.body.appendChild(l); }
+    l.click();
+  } catch(e){} }
 function toast(m){ const t=$('#toast'); t.textContent=m; t.classList.add('show'); clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove('show'),2600); }
 const plu = (n, one, many) => `${n} ${n === 1 ? one : many}`;
 function names(list){ return list.length<=1 ? (list[0]||'') : list.slice(0,-1).join(', ') + ' und ' + list[list.length-1]; }
@@ -66,8 +74,16 @@ function errText(e){
   if (/Password should be/i.test(m)) return 'Das Passwort muss mindestens 6 Zeichen haben.';
   if (/Email not confirmed/i.test(m)) return 'Bitte bestätige zuerst deine E-Mail-Adresse (Link im Postfach).';
   if (/Code nicht gefunden/i.test(m)) return 'Diesen Familien-Code gibt es nicht. Bitte prüfen.';
-  if (/Failed to fetch|NetworkError/i.test(m)) return 'Keine Verbindung. Prüfe dein Internet.';
-  return 'Etwas ist schiefgelaufen: ' + m;
+  if (/Failed to fetch|NetworkError|offline|Load failed|network/i.test(m) || (e && e.offline)) return '📡 Keine Internetverbindung – deine Änderung wird gespeichert, sobald du wieder online bist.';
+  if (/JWT|token.*(expired|invalid)|not authenticated|session/i.test(m)) return '🔑 Du wurdest abgemeldet. Bitte melde dich neu an – danach klappt es wieder.';
+  if (/row-level security|permission denied|not allowed|forbidden|42501/i.test(m)) return '🔒 Dafür fehlen dir die Rechte. Manche Dinge dürfen nur Familien-Admins.';
+  if (/duplicate key|already|23505/i.test(m)) return 'Das gibt es schon – du musst nichts weiter tun.';
+  if (/check constraint|too long|value too long|23514|22001/i.test(m)) return '✏️ Die Eingabe ist zu lang oder ungültig. Bitte kürzer fassen.';
+  if (/rate|429|too many/i.test(m)) return '⏳ Zu viele Anfragen auf einmal. Warte kurz und versuch es dann nochmal.';
+  if (/timeout|timed out|504/i.test(m)) return '⏳ Das hat zu lange gedauert. Bitte gleich nochmal versuchen.';
+  if (/does not exist|schema cache|function .* not found|PGRST202/i.test(m)) return '🛠️ Diese Funktion ist gerade nicht verfügbar. Wir arbeiten daran.';
+  if (/50\d|internal server|bad gateway|service unavailable/i.test(m)) return '🛠️ Unser Server hat gerade ein Problem. Bitte in ein paar Minuten nochmal versuchen.';
+  return 'Das hat nicht geklappt. Bitte nochmal versuchen – passiert es öfter, schreib uns unter „Mehr → Hilfe & Support".';
 }
 
 /* ---------- Daten laden ----------
@@ -462,7 +478,7 @@ function viewFridge(){
       <button data-action="ftab" data-v="shop" aria-pressed="${UI.ftab==='shop'}">🛒 Einkaufsliste${n?` <span class="seg-n hot">${n}</span>`:''}</button></div>`;
   if (UI.ftab === 'shop') return header('Einkaufsliste', 'Für die ganze Familie · live') + tabs + viewShopping();
   const fr = new Set(D.fridge), q = (UI.fq || '').trim().toLowerCase();
-  const match = k => !q || ING[k][0].toLowerCase().includes(q);
+  const match = k => !q || ingMatch(k, q) > 0;
   const chip = k => `<button class="ing ${UI.justAdded&&UI.justAdded.includes(k)?'just':''}" data-action="ing" data-k="${k}" aria-pressed="${fr.has(k)}">${fr.has(k) ? '<span class="ing-ok" aria-hidden="true">✓</span>' : ''}${ING[k][1]} ${ING[k][0]}${expTag(k)}</button>`;
   const onlyHave = UI.fonly === 'have';
   if (!UI.recentSnap) UI.recentSnap = [...(L.recentIng || [])];
@@ -490,7 +506,7 @@ const SLISTS = [['super','Supermarkt','🛒'],['drogerie','Drogerie','🧴'],['m
 function viewShopping(){
   const inList = x => !D.cap.shop3 || !UI.slist || (x.list || 'super') === UI.slist;
   const open = openShop().filter(inList), done = D.shop.filter(x => x.checked && inList(x)), q = (UI.sq || '').trim().toLowerCase();
-  const sugg = q ? Object.keys(ING).filter(k => ING[k][0].toLowerCase().includes(q)).sort((a,b) => ING[a][0].toLowerCase().indexOf(q) - ING[b][0].toLowerCase().indexOf(q)).slice(0, 6) : [];
+  const sugg = q ? Object.keys(ING).map(k => [k, ingMatch(k, q)]).filter(x => x[1] > 0).sort((a, b) => b[1] - a[1] || ING[a[0]][0].length - ING[b[0]][0].length).map(x => x[0]).slice(0, 6) : [];
   const row = x => `<div class="shop-row ${x.checked?'done':''}" data-id="${x.id}">
       <button class="tick" data-action="shop-toggle" data-id="${x.id}" aria-label="${x.checked?'Wieder offen':'Abhaken'}" aria-pressed="${x.checked}">✓</button>
       <button class="grow shop-name" data-action="shop-edit" data-id="${x.id}">${shopName(x)}${x.note ? `<small class="shop-note">${esc(x.note)}</small>` : ''}${x.assigned_to ? `<small class="shop-who">🙋 ${x.assigned_to === D.user.id ? 'Du bringst es mit' : esc(prof(x.assigned_to).name) + ' bringt es mit'}</small>` : ''}</button>
@@ -505,7 +521,8 @@ function viewShopping(){
     ${planned.length ? `<button class="banner soft" data-action="shop-plan"><span style="font-size:22px">📅</span><span style="flex:1"><b>Für den Wochenplan ${planned.length === 1 ? 'fehlt 1 Zutat' : `fehlen ${planned.length} Zutaten`}</b><br><span class="muted" style="font-size:13px">${esc(planned.slice(0,4).map(ingName).join(', '))}${planned.length>4?' …':''}</span></span><span class="chip c-herb">Hinzufügen</span></button>` : ''}
     ${open.length ? `<div class="shop-tools"><button class="btn btn-herb" data-action="shop-mode">🛒 Einkaufs-Modus</button><button class="btn btn-ghost" data-action="shop-share">📤 Teilen</button></div>
       ${aisles(open).map(([t, items]) => `<div class="h2 aisle">${t}</div><div class="card list-card">${items.map(row).join('')}</div>`).join('')}`
-      : `<div class="card empty"><div class="g">🛒</div><b>Die Liste ist leer</b>Füge oben etwas hinzu – oder tippe in einem Rezept auf „Fehlende Zutaten auf die Einkaufsliste".</div>`}
+      : `<div class="card empty"><div class="g">🛒</div><b>Die Liste ist leer</b>Tippe oben ein, was fehlt${voiceOK() ? ' – oder sag es einfach mit dem Mikrofon' : ''}.
+        ${planned.length ? `<button class="btn btn-herb btn-block" style="margin-top:12px" data-action="shop-plan">📅 ${planned.length === 1 ? '1 Zutat' : planned.length + ' Zutaten'} für den Wochenplan hinzufügen</button>` : `<button class="btn btn-line btn-block" style="margin-top:12px" data-tab="recipes">📅 Woche planen – dann kommt die Liste fast von allein</button>`}</div>`}
     ${done.length ? `<div class="h2">Erledigt <button class="linkbtn" data-action="shop-clear">Löschen</button></div><div class="card list-card">${done.map(row).join('')}</div>` : ''}
     <p class="muted" style="font-size:13px;margin-top:14px">Abgehakte Zutaten landen automatisch im Kühlschrank.</p>
     ${plusHint('shop')}`;
@@ -619,7 +636,7 @@ function viewRecipes(){
     body = ids.length ? `<div class="stack">${ids.map(id=>{ const r=rec(id), who=wishersOf(id);
       return `<button class="rc" data-action="open-recipe" data-id="${id}">${photoEm(r)}<div class="main"><div class="t">${esc(r.n)}</div>
         <div class="s"><span class="avatar-stack">${who.map(w=>`<span class="avatar sm">${avIn(prof(w))}</span>`).join('')}</span><span>${esc(names(who.map(w=>prof(w).name)))}</span></div></div>${I.chev}</button>`; }).join('')}</div>`
-      : `<div class="card empty"><div class="g">🙋</div><b>Noch keine Wünsche</b>Öffne ein Rezept unter „Alle" und tippe auf „Wünschen".</div>`;
+      : `<div class="card empty"><div class="g">🙋</div><b>Noch keine Wünsche</b>Was möchtest du diese Woche essen? Such dir etwas aus und tippe auf „Wünschen".<button class="btn btn-herb btn-block" style="margin-top:12px" data-action="rtab" data-v="all">Rezepte durchstöbern</button></div>`;
   } else {
     const q = UI.q.trim().toLowerCase();
     const coll = t === 'favs' && UI.coll && D.colls.find(c => c.id === UI.coll), rk = UI.reste && t === 'all' ? restoKeys() : null;
@@ -641,8 +658,8 @@ function viewRecipes(){
         : `<div class="coll-row">${D.colls.map(c => `<button class="coll" data-action="coll-open" data-id="${c.id}"><span>${esc(c.emoji||'📁')}</span><b>${esc(c.name)}</b><small>${(c.recipe_ids||[]).length}</small></button>`).join('')}<button class="coll add" data-action="coll-pick" data-id=""><span>＋</span><b>Neue Sammlung</b></button></div>`) : '') +
       (t==='fam' ? `<button class="btn btn-herb btn-block" style="margin-bottom:12px" data-action="new-recipe">📖 Eigenes Rezept eintragen</button>` : '') + (t==='all' ? `<input id="search" class="input" type="search" placeholder="In allen ${RX().length} Rezepten suchen" value="${esc(UI.q)}" aria-label="Rezept suchen" style="margin-bottom:10px">` + filterChips() + hint : '') +
       (list.length ? `<div class="stack">${list.map(r=>`<button class="rc" data-action="open-recipe" data-id="${r.id}">${photoEm(r)}<div class="main"><div class="t">${esc(r.n)}</div><div class="s"><span>⏱ ${r.t} Min</span>${r.custom?'<span class="chip c-herb">Familie</span>':''}${favs.includes(r.id)?'<span class="chip c-tomato">❤️</span>':''}${t==='all'&&D.fridge.length?(m => m===0?'<span class="chip c-herb">✅ alles da</span>':m===1?'<span class="chip c-yolk">🛒 1 fehlt</span>':'')(r.i.filter(k=>!D.fridge.includes(k)).length):''}</div></div>${I.chev}</button>`).join('')}</div>${more?`<button class="btn btn-line btn-block" style="margin-top:12px" data-action="more-recipes">Weitere ${Math.min(30, more)} anzeigen</button>`:''}`
-      : t==='fam' ? `<div class="card empty"><div class="g">📖</div><b>Noch keine Familienrezepte</b>Tragt eure eigenen Lieblingsgerichte ein, zum Beispiel Omas Gulasch.</div>`
-      : `<div class="card empty"><div class="g">${t==='favs'?'❤️':'🔍'}</div><b>${t==='favs'?'Noch keine Lieblingsessen':'Nichts gefunden'}</b>${t==='favs'?'Tippe in einem Rezept auf das Herz.':'Versuch es mit einem anderen Wort.'}</div>`);
+      : t==='fam' ? `<div class="card empty"><div class="g">📖</div><b>Noch keine Familienrezepte</b>Tragt eure eigenen Lieblingsgerichte ein, zum Beispiel Omas Gulasch.<button class="btn btn-herb btn-block" style="margin-top:12px" data-action="new-recipe">＋ Erstes Familienrezept anlegen</button></div>`
+      : `<div class="card empty"><div class="g">${t==='favs'?'❤️':'🔍'}</div><b>${t==='favs'?'Noch keine Lieblingsessen':'Nichts gefunden'}</b>${t==='favs'?'Tippe in einem Rezept auf das Herz – dann findest du es hier schneller wieder.<button class="btn btn-line btn-block" style="margin-top:12px" data-action="rtab" data-v="all">Rezepte durchstöbern</button>':'Versuch es mit einer Zutat, z. B. „Nudeln" oder „Paprika".'}</div>`);
   }
   return header('Planen & Rezepte', `${RX().length} Rezepte`) +
     `<div class="seg" role="group" aria-label="Ansicht">${[['week','Woche'],['wishes','Wünsche'],['favs','Lieblinge'],['fam','Familie'],['all','Alle']].map(([k,l])=>`<button data-action="rtab" data-v="${k}" aria-pressed="${t===k}">${l}</button>`).join('')}</div>
@@ -666,8 +683,9 @@ function viewFamily(){
 }
 
 /* ---------- Reiter „Mehr" ---------- */
-const VERSION = '4.3';
+const VERSION = '4.4';
 const CHANGELOG = [
+  { v:'4.4', d:'7. November 2026', items:['↩︎ Rückgängig: Wer aus Versehen etwas löscht (Einkaufsliste, Kühlschrank leeren, Wochenplan), tippt unten einfach auf „Rückgängig"','📳 Kurze Vibration beim Abhaken – jetzt auch am iPhone','🔎 Suche verzeiht Tippfehler jetzt auch im Kühlschrank und in der Einkaufsliste („Tomatn" findet Tomaten)','🛒 Selbst getippte Einträge wie „Klopapier" oder „Brötchen" landen im richtigen Bereich – neu: Getränke und Haushalt & Drogerie','Leere Seiten zeigen jetzt immer, was man als Nächstes tun kann','Verständlichere Fehlermeldungen: was passiert ist und was du tun kannst'] },
   { v:'4.3', d:'7. November 2026', items:['Neuer Ladebildschirm: Der Teller füllt sich mit Zutaten – „Was gibt\'s heute?"','Den Werbespot unseres Sponsors PiHILL kannst du jetzt jederzeit ansehen – jetzt mit Ton','Tipps von PiHILL in Kühlschrank, Wochenplan, Familie und Rezepten','Kühlschrank-Foto: Das erste Foto am Tag ist frei, danach gibt es vorher einen kurzen Spot – mit Plus nie'] },
   { v:'4.2', d:'7. November 2026', items:['Aufgeräumter: „Heute auf dem Plan" steht jetzt ganz oben, die Filter sind in einer Zeile zusammengefasst und klappen beim Antippen auf','Schrift wächst mit: Die App folgt jetzt der Textgröße, die du am iPhone eingestellt hast','Neue Symbole in der Tab-Leiste – der aktive Tab ist gefüllt, „Planen" hat jetzt einen Kalender','Im Kühlschrank zeigt ein ✓, was da ist – nicht mehr nur die Farbe','Keine Fenster mehr, die ungefragt aufspringen','Behoben: Gelbe Schrift war kaum lesbar (zu wenig Kontrast)','Behoben: Einige Texte waren kleiner als die Mindestgröße','Behoben: „Jetzt kochen" war rot wie eine Warnung – jetzt grün','Behoben: Das Herz-Symbol bei „Planen" passte nicht','Behoben: Man konnte die App nicht mit zwei Fingern vergrößern','Behoben: „15′" heißt jetzt „15 Min", „8 da" heißt „8 vorhanden"','Der Küchen-Rückblick ist jetzt ruhiger gestaltet'] },
   { v:'4.1', d:'6. November 2026', items:['🛟 Neu: Hilfe & Support unter „Mehr"','💬 Live-Chat mit dem Support direkt in der App – du siehst, wenn der Support gerade online ist','📝 Anfragen mit Kategorie (Fehler, Konto, Familie, Plus, Datenschutz …) und Status','🚨 Notfall-Knopf für dringende Fälle – mit sofortigen Tipps, was du selbst tun kannst','✨ Plus-Mitglieder bekommen bevorzugt eine Antwort','⚑ Beiträge auf der Pinnwand und Notizen an Rezepten melden','✅ Status-Anzeige: Siehst sofort, ob es gerade eine Störung gibt','🔎 Häufige Fragen mit Suche','👍 Nach der Hilfe bewerten, ob es geholfen hat','Behoben: Gesperrte Personen konnten den Support nicht erreichen'] },
@@ -1210,7 +1228,7 @@ function openPollSetup(){
   const list = suggest().filter(x => x.missing.length <= 1).slice(0, 12), pre = list.slice(0, 3).map(x => x.r.id);
   openSheet(`${sheetHead('Abstimmung starten')}
     <p class="muted" style="margin-top:-6px">Wähle 2 bis 4 Gerichte. Alle in der Familie können dann abstimmen.</p>
-    ${list.length < 2 ? `<div class="card empty"><div class="g">🧊</div><b>Zu wenig Auswahl</b>Trag im Kühlschrank mehr Zutaten ein.</div>` :
+    ${list.length < 2 ? `<div class="card empty"><div class="g">🧊</div><b>Zu wenig Auswahl</b>Trag im Kühlschrank mehr Zutaten ein.<button class="btn btn-line btn-block" style="margin-top:12px" data-tab="fridge">Zum Kühlschrank</button></div>` :
     `<div class="stack" style="gap:8px">${list.map(x => `<button class="opt pick-opt" data-action="poll-pick" data-id="${x.r.id}" aria-pressed="${pre.includes(x.r.id)}"><span class="oe">${x.r.e}</span><span class="on">${esc(x.r.n)}</span>${x.missing.length?'<span class="chip c-yolk">🛒 1</span>':''}<span class="tick">✓</span></button>`).join('')}</div>
     <div class="h2">⏰ Endet automatisch</div>
     <div class="seg" role="group" aria-label="Ende">${[['0','Von Hand'],['30','in 30 Min'],['60','in 1 Std'],['120','in 2 Std']].map(([k,l]) => `<button data-action="poll-end-pick" data-v="${k}" aria-pressed="${(UI.pollEnd||'60')===k}">${l}</button>`).join('')}</div>
@@ -1759,7 +1777,8 @@ document.addEventListener('click', async e => {
       L.recentIng = [k, ...(L.recentIng||[]).filter(x => x !== k)].slice(0, 12); saveLocal();
       t.setAttribute('aria-pressed', D.fridge.includes(k)); t.classList.remove('just'); void t.offsetWidth; if (D.fridge.includes(k)) t.classList.add('just');
       render(); break; }
-    case 'clear-fridge': D.fridge=[]; D.expiries={}; saveFridgeSoon(); render(); toast('Alles abgewählt'); break;
+    case 'clear-fridge': { const was = [...D.fridge], wasExp = { ...D.expiries }; D.fridge=[]; D.expiries={}; saveFridgeSoon(); render(); buzz(8);
+      undoToast('Kühlschrank geleert', () => { D.fridge = was; D.expiries = wasExp; saveFridgeSoon(); render(); }); break; }
     case 'photo': {
       const today = isoDay(new Date());
       if (L.scanDay !== today){ L.scanDay = today; L.scanN = 0; }
@@ -1892,8 +1911,9 @@ document.addEventListener('click', async e => {
     case 'ftab': UI.ftab = t.dataset.v; buzz(6); render(); $('#views .view').scrollTop = 0; break;
     case 'fonly': UI.fonly = t.dataset.v; buzz(6); render(); break;
     case 'shop-toggle': toggleShop(id); buzz(8); render(); break;
-    case 'shop-del': { const it = D.shop.find(x => x.id === id); if (it) removeShop([it]); render(); break; }
-    case 'shop-clear': removeShop(D.shop.filter(x => x.checked)); render(); toast('Erledigte gelöscht'); break;
+    case 'shop-del': { const it = D.shop.find(x => x.id === id); if (!it) break; removeShop([it]); render(); buzz(8);
+      undoToast(`„${it.ing_key ? ingName(it.ing_key) : it.label}" entfernt`, () => restoreShop([it])); break; }
+    case 'shop-clear': { const gone = D.shop.filter(x => x.checked); removeShop(gone); render(); buzz(8); undoToast(`${gone.length === 1 ? '1 Eintrag' : gone.length + ' Einträge'} gelöscht`, () => restoreShop(gone)); break; }
     case 'shop-ing': { const k = t.dataset.k; if (onList(k)){ toast('Steht schon drauf'); break; } UI.sq = ''; await addToList([k]); buzz(10); toast(`${ingName(k)} auf der Liste ✓`); break; }
     case 'shop-free': { const v = t.dataset.v; UI.fq = ''; await addToList([], v); UI.ftab = 'shop'; render(); toast('Auf der Liste ✓'); break; }
     case 'shop-plan': { const n = await addToList(plannedMissing()); toast(`${plu(n,'Zutat','Zutaten')} für den Wochenplan auf der Liste ✓`); buzz(15); break; }
@@ -1903,7 +1923,10 @@ document.addEventListener('click', async e => {
     case 'plan-cook': await setPlanCook(t.dataset.v, t.dataset.slot, id); buzz(8); refreshSheet(); break;
     case 'plan-out': { const v = ($('#outIn')?.value || '').trim() || 'Auswärts essen'; await setPlan(t.dataset.v, '__out', t.dataset.slot || 'abend', { label: v.slice(0,40) }); closeSheet(); render(); toast('🍕 Eingetragen'); break; }
     case 'plan-set': { const iso = t.dataset.v; await setPlan(iso, id, t.dataset.slot || 'abend'); closeSheet(); render(); buzz(15); toast(`📅 ${rec(id).n} eingeplant`); break; }
-    case 'plan-clear': await clearPlan(t.dataset.v, t.dataset.slot || 'abend'); closeSheet(); render(); toast('Aus dem Plan genommen'); break;
+    case 'plan-clear': { const iso = t.dataset.v, sl = t.dataset.slot || 'abend', old = planFor(iso, sl) ? { ...planFor(iso, sl) } : null;
+      await clearPlan(iso, sl); closeSheet(); render(); buzz(8);
+      if (old) undoToast('Aus dem Plan genommen', () => setPlan(iso, old.recipe_id, sl, { label: old.label || null, cook: old.cook || null }).catch(e => toast(errText(e))));
+      else toast('Aus dem Plan genommen'); break; }
     case 'plan-fill': { t.disabled = true; const n = await fillWeek(); burstAt(t); buzz([20,40,20]); toast(n ? `✨ ${n} ${n===1?'Tag':'Tage'} geplant` : 'Keine passenden Gerichte gefunden'); break; }
     case 'plan-this': openPlanFor(id); break;
     case 'more-recipes': UI.rlimit = (UI.rlimit || 30) + 30; render(); break;
@@ -2541,7 +2564,7 @@ function openKitchen(keep){
     <div class="h2">Kochverlauf</div>
     ${recent.length ? `<div class="list">${recent.map(l => { const r = rec(l.recipe_id) || { n: l.recipe_name, e:'🍽️' }, rs = D.ratings.filter(x => x.log_id === l.id);
       return `<div class="row"><span style="font-size:24px">${r.e}</span><span class="grow"><b>${esc(r.n)}</b><small>${esc(prof(l.user_id).name || '')} · ${timeAgo(l.cooked_at)}${rs.length ? ' · ' + rs.map(x => FACES[x.stars - 1][1]).join('') : ''}</small></span>${!rs.some(x => x.user_id === D.user.id) && !String(l.id).startsWith('tmp') ? `<button class="btn btn-ghost btn-sm" data-action="rate" data-v="${l.id}">Bewerten</button>` : ''}</div>`; }).join('')}</div>`
-      : `<div class="card empty"><div class="g">🍳</div><b>Noch nichts gekocht</b>Tippe nach dem Essen im Rezept auf „Heute gekocht" – dann füllt sich hier euer Kochverlauf.</div>`}`, keep);
+      : `<div class="card empty"><div class="g">🍳</div><b>Noch nichts gekocht</b>Tippe nach dem Essen im Rezept auf „Heute gekocht" – dann füllt sich hier euer Kochverlauf.<button class="btn btn-herb btn-block" style="margin-top:12px" data-tab="home">Was koche ich heute?</button></div>`}`, keep);
 }
 
 /* ---------- Rückblick als Story ---------- */
@@ -3037,7 +3060,7 @@ document.addEventListener('click', async e => {
       t.disabled = true; const extra = $('#rep-text').value.trim();
       await supCreate('melden', 'Meldung: ' + r.why, extra || r.why, r);
       closeSheet(); render(); toast('Danke – wir schauen uns das an'); break; }
-  } } catch(err){ t.disabled = false; toast('Hat nicht geklappt: ' + (err && err.message || err)); }
+  } } catch(err){ t.disabled = false; toast(/[A-Za-zÄÖÜ]{3,}.*[.!–]/.test(err && err.message || '') && !/[_(]|error|exception/i.test(err.message) ? err.message : errText(err)); }
 });
 
 
@@ -3067,3 +3090,56 @@ function spHint(seed){
   openRecipe = function(id, keep){ const r = _or.apply(this, arguments);
     const sh = document.querySelector('.sheet'); if (sh && !sh.querySelector('.sp-hint')) sh.insertAdjacentHTML('beforeend', `<div style="margin-top:14px">${spHint(5)}</div>`); return r; };
 }
+
+
+/* =========================================================================
+   VERSION 4.4 – Rückgängig, bessere Suche, Ladenreihenfolge, leere Seiten
+   ========================================================================= */
+/* Unten kurz „Gelöscht · Rückgängig" statt vorher „Sicher?" zu fragen */
+function undoToast(msg, undo, ms = 5000){
+  const t = $('#toast'); clearTimeout(t._h);
+  t.innerHTML = `<span>${esc(msg)}</span><button class="undo-btn" type="button">Rückgängig</button>`;
+  t.classList.add('show', 'undo');
+  const b = t.querySelector('.undo-btn');
+  b.onclick = ev => { ev.stopPropagation(); clearTimeout(t._h); t.classList.remove('show', 'undo'); try { undo(); } catch(e){} buzz(10); setTimeout(() => toast('Wiederhergestellt ↩︎'), 250); };
+  t._h = setTimeout(() => t.classList.remove('show', 'undo'), ms);
+}
+function restoreShop(items){
+  const rows = items.map(({ id, created_at, ...r }) => ({ ...r }));
+  const tmp = items.map(x => ({ ...x, id:'tmp' + Math.random().toString(36).slice(2) }));
+  D.shop.push(...tmp); paintSoft();
+  save(async () => { const r = await sb.from('shopping_items').insert(rows.map(r => { const o = { family_id:r.family_id, ing_key:r.ing_key || null, label:r.label || null, added_by:r.added_by, checked:!!r.checked };
+      if (D.cap.shop3){ if (r.note) o.note = r.note; if (r.list) o.list = r.list; if (r.assigned_to) o.assigned_to = r.assigned_to; } return o; })).select();
+    (r.data || []).forEach((row, i) => tmp[i] && Object.assign(tmp[i], row)); return r; }).catch(e => toast(errText(e)));
+}
+
+/* Suche verzeiht Tippfehler – jetzt auch im Kühlschrank und in der Einkaufsliste */
+function ingMatch(k, q){
+  if (!q) return 1; const n = norm(ING[k][0]), t = norm(q);
+  if (n.startsWith(t)) return 3; if (n.includes(t)) return 2;
+  if (t.length >= 4){ const tol = t.length >= 7 ? 2 : 1; const w = n.split(/[^a-z0-9]+/);
+    if (w.some(x => editDist(x, t, tol) <= tol || (x.length > t.length && editDist(x.slice(0, t.length), t, tol) <= tol))) return 1; }
+  return 0;
+}
+
+/* Frei getippte Einträge („Klopapier", „Brötchen") landen im richtigen Bereich statt unter „Sonstiges" */
+const AISLE_WORDS = [
+  ['getraenke', /wasser|saft|cola|limo|bier|wein|kaffee|tee|sprudel|getränk|kakao/],
+  ['haushalt', /klopapier|toilettenpapier|küchenrolle|spül|waschmittel|müllbeutel|zahnpasta|shampoo|seife|duschgel|deo|windel|taschentuch|schwamm|alufolie|frischhaltefolie|batterie|kerze/],
+  ['obst', /apfel|äpfel|banane|birne|traube|orange|mandarine|clementine|zitrone|limette|beere|kiwi|mango|ananas|melone|pfirsich|pflaume|obst/],
+  ['gemuese', /salat|gurke|tomate|paprika|zwiebel|knoblauch|kartoffel|möhre|karotte|zucchini|brokkoli|kohl|spinat|pilz|champignon|lauch|sellerie|kräuter|petersilie|basilikum|ingwer|gemüse|avocado|mais/],
+  ['getreide', /brot|brötchen|toast|baguette|nudel|spaghetti|reis|mehl|haferflocken|müsli|cornflakes|wrap|tortilla|knäcke|semmel|croissant/],
+  ['milch', /milch|joghurt|quark|käse|butter|sahne|schmand|ei(er)?$|eier|frischkäse|mozzarella|feta|parmesan/],
+  ['kuehl', /tiefkühl|tk-|eis$|eiscreme|pizza|fischstäbchen|pommes|aufschnitt|wurst|tofu|hummus/],
+  ['fleisch', /fleisch|hähnchen|hühnchen|rind|schwein|hack|wurst|schinken|speck|lachs|fisch|thunfisch|garnele/],
+  ['dose', /dose|konserve|passata|tomatenmark|bohnen|kichererbsen|linsen|mais|glas|marmelade|nutella|honig|pesto|oliven/],
+  ['backen', /zucker|backpulver|hefe|schokolade|kekse|kuchen|vanille|puderzucker|chips|süß|gummibär|snack/],
+  ['wuerz', /salz|pfeffer|öl|essig|senf|ketchup|mayo|soße|sauce|gewürz|brühe|curry|paprikapulver/],
+];
+AISLES.push(['getraenke','🥤 Getränke'], ['haushalt','🧻 Haushalt & Drogerie']);
+aisleOf = function(x){
+  if (x.ing_key){ const c = CATS.find(c => c[3].includes(x.ing_key)); return c ? c[0] : 'other'; }
+  const l = String(x.label || '').toLowerCase().trim(); if (!l) return 'other';
+  const k = Object.keys(ING).find(k => norm(ING[k][0]) === norm(l)); if (k){ const c = CATS.find(c => c[3].includes(k)); if (c) return c[0]; }
+  const hit = AISLE_WORDS.find(([, re]) => re.test(l)); return hit ? hit[0] : 'other';
+};
