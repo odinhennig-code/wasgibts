@@ -1,0 +1,17 @@
+# Cloudflare Pages: Kopfzeilen
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: geolocation=(), payment=()
+
+/sw.js
+  Cache-Control: no-cache
+
+/index.html
+  Cache-Control: no-cache
+
+/
+  Cache-Control: no-cache
+
+/dashboard/*
+  X-Robots-Tag: noindex, nofollow
