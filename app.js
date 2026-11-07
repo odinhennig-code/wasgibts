@@ -323,7 +323,9 @@ function renderTabbar(){
   const show = D.user && isActive() && !D.profile?.banned;
   $('#tabbar').hidden = !show; if (!show) return;
   const p = isAdmin() ? pendingReq().length : 0;
-  const tabs = [['home','Heute',I.home],['fridge','Kühlschrank',I.fridge],['recipes','Planen',I.book],['family','Familie',I.family],['more','Mehr',I.more]];
+  // Icons8 (iOS-Stil): Umriss für inaktive Tabs, gefüllt für den aktiven Tab
+  const ti = n => `<i class="ti" aria-hidden="true" style="--o:url(icons/tab/o-${n}.png);--f:url(icons/tab/f-${n}.png)"></i>`;
+  const tabs = [['home','Heute',ti('restaurant')],['fridge','Kühlschrank',ti('fridge')],['recipes','Planen',ti('calendar')],['family','Familie',ti('conference-call')],['more','Mehr',ti('more')]];
   const tb = $('#tabbar'), idx = Math.max(0, tabs.findIndex(t => t[0] === UI.tab));
   if (!tb.querySelector('.tab-pill')) tb.innerHTML = `<span class="tab-pill" aria-hidden="true"></span>` + tabs.map(([id,l,ic]) => `<button class="tab" data-tab="${id}">${ic}<span>${l}</span></button>`).join('');
   tabs.forEach(([id]) => { const b = tb.querySelector(`[data-tab="${id}"]`); if (!b) return;
@@ -405,28 +407,37 @@ function viewHome(){
   return header(`Was gibt's heute, ${esc(D.profile.name)}?`, greet) + partyCard() + annBanner() + installBanner() + pushBanner() + hwCard() + adventCard() + rateBanner() +
     (p.length ? `<button class="banner" data-tab="family"><span class="avatar sm">${avIn(prof(p[0].user_id))}</span><span style="flex:1"><b>${esc(prof(p[0].user_id).name)}</b> möchte deiner Familie beitreten</span>${I.chev}</button>` : '') +
     (expiringSoon().length ? `<button class="banner" style="background:var(--tomato-soft)" data-action="reste-on"><span style="font-size:22px">⏰</span><span style="flex:1"><b>Bald aufbrauchen:</b> ${expiringSoon().map(x=>`${esc(ingName(x.k))} (${expLabel(x.d)})`).join(', ')}</span>${I.chev}</button>` : '') +
-    `<div class="filters card">
+    `${todayPlanned()}
+    ${filterSummary(eat)}
+    <div class="filters card" ${UI.filtersOpen ? '' : 'hidden'} id="home-filters">
       <div class="who sm" role="group" aria-label="Wer isst mit">${active().map(m=>{ const a=prof(m.user_id); return `<button data-action="eater" data-id="${a.id}" aria-pressed="${eat.includes(a.id)}"><span class="avatar">${avIn(a)}</span>${esc(a.name)}</button>`; }).join('')}</div>
       <div class="frow">
-        <div class="seg mini" role="group" aria-label="Zeit">${[[15,'15′'],[30,'30′'],[60,'Egal']].map(([v,l])=>`<button data-action="time" data-v="${v}" aria-pressed="${UI.time===v}" aria-label="${v===60?'Zeit egal':v+' Minuten'}">${l}</button>`).join('')}</div>
+        <div class="seg mini" role="group" aria-label="Zeit">${[[15,'15 Min'],[30,'30 Min'],[60,'Egal']].map(([v,l])=>`<button data-action="time" data-v="${v}" aria-pressed="${UI.time===v}" aria-label="${v===60?'Zeit egal':v+' Minuten'}">${l}</button>`).join('')}</div>
         <div class="seg mini" role="group" aria-label="Lust">${[['gesund','🥗'],['egal','Egal'],['fast','🍔']].map(([v,l])=>`<button data-action="mood" data-v="${v}" aria-pressed="${UI.mood===v}" aria-label="${v==='gesund'?'Gesund':v==='fast'?'Fastfood':'Egal'}">${l}</button>`).join('')}</div>
       </div>
     </div>
-    ${seasonRow()}
-    ${todayPlanned()}
     ${pollBlock(all)}
     <div class="h2">${planFor(isoDay(new Date())) ? 'Oder spontan' : 'Du könntest machen'}</div>
     ${planFor(isoDay(new Date())) && ready.length ? `<div class="stack">${ready.filter(x => x.r.id !== planFor(isoDay(new Date())).recipe_id).slice(0,4).map(suggestionCard).join('')}</div>` : top ? `<button class="pick" data-action="open-recipe" data-id="${top.r.id}">${pickArt(top.r)}
         <div class="lbl">UNSER VORSCHLAG</div><div class="name">${esc(top.r.n)}</div>
         <div class="why">${whyLines(top).map(l=>`<span>${l}</span>`).join('')}</div>
         <div class="meta"><span class="chip">⏱ ${top.r.t} Min</span><span class="chip">Passt für ${eat.length===active().length?'alle':eat.length+' Personen'}</span></div></button>
-      <button class="btn btn-tomato btn-block" style="margin-top:10px" data-action="cook" data-id="${top.r.id}">👨‍🍳 Jetzt kochen</button>
+      <button class="btn btn-herb btn-block" style="margin-top:10px" data-action="cook" data-id="${top.r.id}">👨‍🍳 Jetzt kochen</button>
       ${ready.length>1?`<div class="h2">Geht auch <span class="chip c-muted">${ready.length-1}</span></div><div class="stack">${ready.slice(1,8).map(suggestionCard).join('')}</div>`:''}`
     : `<div class="card empty"><div class="g">🧊</div><b>Mit dem, was da ist, passt noch kein Rezept</b>Trag im Kühlschrank ein, was du hast, oder schau unten, was mit einem Einkauf geht.<button class="btn btn-line btn-block" style="margin-top:12px" data-tab="fridge">Kühlschrank öffnen</button></div>`}
     ${all.length > 2 ? `<button class="slot-btn" data-action="slot"><span class="slot-ic">🎰</span><span><b>Kann mich nicht entscheiden</b><small>Dreh am Rad – die App sucht aus</small></span>${I.chev}</button>` : ''}
     ${almost.length?`<div class="h2">Mit einem kleinen Einkauf <span class="chip c-muted">${almost.length}</span></div><div class="stack">${almost.slice(0,6).map(suggestionCard).join('')}</div>`:''}
+    ${seasonRow()}
     ${showPlusWidget() ? plusWidget() : ''}
     ${sponsorWidget()}`;
+}
+/* Filter-Zeile: zusammengeklappt, öffnet sich beim Antippen (Apple: schrittweise zeigen) */
+function filterSummary(eat){
+  const n = eat.length, all = active().length;
+  const t = UI.time === 60 ? 'Zeit egal' : `bis ${UI.time} Min`, m = UI.mood === 'gesund' ? 'gesund' : UI.mood === 'fast' ? 'schnell & deftig' : 'Lust egal';
+  const changed = n !== all || UI.time !== 60 || UI.mood !== 'egal';
+  return `<button class="fsum ${changed ? 'on' : ''}" data-action="filters-toggle" aria-expanded="${!!UI.filtersOpen}" aria-controls="home-filters">
+    <span class="fsum-ic" aria-hidden="true">⚙︎</span><span class="grow"><b>${n === all ? 'Für alle' : `Für ${n} von ${all}`}</b> · ${t} · ${m}</span><span class="fsum-chev" aria-hidden="true">${UI.filtersOpen ? '▴' : '▾'}</span></button>`;
 }
 /* Heute im Wochenplan */
 function todayPlanned(){
@@ -440,7 +451,7 @@ function todayPlanned(){
       <div class="why"><span>${miss.length ? `🛒 Es fehlt noch: ${esc(miss.map(ingName).join(', '))}` : '✅ Du hast alles da'}</span></div>
       <div class="meta"><span class="chip">⏱ ${r.t} Min</span>${p.set_by && p.set_by !== D.user.id ? `<span class="chip">Geplant von ${esc(prof(p.set_by).name)}</span>` : ''}</div></button>
     <div style="display:grid;grid-template-columns:${miss.length ? '1fr 1fr' : '1fr'};gap:8px;margin-top:10px">
-      <button class="btn btn-tomato" data-action="cook" data-id="${r.id}">👨‍🍳 Jetzt kochen</button>
+      <button class="btn btn-herb" data-action="cook" data-id="${r.id}">👨‍🍳 Jetzt kochen</button>
       ${miss.length ? `<button class="btn btn-ghost" data-action="shop-missing" data-id="${r.id}">🛒 Auf die Liste</button>` : ''}</div>`;
 }
 function expTag(k){ const d = daysLeft(k); if (d === null) return ''; return ` <span class="exp ${d<=1?'hot':''}">${d<0?'abgelaufen':d===0?'heute':d+' T'}</span>`; }
@@ -452,7 +463,7 @@ function viewFridge(){
   if (UI.ftab === 'shop') return header('Einkaufsliste', 'Für die ganze Familie · live') + tabs + viewShopping();
   const fr = new Set(D.fridge), q = (UI.fq || '').trim().toLowerCase();
   const match = k => !q || ING[k][0].toLowerCase().includes(q);
-  const chip = k => `<button class="ing ${UI.justAdded&&UI.justAdded.includes(k)?'just':''}" data-action="ing" data-k="${k}" aria-pressed="${fr.has(k)}">${ING[k][1]} ${ING[k][0]}${expTag(k)}</button>`;
+  const chip = k => `<button class="ing ${UI.justAdded&&UI.justAdded.includes(k)?'just':''}" data-action="ing" data-k="${k}" aria-pressed="${fr.has(k)}">${fr.has(k) ? '<span class="ing-ok" aria-hidden="true">✓</span>' : ''}${ING[k][1]} ${ING[k][0]}${expTag(k)}</button>`;
   const onlyHave = UI.fonly === 'have';
   if (!UI.recentSnap) UI.recentSnap = [...(L.recentIng || [])];
   const recent = UI.recentSnap.filter(k => ING[k] && match(k)).slice(0, 8);
@@ -460,7 +471,7 @@ function viewFridge(){
     const ks = keys.filter(k => match(k) && (!onlyHave || fr.has(k)));
     if (!ks.length) return '';
     const have = keys.filter(k => fr.has(k)).length;
-    return `<div class="h2">${e} ${title} <span class="chip c-muted">${have} da</span></div><div class="chips">${ks.map(chip).join('')}</div>`;
+    return `<div class="h2">${e} ${title} <span class="chip c-muted">${have} vorhanden</span></div><div class="chips">${ks.map(chip).join('')}</div>`;
   }).join('');
   const html = header('Was ist da?', `${plu(D.fridge.length,'Zutat','Zutaten')} · für alle sichtbar`) + tabs +
     `<button class="photo-card" data-action="photo"><span class="cam">${I.cam}</span><span style="flex:1"><b style="font-size:17px">Kühlschrank fotografieren</b><br><span style="opacity:.9;font-size:14px">Die App erkennt deine Zutaten automatisch</span></span></button>
@@ -655,8 +666,9 @@ function viewFamily(){
 }
 
 /* ---------- Reiter „Mehr" ---------- */
-const VERSION = '4.1';
+const VERSION = '4.2';
 const CHANGELOG = [
+  { v:'4.2', d:'7. November 2026', items:['Aufgeräumter: „Heute auf dem Plan" steht jetzt ganz oben, die Filter sind in einer Zeile zusammengefasst und klappen beim Antippen auf','Schrift wächst mit: Die App folgt jetzt der Textgröße, die du am iPhone eingestellt hast','Neue Symbole in der Tab-Leiste – der aktive Tab ist gefüllt, „Planen" hat jetzt einen Kalender','Im Kühlschrank zeigt ein ✓, was da ist – nicht mehr nur die Farbe','Keine Fenster mehr, die ungefragt aufspringen','Behoben: Gelbe Schrift war kaum lesbar (zu wenig Kontrast)','Behoben: Einige Texte waren kleiner als die Mindestgröße','Behoben: „Jetzt kochen" war rot wie eine Warnung – jetzt grün','Behoben: Das Herz-Symbol bei „Planen" passte nicht','Behoben: Man konnte die App nicht mit zwei Fingern vergrößern','Behoben: „15′" heißt jetzt „15 Min", „8 da" heißt „8 vorhanden"','Der Küchen-Rückblick ist jetzt ruhiger gestaltet'] },
   { v:'4.1', d:'6. November 2026', items:['🛟 Neu: Hilfe & Support unter „Mehr"','💬 Live-Chat mit dem Support direkt in der App – du siehst, wenn der Support gerade online ist','📝 Anfragen mit Kategorie (Fehler, Konto, Familie, Plus, Datenschutz …) und Status','🚨 Notfall-Knopf für dringende Fälle – mit sofortigen Tipps, was du selbst tun kannst','✨ Plus-Mitglieder bekommen bevorzugt eine Antwort','⚑ Beiträge auf der Pinnwand und Notizen an Rezepten melden','✅ Status-Anzeige: Siehst sofort, ob es gerade eine Störung gibt','🔎 Häufige Fragen mit Suche','👍 Nach der Hilfe bewerten, ob es geholfen hat','Behoben: Gesperrte Personen konnten den Support nicht erreichen'] },
   { v:'4.0.1', d:'6. November 2026', items:['Wer vorübergehend gesperrt ist, sieht jetzt, bis wann die Sperre gilt und warum – danach geht es automatisch weiter','Behoben: Am Computer wurde man aus dem Admin-Bereich ständig abgemeldet, wenn die App gleichzeitig offen war – der Admin-Bereich hat jetzt eine eigene Anmeldung','Behoben: Gesperrten Personen wurden Hinweis-Fenster (z. B. „Update ist da“) über den Sperr-Bildschirm gelegt','Behoben: Auf dem Sperr-Bildschirm war die Tab-Leiste zu sehen, obwohl man sie nicht benutzen konnte','Gesperrte Personen können sich jetzt direkt aus der App an den Support wenden','Neues Admin-Dashboard mit Moderation (nur für Betreiber)'] },
   { v:'4.0', d:'6. November 2026', items:['🙏 Sorry, dass das Update später kam als angekündigt – dafür ist alles gründlich getestet','🎉 Das große Update – 20 neue Funktionen','🛒 Einkaufsliste: Menge und Notiz pro Eintrag („2 Packungen", „bio") – einfach auf den Eintrag tippen','🛒 Mehrere Listen: Supermarkt, Drogerie und Markt','🟢 Live: Ihr seht, wer gerade einkaufen ist – was ihr dann hinzufügt, sieht die Person sofort','🎤 Per Sprache hinzufügen: „Milch, Eier und Brot" sagen – alles landet auf der Liste','🙋 Einkauf zuweisen: „Mia bringt es mit"','✅ Vorbereitungs-Modus: Vor dem Kochen Zutaten und Geräte abhaken','⏱ Zeiten im Rezept antippen („10 Minuten") startet direkt einen Timer','👨‍🍳 Kochdienst: Im Wochenplan einteilen, wer wann kocht','💬 Notizen an Rezepten für die ganze Familie („Nächstes Mal mehr Käse!")','⚠️ Allergie-Warnung: Das Rezept zeigt, wer aus der Familie etwas nicht verträgt','📌 Familien-Pinnwand für kurze Nachrichten','🏆 Koch-Rangliste des Monats','🗳️ Abstimmung mit Uhrzeit – endet automatisch und meldet das Ergebnis','☕ Frühstück, Mittag und Abendessen im Wochenplan','🍕 Auswärts- und Bestell-Tage im Wochenplan','🎉 Party-Planer: Gäste und Gerichte wählen – Einkaufsliste und Plan werden gefüllt','📁 Eigene Rezept-Sammlungen (z. B. „Weihnachten")','♻️ Reste-Modus: Rezepte für alles, was bald abläuft','🖼️ Wochenplan als Bild teilen und 🔁 „Letzte Woche wiederholen"','📖 30 neue Rezepte aus der neuen Rezept-Datenbank – sie wächst ab jetzt laufend','Behoben: Ohne Internet blieb die App beim Start im Ladebildschirm hängen – jetzt siehst du den letzten Stand mit Offline-Hinweis, und sie verbindet sich automatisch neu','Behoben: Beim allerersten Start ohne Internet stürzte die App ab – jetzt gibt es eine klare Meldung mit „Nochmal versuchen"','Behoben: „Einkaufsliste teilen" warf dich aus der App, wenn Kopieren nicht ging','Behoben: Beim Teilen der Einkaufsliste fehlten Mengen und Notizen','Behoben: Auf kleinen Handys rutschte dein Profilbild oben rechts aus dem Bildschirm, wenn dein Name lang ist','Behoben: Auf kleinen Handys ragte die „Wer isst mit"-Leiste über den Rand','Behoben: Bei großer Schrift ragten die Umschalter (Woche, Wünsche …) über den Rand','Behoben: Bei großer Schrift ragte die Filterleiste auf „Heute" über den Rand','Behoben: Bei großer Schrift war das Plus-Fenster seitlich abgeschnitten','Behoben: Bei großer Schrift verschoben Saison- und Filter-Chips die ganze Seite','Behoben: Bei großer Schrift war das Rezeptfoto zu breit','Behoben: „Heute gekocht" doppelt angetippt wurde doppelt gezählt','Behoben: „1 Zutaten", „1 Mitglieder", „1 Rezepte" – Einzahl stimmt jetzt überall','Behoben: Im Rückblick stand „0 davon verschieden", wenn noch nichts gekocht war','Behoben: App-Öffnungen kurz nach Mitternacht zählten zum Vortag','Behoben: „Bald aufbrauchen" führt jetzt direkt zu passenden Rezepten','Behoben: Suchfelder und Datumsfelder hatten keine Beschriftung für Bildschirmleser','Behoben: Nach dem Schließen der Werbung lief im Hintergrund ein Fehler','Behoben: Auf dem iPhone blieb der Bereich hinter Uhrzeit und Akku grün – er passt sich jetzt jedem Bildschirm an','Admin-Panel: Einzahl-Fehler bei Familien, Personen und Wünschen behoben','Datenschutzerklärung für die neuen Familien-Funktionen aktualisiert'] },
@@ -1097,7 +1109,7 @@ async function onSession(session){
   UI.loading=false; render();
   if (D.user && !D.profile?.banned) syncPush().then(() => setTimeout(maybePushPrompt, performance.now() < 6000 ? 3800 : 600));
   if (D.user && D.profile && UI.supFor !== D.user.id){ UI.supFor = D.user.id; loadSupport().then(() => { if (SUP.tickets.some(t => t.status !== 'geloest')) supSubscribe(); if (supUnread() && UI.tab === 'more' && !$('.sheet')) render(); }).catch(()=>{}); }
-  if (D.user && !UI.counted && !D.profile?.banned){ UI.counted = true; trackOpen(); setTimeout(maybePlusPopup, 8000); setTimeout(firstRunInfo, 1400); setTimeout(checkBadges, 2500); }
+  if (D.user && !UI.counted && !D.profile?.banned){ UI.counted = true; trackOpen(); setTimeout(firstRunInfo, 1400); setTimeout(checkBadges, 2500); }
 }
 
 /* ---------- Sheets ---------- */
@@ -2703,7 +2715,7 @@ function openWhatsNew(){
 function firstRunInfo(){
   if (!D.user || D.profile?.banned || !D.family || !isActive() || $('.sheet') || $('#tour') || UI.cook) return;
   if (!L.tourDone && !L.seenVersion && !L.cookedCount){ openTour(); return; }
-  if (!L.seen30){ L.seen30 = true; L.tourDone = L.tourDone || Date.now(); saveLocal(); openWhatsNew(); }
+  if (!L.seen30){ L.seen30 = true; L.tourDone = L.tourDone || Date.now(); saveLocal(); }   // kein Fenster mehr beim Start (Apple: nicht unterbrechen)
 }
 
 /* ---------- Adventskalender (1.–24. Dezember) ---------- */
@@ -2743,6 +2755,7 @@ document.addEventListener('click', async e => {
   const a = t.dataset.action;
   try { switch (a){
     case 'slot': openSlot(); break;
+    case 'filters-toggle': UI.filtersOpen = !UI.filtersOpen; render(); break;
     case 'rate': openRate(t.dataset.v); break;
     case 'rate-skip': L.rateSkip = t.dataset.v; saveLocal(); render(); break;
     case 'rate-set': { const id = t.dataset.id, st = +t.dataset.v, log = D.log.find(l => l.id === id); if (!log) break;
