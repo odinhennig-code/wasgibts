@@ -666,8 +666,9 @@ function viewFamily(){
 }
 
 /* ---------- Reiter „Mehr" ---------- */
-const VERSION = '4.2';
+const VERSION = '4.3';
 const CHANGELOG = [
+  { v:'4.3', d:'7. November 2026', items:['Neuer Ladebildschirm: Der Teller füllt sich mit Zutaten – „Was gibt\'s heute?"','Den Werbespot unseres Sponsors PiHILL kannst du jetzt jederzeit ansehen – jetzt mit Ton','Tipps von PiHILL in Kühlschrank, Wochenplan, Familie und Rezepten','Kühlschrank-Foto: Das erste Foto am Tag ist frei, danach gibt es vorher einen kurzen Spot – mit Plus nie'] },
   { v:'4.2', d:'7. November 2026', items:['Aufgeräumter: „Heute auf dem Plan" steht jetzt ganz oben, die Filter sind in einer Zeile zusammengefasst und klappen beim Antippen auf','Schrift wächst mit: Die App folgt jetzt der Textgröße, die du am iPhone eingestellt hast','Neue Symbole in der Tab-Leiste – der aktive Tab ist gefüllt, „Planen" hat jetzt einen Kalender','Im Kühlschrank zeigt ein ✓, was da ist – nicht mehr nur die Farbe','Keine Fenster mehr, die ungefragt aufspringen','Behoben: Gelbe Schrift war kaum lesbar (zu wenig Kontrast)','Behoben: Einige Texte waren kleiner als die Mindestgröße','Behoben: „Jetzt kochen" war rot wie eine Warnung – jetzt grün','Behoben: Das Herz-Symbol bei „Planen" passte nicht','Behoben: Man konnte die App nicht mit zwei Fingern vergrößern','Behoben: „15′" heißt jetzt „15 Min", „8 da" heißt „8 vorhanden"','Der Küchen-Rückblick ist jetzt ruhiger gestaltet'] },
   { v:'4.1', d:'6. November 2026', items:['🛟 Neu: Hilfe & Support unter „Mehr"','💬 Live-Chat mit dem Support direkt in der App – du siehst, wenn der Support gerade online ist','📝 Anfragen mit Kategorie (Fehler, Konto, Familie, Plus, Datenschutz …) und Status','🚨 Notfall-Knopf für dringende Fälle – mit sofortigen Tipps, was du selbst tun kannst','✨ Plus-Mitglieder bekommen bevorzugt eine Antwort','⚑ Beiträge auf der Pinnwand und Notizen an Rezepten melden','✅ Status-Anzeige: Siehst sofort, ob es gerade eine Störung gibt','🔎 Häufige Fragen mit Suche','👍 Nach der Hilfe bewerten, ob es geholfen hat','Behoben: Gesperrte Personen konnten den Support nicht erreichen'] },
   { v:'4.0.1', d:'6. November 2026', items:['Wer vorübergehend gesperrt ist, sieht jetzt, bis wann die Sperre gilt und warum – danach geht es automatisch weiter','Behoben: Am Computer wurde man aus dem Admin-Bereich ständig abgemeldet, wenn die App gleichzeitig offen war – der Admin-Bereich hat jetzt eine eigene Anmeldung','Behoben: Gesperrten Personen wurden Hinweis-Fenster (z. B. „Update ist da“) über den Sperr-Bildschirm gelegt','Behoben: Auf dem Sperr-Bildschirm war die Tab-Leiste zu sehen, obwohl man sie nicht benutzen konnte','Gesperrte Personen können sich jetzt direkt aus der App an den Support wenden','Neues Admin-Dashboard mit Moderation (nur für Betreiber)'] },
@@ -1759,7 +1760,13 @@ document.addEventListener('click', async e => {
       t.setAttribute('aria-pressed', D.fridge.includes(k)); t.classList.remove('just'); void t.offsetWidth; if (D.fridge.includes(k)) t.classList.add('just');
       render(); break; }
     case 'clear-fridge': D.fridge=[]; D.expiries={}; saveFridgeSoon(); render(); toast('Alles abgewählt'); break;
-    case 'photo': $('#photoInput').click(); break;
+    case 'photo': {
+      const today = isoDay(new Date());
+      if (L.scanDay !== today){ L.scanDay = today; L.scanN = 0; }
+      const needAd = !plusActive() && (L.scanN || 0) >= 1 && !(L.scanAdOk && Date.now() - L.scanAdOk < 10 * 60e3);
+      if (needAd){ openAd('scan'); break; }
+      L.scanN = (L.scanN || 0) + 1; if (L.scanAdOk) L.scanAdOk = 0; saveLocal();
+      $('#photoInput').click(); break; }
     case 'exp-photo': $('#expInput').click(); break;
     case 'exp-pick': UI.expScan.product = t.dataset.k; UI.expScan.editing = false; UI.expQ = ''; buzz(8); openExpScan(true); break;
     case 'exp-edit': UI.expScan.editing = true; UI.expQ = UI.expScan.label || ''; openExpScan(true); setTimeout(() => { const i = $('#expQ'); if (i){ i.focus(); i.select(); } }, 50); break;
@@ -1782,7 +1789,10 @@ document.addEventListener('click', async e => {
     case 'plus': openPlus(false); break;
     case 'sponsor': openSponsor(); break;
     case 'sponsor-shop': window.open(SPONSOR.url, '_blank', 'noopener'); break;
-    case 'ad': openAd(); break;
+    case 'ad': openAd('plus'); break;
+    case 'ad-watch': openAd('watch'); break;
+    case 'ad-sound': { const v = $('#adv'); if (v){ v.muted = !v.muted; t.textContent = v.muted ? '🔇' : '🔊'; t.setAttribute('aria-label', v.muted ? 'Ton an' : 'Ton aus'); } break; }
+    case 'ad-photo': closeAd(); $('#photoInput').click(); break;
     case 'ad-close': closeAd(); break;
     case 'accent': if (!plusActive()){ openPlus(false); break; } L.accent = t.dataset.v; saveLocal(); applyAccent(); render(); buzz(8); break;
     case 'plus-hide': L.plusHideUntil = Date.now() + 2*DAY; saveLocal(); render(); toast('Plus-Hinweise für 2 Tage ausgeblendet'); break;
@@ -2254,7 +2264,7 @@ function openProfile(id){
 /* =========================================================================
    Sponsor: PiHILL
    ========================================================================= */
-const SPONSOR = { name:'PiHILL', url:'https://www.etsy.com/de/shop/PiHILL', logo:'sponsor/pihill.png', logoW:'sponsor/pihill-white.png', video:'sponsor/pihill-spot.mp4', poster:'sponsor/pihill-start.jpg' };
+const SPONSOR = { name:'PiHILL', url:'https://www.etsy.com/de/shop/PiHILL', logo:'sponsor/pihill.png', logoW:'sponsor/pihill-white.png', video:'sponsor/pihill-tiktok.mp4', poster:'sponsor/pihill-tiktok.jpg' };
 const AD_EVERY = 14*DAY, PLUS_DAY = DAY;
 const plusActive = () => (L.plusUntil||0) > Date.now();
 const adReady = () => Date.now() - (L.adLast||0) >= AD_EVERY;
@@ -2272,7 +2282,7 @@ function sponsorRow(){
   return `<div class="list" style="margin:14px 0 4px"><button class="row" data-action="sponsor"><img src="${SPONSOR.logo}" alt="" style="width:40px;height:40px;object-fit:contain"><span class="grow"><b>Unser Sponsor: PiHILL</b><small>Handgemachtes aus Wolle, Holz &amp; Licht</small></span>${I.chev}</button>
     ${plusActive() ? `<div class="row" style="cursor:default"><span style="font-size:22px">✨</span><span class="grow"><b>Plus ist aktiv</b><small>${fmtLeft(L.plusUntil)} · dank PiHILL</small></span></div>`
       : adReady() ? `<button class="row" data-action="ad"><span style="font-size:22px">🎬</span><span class="grow"><b>1 Tag Plus gratis</b><small>Kurzen Spot von PiHILL ansehen (15 Sek.)</small></span>${I.chev}</button>`
-      : `<div class="row" style="cursor:default"><span style="font-size:22px">🎬</span><span class="grow"><b>Nächster Gratis-Tag Plus</b><small>ab ${fmtDay((L.adLast||0) + AD_EVERY)}</small></span></div>`}</div>`;
+      : `<button class="row" data-action="ad-watch"><span style="font-size:22px">🎬</span><span class="grow"><b>PiHILL-Werbespot ansehen</b><small>Nächster Gratis-Tag Plus ab ${fmtDay((L.adLast||0) + AD_EVERY)}</small></span>${I.chev}</button>`}</div>`;
 }
 function adOffer(){
   if (plusActive()) return `<div class="card" style="text-align:center;background:var(--herb-soft);font-weight:800;margin-bottom:10px">✨ Plus ist aktiv – ${fmtLeft(L.plusUntil)}</div>`;
@@ -2293,30 +2303,39 @@ function openSponsor(){
     <div class="stack">${groups.map(([e,t,d]) => `<div class="perk-row" style="align-items:flex-start"><span>${e}</span><div><b>${t}</b><div class="muted" style="font-size:13.5px;font-weight:600">${d}</div></div></div>`).join('')}</div>
     <div class="sp-facts"><div><b>ab 4,90 €</b><small>Preise</small></div><div><b>⭐ 5,0</b><small>Bewertung</small></div><div><b>Etsy</b><small>sicher bezahlen</small></div></div>
     <button class="btn btn-herb btn-block" data-action="sponsor-shop">Zum Shop auf Etsy ↗</button>
-    ${adReady() && !plusActive() ? `<button class="btn btn-line btn-block" style="margin-top:8px" data-action="ad">🎬 Spot ansehen – 1 Tag Plus gratis</button>` : ''}
+    ${adReady() && !plusActive() ? `<button class="btn btn-line btn-block" style="margin-top:8px" data-action="ad">🎬 Spot ansehen – 1 Tag Plus gratis</button>` : `<button class="btn btn-line btn-block" style="margin-top:8px" data-action="ad-watch">🎬 Werbespot ansehen</button>`}
     <button class="btn btn-block" style="background:none;color:var(--muted);margin-top:6px" data-action="close">Schließen</button></div>`);
 }
 /* Werbespot: 15 Sekunden, ohne Ton – bis zum Ende ansehen schaltet 1 Tag Plus frei (alle 2 Wochen) */
 let adT = null;
-function openAd(){
-  if (!adReady()){ toast(`Der nächste Gratis-Tag ist ab ${fmtDay((L.adLast||0) + AD_EVERY)} wieder da`); return; }
+function openAd(reason){
+  reason = reason || 'plus';
+  const reward = reason === 'plus' && adReady() && !plusActive();
   closeSheet(); closeAd();
+  const msg = reason === 'scan' ? 'Kurzer Spot von PiHILL – danach kannst du dein <b>Kühlschrank-Foto</b> machen 📷'
+    : reward ? 'Bis zum Ende ansehen für <b>1 Tag Plus gratis</b>' : 'Danke, dass du PiHILL unterstützt 💚';
   (document.documentElement.classList.contains('framed') && $('#screen') || document.body).insertAdjacentHTML('beforeend', `<div class="adbox" role="dialog" aria-label="Werbespot von PiHILL">
-    <video id="adv" src="${SPONSOR.video}" poster="${SPONSOR.poster}" muted playsinline autoplay preload="auto" disablepictureinpicture></video>
-    <div class="ad-top"><span class="spw-ad">Anzeige · PiHILL</span><span class="ad-left" id="adLeft">15</span></div>
+    <video id="adv" src="${SPONSOR.video}" poster="${SPONSOR.poster}" playsinline autoplay preload="auto" disablepictureinpicture></video>
+    <div class="ad-top"><span class="spw-ad">Anzeige · PiHILL</span><span class="ad-left" id="adLeft">21</span><button class="ad-snd" id="adSnd" data-action="ad-sound" aria-label="Ton aus">🔊</button></div>
     <div class="ad-bar"><i id="adBar"></i></div>
-    <div class="ad-msg" id="adMsg">Bis zum Ende ansehen für <b>1 Tag Plus gratis</b></div>
+    <div class="ad-msg" id="adMsg">${msg}</div>
     <button class="ad-x" data-action="ad-close" aria-label="Schließen">✕</button></div>`);
-  const v = $('#adv'); let max = 0;
-  v.addEventListener('timeupdate', () => { if (!v.isConnected || !$('#adBar')) return; if (v.currentTime > max + 1.5) v.currentTime = max; max = Math.max(max, v.currentTime);
-    const d = v.duration || 15; $('#adBar').style.width = (100*v.currentTime/d) + '%'; $('#adLeft').textContent = Math.max(0, Math.ceil(d - v.currentTime)); });
-  v.addEventListener('ended', () => { if (!v.isConnected) return; if (max < (v.duration || 15) - 1.5) return;
-    L.adLast = Date.now(); L.plusUntil = Math.max(Date.now(), L.plusUntil||0) + PLUS_DAY; saveLocal();
-    $('#adMsg').innerHTML = '🎉 <b>Plus ist jetzt 24 Stunden aktiv!</b> Danke an PiHILL'; $('#adLeft').textContent = '✓'; buzz([20,40,20]);
-    try { sb.from('feedback').insert({ user_id:D.user.id, kind:'werbung', message:'PiHILL-Spot angesehen', app_version:VERSION }).then(()=>{}, ()=>{}); } catch(e){}
-    adT = setTimeout(() => { closeAd(); render(); openPlus(false); }, 1800); });
-  v.addEventListener('error', () => { if (!$('#adMsg')) return; $('#adMsg').textContent = 'Der Spot konnte nicht geladen werden. Bitte später nochmal versuchen.'; });
-  const pr = v.play(); if (pr && pr.catch) pr.catch(() => { v.controls = false; v.addEventListener('click', () => v.play(), { once:true }); $('#adMsg').innerHTML = 'Antippen zum Abspielen'; });
+  const v = $('#adv'); let max = 0; v.muted = false;
+  const free = reason !== 'scan';   // freiwillig angesehen: Spulen erlaubt, sonst nicht
+  v.addEventListener('timeupdate', () => { if (!v.isConnected || !$('#adBar')) return; if (!free || reward){ if (v.currentTime > max + 1.5) v.currentTime = max; } max = Math.max(max, v.currentTime);
+    const d = v.duration || 21; $('#adBar').style.width = (100*v.currentTime/d) + '%'; $('#adLeft').textContent = Math.max(0, Math.ceil(d - v.currentTime)); });
+  v.addEventListener('ended', () => { if (!v.isConnected) return; const full = max >= (v.duration || 21) - 1.5;
+    try { sb.from('feedback').insert({ user_id:D.user.id, kind:'werbung', message:'PiHILL-Spot angesehen (' + reason + ')', app_version:VERSION }).then(()=>{}, ()=>{}); } catch(e){}
+    $('#adLeft').textContent = '✓';
+    if (reason === 'scan' && full){ L.scanAdOk = Date.now(); saveLocal(); $('#adMsg').innerHTML = `<b>Danke!</b> Jetzt ist die Kamera frei<br><button class="btn btn-herb" style="margin-top:10px" data-action="ad-photo">📷 Kühlschrank fotografieren</button>`; buzz([20,40,20]); return; }
+    if (reward && full){ L.adLast = Date.now(); L.plusUntil = Math.max(Date.now(), L.plusUntil||0) + PLUS_DAY; saveLocal();
+      $('#adMsg').innerHTML = '🎉 <b>Plus ist jetzt 24 Stunden aktiv!</b> Danke an PiHILL'; buzz([20,40,20]);
+      adT = setTimeout(() => { closeAd(); render(); openPlus(false); }, 1800); return; }
+    $('#adMsg').innerHTML = `Danke fürs Ansehen 💚<br><button class="btn btn-line" style="margin-top:10px" data-action="sponsor-shop">Zum Shop auf Etsy ↗</button>`; });
+  v.addEventListener('error', () => { if (!$('#adMsg')) return; $('#adMsg').textContent = 'Der Spot konnte nicht geladen werden. Bitte später nochmal versuchen.'; if (reason === 'scan'){ L.scanAdOk = Date.now(); saveLocal(); } });
+  const pr = v.play();
+  if (pr && pr.catch) pr.catch(() => { v.muted = true; const s2 = $('#adSnd'); if (s2) s2.textContent = '🔇';
+    v.play().catch(() => { v.addEventListener('click', () => v.play(), { once:true }); $('#adMsg').innerHTML = 'Antippen zum Abspielen'; }); });
 }
 function closeAd(){ clearTimeout(adT); const b = document.querySelector('.adbox'); if (b) b.remove(); }
 /* Plus-Extra: eigene Farbthemen */
@@ -2331,16 +2350,17 @@ applyAccent(); setInterval(applyAccent, 60e3);
 
 /* ---------- Start-Intro ---------- */
 (() => { const sp = $('#splash'), root = document.documentElement; if (!sp) return;
-  if (partyOn()){ const c = sp.querySelector('.sp-claim'); if (c) c.textContent = Date.now() < PARTY.at ? '🎉 Heute 20 Uhr: das große Update!' : '🥳 Das große Update ist da!'; const f = sp.querySelector('.sp-food'); if (f) f.innerHTML = ['🎉','🎊','🥳','🎈','✨','🍕'].map(e => `<span>${e}</span>`).join(''); }
-  else if (hwOn() || adOn()){ const f = sp.querySelector('.sp-food'); if (f) f.innerHTML = (adOn() ? ['🎄','⭐','🍪','🎁','❄️','🦌'] : ['🎃','🦇','🍬','👻','🕸️','🍂']).map(e => `<span>${e}</span>`).join(''); }
+  const setFood = arr => sp.querySelectorAll('.s2-food span').forEach((x, i) => { if (arr[i]) x.textContent = arr[i]; });
+  if (partyOn()){ const c = sp.querySelector('.s2-claim'); if (c) c.textContent = Date.now() < PARTY.at ? '🎉 Heute 20 Uhr: das große Update!' : '🥳 Das große Update ist da!'; setFood(['🎉','🎊','🥳','🎈','✨','🍕']); }
+  else if (hwOn() || adOn()){ setFood(adOn() ? ['🎄','⭐','🍪','🎁','❄️','🦌'] : ['🎃','🦇','🍬','👻','🕸️','🍂']); }
   let done = false;
   const hide = () => { if (done) return; done = true; sp.classList.add('gone'); root.classList.remove('splashing'); applyTheme.last = null; applyTheme(); };
   // Nur beim ersten Öffnen zeigen – nicht noch einmal, wenn die App sich für ein Update kurz neu lädt
   let seen = false; try { seen = !!sessionStorage.getItem('wg.splash'); sessionStorage.setItem('wg.splash', '1'); } catch(e){}
   if (seen || window.matchMedia('(prefers-reduced-motion: reduce)').matches){ hide(); return; }
   root.classList.add('splashing');   // oberer Rand bleibt in App-Farbe (iPhone übernimmt sonst das Grün des Intros)
-  sp.addEventListener('animationend', e => { if (e.target === sp && e.animationName === 'spOut') hide(); });
-  sp.addEventListener('click', hide); setTimeout(hide, 3000); })();
+  sp.addEventListener('animationend', e => { if (e.target === sp && (e.animationName === 's2Out' || e.animationName === 'spOut')) hide(); });
+  sp.addEventListener('click', hide); setTimeout(hide, 3500); })();
 
 /* =========================================================================
    VERSION 3.0 – flüssiger, schöner, mehr Funktionen
@@ -3019,3 +3039,31 @@ document.addEventListener('click', async e => {
       closeSheet(); render(); toast('Danke – wir schauen uns das an'); break; }
   } } catch(err){ t.disabled = false; toast('Hat nicht geklappt: ' + (err && err.message || err)); }
 });
+
+
+/* =========================================================================
+   VERSION 4.3 – PiHILL „im Augenwinkel"
+   Kleine, immer gleich aussehende Hinweise an ruhigen Stellen (Ende von Listen,
+   nach Erfolgsmomenten). Wiedererkennung durch gleiches Format, Abwechslung durch
+   wechselnde Texte. Immer als „Anzeige" gekennzeichnet (Pflicht in Deutschland).
+   ========================================================================= */
+const SP_LINES = [
+  ['🧶','Kuschelig wie Omas Küche: gehäkelte Ponchos & Loop-Schals'],
+  ['✨','Gemütlich essen mit Licht: Lichterkugeln in Häkeloptik'],
+  ['🏮','Laternen & Leuchtpilze – Deko, die leuchtet'],
+  ['🪢','Makramee & Fensterdeko für eure Küche'],
+  ['🎁','Kleine handgemachte Geschenke – jedes ein Unikat'],
+  ['🎄','Holz-Weihnachtsbäume & Anhänger für die Adventszeit'],
+  ['🧥','Strickjacken in Handarbeit – warm durch den Winter'],
+];
+function spHint(seed){
+  const [e, t] = SP_LINES[(Math.floor(Date.now() / 36e5) + (seed || 0)) % SP_LINES.length];
+  return `<button class="sp-hint" data-action="sponsor" aria-label="Anzeige von PiHILL: ${esc(t)}"><img src="${SPONSOR.logo}" alt=""><span class="grow"><b>${e} ${esc(t)}</b><small>PiHILL · handgemacht</small></span><span class="sp-hint-ad">Anzeige</span></button>`;
+}
+{
+  const wrap = (fn, seed) => function(){ const out = fn.apply(this, arguments); return typeof out === 'string' && D.user && !(D.profile && D.profile.banned) ? out + spHint(seed) : out; };
+  viewFridge = wrap(viewFridge, 1); viewWeek = wrap(viewWeek, 3); viewFamily = wrap(viewFamily, 4);
+  const _or = openRecipe;
+  openRecipe = function(id, keep){ const r = _or.apply(this, arguments);
+    const sh = document.querySelector('.sheet'); if (sh && !sh.querySelector('.sp-hint')) sh.insertAdjacentHTML('beforeend', `<div style="margin-top:14px">${spHint(5)}</div>`); return r; };
+}

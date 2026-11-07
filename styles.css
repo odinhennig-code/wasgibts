@@ -1508,3 +1508,44 @@ html:not(.framed) #sbcol{display:block;position:fixed;left:0;right:0;top:0;heigh
 #home-filters .frow{flex-direction:column;align-items:stretch;gap:8px}
 #home-filters .frow .seg{display:flex;width:100%}
 #home-filters .frow .seg button{flex:1}
+
+/* ---------- 4.3: Neuer Ladebildschirm – „Der Teller füllt sich" ---------- */
+#splash{display:flex !important;flex-direction:column;align-items:center;justify-content:center;gap:0;background:var(--bg) !important;animation:s2Out .5s cubic-bezier(.6,0,.4,1) 2.75s forwards !important}
+#splash.gone{display:none !important}
+.s2-stage{position:relative;width:200px;height:200px;animation:s2Lift .6s cubic-bezier(.3,1.4,.5,1) 1.55s both}
+.s2-plate{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.s2-rim{fill:var(--surface);stroke:var(--line);stroke-width:2;filter:drop-shadow(0 16px 24px rgba(22,32,26,.14));transform-origin:110px 110px;animation:s2Plate .55s cubic-bezier(.3,1.5,.5,1) both}
+.s2-in{fill:none;stroke:var(--herb);stroke-width:3;stroke-dasharray:465;stroke-dashoffset:465;opacity:.55;animation:s2Draw .9s cubic-bezier(.4,0,.2,1) .15s forwards}
+.s2-food span{position:absolute;left:50%;top:50%;font-size:46px;line-height:1;margin:-23px 0 0 -23px;opacity:0;
+  transform:rotate(var(--a)) translateX(240px) rotate(calc(-1 * var(--a)));animation:s2Fly .7s cubic-bezier(.3,1.35,.5,1) var(--d) forwards}
+.s2-food span:last-child{font-size:52px;z-index:2}
+.s2-word{margin-top:26px;font-family:var(--f-display);font-weight:800;font-size:38px;letter-spacing:-.03em;color:var(--fg);display:flex;align-items:baseline;gap:.25em;opacity:0;animation:s2Up .5s cubic-bezier(.3,1.4,.5,1) .55s forwards}
+.s2-slot{position:relative;display:inline-block;height:1.15em;overflow:hidden;color:var(--herb);width:3.3em}
+.s2-slot i{position:absolute;left:0;top:0;font-style:normal;white-space:nowrap;transform:translateY(110%);opacity:0}
+.s2-slot i:nth-child(1){animation:s2Tick .34s ease .8s both}
+.s2-slot i:nth-child(2){animation:s2Tick .34s ease 1.1s both}
+.s2-slot i:nth-child(3){animation:s2Tick .34s ease 1.4s both}
+.s2-slot i:nth-child(4){color:var(--tomato);animation:s2Land .5s cubic-bezier(.3,1.6,.5,1) 1.7s both}
+.s2-claim{margin-top:8px;color:var(--muted);font-weight:700;font-size:15px;opacity:0;animation:s2Fade .5s ease 1.95s forwards}
+.s2-sponsor{position:absolute;left:0;right:0;bottom:calc(36px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;align-items:center;gap:6px;color:var(--muted);font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;opacity:0;animation:s2Fade .6s ease .9s forwards}
+.s2-sponsor img{height:46px;width:auto}
+@keyframes s2Plate{from{transform:scale(.2);opacity:0}}
+@keyframes s2Draw{to{stroke-dashoffset:0}}
+@keyframes s2Fly{0%{opacity:0}30%{opacity:1}100%{opacity:1;transform:translate(var(--x),var(--y)) rotate(var(--r))}}
+@keyframes s2Lift{0%{transform:none}45%{transform:translateY(-8px) scale(1.04)}100%{transform:none}}
+@keyframes s2Up{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@keyframes s2Tick{0%{transform:translateY(110%);opacity:0}35%,70%{transform:none;opacity:1}100%{transform:translateY(-110%);opacity:0}}
+@keyframes s2Land{from{transform:translateY(110%) scale(.9);opacity:0}to{transform:none;opacity:1}}
+@keyframes s2Fade{to{opacity:1}}
+@keyframes s2Out{to{opacity:0;transform:scale(1.04)}}
+@media (max-width:350px){ .s2-word{font-size:32px} .s2-stage{width:170px;height:170px} }
+
+.sp-hint{display:flex;align-items:center;gap:10px;width:100%;margin:14px 0 4px;padding:9px 12px;border-radius:16px;border:1px dashed color-mix(in srgb,var(--muted) 35%,transparent);background:transparent;color:var(--fg);text-align:left;cursor:pointer}
+.sp-hint img{width:34px;height:34px;object-fit:contain;flex:none}
+.sp-hint .grow{min-width:0;display:flex;flex-direction:column}
+.sp-hint b{font-size:0.8235rem;font-weight:700;line-height:1.3}
+.sp-hint small{font-size:0.7059rem;color:var(--muted);font-weight:600}
+.sp-hint-ad{flex:none;font-size:0.6471rem;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);border:1px solid var(--line);border-radius:6px;padding:2px 6px}
+[data-theme=dark] .sp-hint img{filter:invert(1) brightness(1.6)}
+@media (prefers-color-scheme:dark){html:not([data-theme=light]) .sp-hint img{filter:invert(1) brightness(1.6)}}
+.ad-snd{width:34px;height:34px;border-radius:50%;border:0;background:rgba(78,69,66,.14);font-size:15px;cursor:pointer}
