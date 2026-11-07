@@ -1,7 +1,7 @@
 /* Umzug von GitHub Pages zur neuen Adresse.
    Leer = kein Umzug. Sobald die neue Adresse läuft, wird sie hier eingetragen. */
 (function(){
-  var NEW = '';
+  var NEW = 'https://wasgibts.pages.dev';
   if (!NEW || !/github\.io$/.test(location.hostname)) return;
   var path = location.pathname.replace(/^\/wasgibts/, '') || '/';
   var target = NEW.replace(/\/$/, '') + path + location.search + location.hash;
