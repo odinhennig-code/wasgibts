@@ -1,0 +1,5 @@
+/landingpage    /willkommen/  301
+/landingpage/*  /willkommen/  301
+/landing        /willkommen/  301
+/landing/*      /willkommen/  301
+/start          /willkommen/  301
