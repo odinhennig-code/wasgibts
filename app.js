@@ -219,7 +219,7 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden && D.
 /* ---------- Rezepte: feste Sammlung + eigene Familienrezepte ---------- */
 const RX = () => [...R, ...D.xrec, ...D.custom];
 async function loadXRec(){ try { const { data, error } = await sb.from('recipes').select('id,data,source').eq('active', true).limit(2000); if (error || !data) return;
-  D.xrec = data.map(x => { const d = x.data || {}; return { id:'x_'+x.id, n:String(d.n||'').slice(0,80), e:d.e||'🍽️', t:+d.t||30, m:d.m||'normal', meal:d.meal, i:(d.i||[]).filter(k => ING[k]), o:(d.o||[]).filter(k => ING[k]), x:d.x||[], s:(d.s||[]).map(String), src:x.source||'', xdb:true }; }).filter(r => r.n && r.i.length && r.s.length);
+  D.xrec = data.map(x => { const d = x.data || {}; return { id:'x_'+x.id, n:String(d.n||'').slice(0,80), e:d.e||'🍽️⁠', t:+d.t||30, m:d.m||'normal', meal:d.meal, i:(d.i||[]).filter(k => ING[k]), o:(d.o||[]).filter(k => ING[k]), x:d.x||[], s:(d.s||[]).map(String), src:x.source||'', xdb:true }; }).filter(r => r.n && r.i.length && r.s.length);
   if (D.xrec.length) render(); } catch(e){} }
 /* Datum als JJJJ-MM-TT in Ortszeit */
 /* ---------- Saison-Look (Halloween) ----------
@@ -233,7 +233,7 @@ const HW_BATS = '<svg viewBox="0 0 64 28" aria-hidden="true"><path fill="current
 const isoDay = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 const nextDays = n => Array.from({ length:n }, (_, i) => { const d = new Date(); d.setHours(12,0,0,0); d.setDate(d.getDate() + i); return d; });
 const planFor = (iso, slot = 'abend') => D.plan.find(p => p.day === iso && (p.slot || 'abend') === slot);
-const SLOTS = [['frueh','Frühstück','☕'],['mittag','Mittag','🥪'],['abend','Abendessen','🍽️']];
+const SLOTS = [['frueh','Frühstück','☕'],['mittag','Mittag','🥪'],['abend','Abendessen','🍽️⁠']];
 const isOut = p => p && p.recipe_id === '__out';
 
 /* ---------- Einkaufsliste ---------- */
@@ -339,9 +339,9 @@ function renderTabbar(){
   const show = D.user && isActive() && !D.profile?.banned;
   $('#tabbar').hidden = !show; if (!show) return;
   const p = isAdmin() ? pendingReq().length : 0;
-  // Icons8 (iOS-Stil): Umriss für inaktive Tabs, gefüllt für den aktiven Tab
-  const ti = n => `<i class="ti" aria-hidden="true" style="--o:url(icons/tab/o-${n}.png);--f:url(icons/tab/f-${n}.png)"></i>`;
-  const tabs = [['home','Heute',ti('restaurant')],['fridge','Kühlschrank',ti('fridge')],['recipes','Planen',ti('calendar')],['family','Familie',ti('conference-call')],['more','Mehr',ti('more')]];
+  // Icons8 Puffy Filled
+  const ti = n => `<i class="ti" aria-hidden="true" style="--o:url(icons/p/${n}.png);--f:url(icons/p/${n}.png)"></i>`;
+  const tabs = [['home','Heute',ti('restaurant')],['fridge','Kühlschrank',ti('fridge')],['recipes','Planen',ti('calendar')],['family','Familie',ti('conference-call')],['more','Mehr',ti('menu-2')]];
   const tb = $('#tabbar'), idx = Math.max(0, tabs.findIndex(t => t[0] === UI.tab));
   if (!tb.querySelector('.tab-pill')) tb.innerHTML = `<span class="tab-pill" aria-hidden="true"></span>` + tabs.map(([id,l,ic]) => `<button class="tab" data-tab="${id}">${ic}<span>${l}</span></button>`).join('');
   tabs.forEach(([id]) => { const b = tb.querySelector(`[data-tab="${id}"]`); if (!b) return;
@@ -433,7 +433,7 @@ function viewHome(){
   return header(`Was gibt's heute, ${esc(D.profile.name)}?`, greet) + partyCard() + annBanner() + installBanner() + pushBanner() + hwCard() + adventCard() + rateBanner() +
     (p.length ? `<button class="banner" data-tab="family"><span class="avatar sm">${avIn(prof(p[0].user_id))}</span><span style="flex:1"><b>${esc(prof(p[0].user_id).name)}</b> möchte deiner Familie beitreten</span>${I.chev}</button>` : '') +
     `<div class="dash">
-      ${exp.length ? tile('data-action="reste-on"', '⏰', plu(exp.length, 'Sache', 'Sachen'), 'laufen bald ab', true) : tile('data-tab="fridge"', '🧊', 'Alles frisch', 'nichts läuft ab')}
+      ${exp.length ? tile('data-action="reste-on"', '⏰', plu(exp.length, 'Sache', 'Sachen'), 'laufen bald ab', true) : tile('data-tab="fridge"', '🧊⁠', 'Alles frisch', 'nichts läuft ab')}
       ${tile('data-action="go-shop"', '🛒', shopN ? plu(shopN, 'Sache', 'Sachen') : 'Liste leer', shopN ? 'auf der Liste' : 'nichts zu kaufen')}
       ${tile('data-action="go-wishes"', '🙋', wishN ? plu(wishN, 'Wunsch', 'Wünsche') : 'Keine', wishN ? 'von der Familie' : 'Wünsche offen')}
     </div>
@@ -445,10 +445,10 @@ function viewHome(){
         <div class="why">${whyLines(top).slice(0, 2).map(l=>`<span>${l}</span>`).join('')}</div>
         <div class="meta"><span class="chip">⏱ ${top.r.t} Min</span>${top.missing.length ? `<span class="chip">🛒 ${esc(top.missing.map(ingName).join(', '))}</span>` : `<span class="chip">Passt für ${eat.length===active().length?'alle':eat.length+' Personen'}</span>`}</div></button></div>
       <div class="pick-actions">
-        <button class="btn btn-herb" data-action="cook" data-id="${top.r.id}">👨‍🍳 Jetzt kochen</button>
+        <button class="btn btn-herb" data-action="cook" data-id="${top.r.id}">👨‍🍳⁠ Jetzt kochen</button>
         ${n > 1 ? `<button class="btn btn-soft" data-action="next-pick" aria-label="Andere Idee zeigen">🔄 Andere Idee</button>` : ''}</div>
       ${rest.length ? `<div class="h2">Oder vielleicht</div><div class="stack">${rest.map(suggestionCard).join('')}</div>` : ''}`
-    : `<div class="card empty"><div class="g">🧊</div><b>Mit dem, was da ist, passt noch kein Rezept</b>Trag im Kühlschrank ein, was du hast – dann kommen hier Vorschläge.<button class="btn btn-soft btn-block" style="margin-top:12px" data-tab="fridge">Kühlschrank öffnen</button></div>`}
+    : `<div class="card empty"><div class="g">🧊⁠</div><b>Mit dem, was da ist, passt noch kein Rezept</b>Trag im Kühlschrank ein, was du hast – dann kommen hier Vorschläge.<button class="btn btn-soft btn-block" style="margin-top:12px" data-tab="fridge">Kühlschrank öffnen</button></div>`}
     <div class="home-more">
       ${all.length > 2 ? `<button class="btn btn-soft" data-action="slot">🎰 Glücksrad</button>` : ''}
       ${active().length > 1 && !pollLive ? `<button class="btn btn-soft" data-action="new-poll">🗳️ Abstimmen</button>` : ''}
@@ -485,14 +485,14 @@ function todayPlanned(){
       <div class="why"><span>${miss.length ? `🛒 Es fehlt noch: ${esc(miss.map(ingName).join(', '))}` : '✅ Du hast alles da'}</span></div>
       <div class="meta"><span class="chip">⏱ ${r.t} Min</span>${p.set_by && p.set_by !== D.user.id ? `<span class="chip">Geplant von ${esc(prof(p.set_by).name)}</span>` : ''}</div></button>
     <div style="display:grid;grid-template-columns:${miss.length ? '1fr 1fr' : '1fr'};gap:8px;margin-top:10px">
-      <button class="btn btn-herb" data-action="cook" data-id="${r.id}">👨‍🍳 Jetzt kochen</button>
+      <button class="btn btn-herb" data-action="cook" data-id="${r.id}">👨‍🍳⁠ Jetzt kochen</button>
       ${miss.length ? `<button class="btn btn-ghost" data-action="shop-missing" data-id="${r.id}">🛒 Auf die Liste</button>` : ''}</div>`;
 }
 function expTag(k){ const d = daysLeft(k); if (d === null) return ''; return ` <span class="exp ${d<=1?'hot':''}">${d<0?'abgelaufen':d===0?'heute':d+' T'}</span>`; }
 function viewFridge(){
   const n = openShop().length;
   const tabs = `<div class="seg" role="group" aria-label="Ansicht" style="margin-bottom:14px">
-      <button data-action="ftab" data-v="fridge" aria-pressed="${UI.ftab!=='shop'}">🧊 Kühlschrank <span class="seg-n">${D.fridge.length}</span></button>
+      <button data-action="ftab" data-v="fridge" aria-pressed="${UI.ftab!=='shop'}">🧊⁠ Kühlschrank <span class="seg-n">${D.fridge.length}</span></button>
       <button data-action="ftab" data-v="shop" aria-pressed="${UI.ftab==='shop'}">🛒 Einkaufsliste${n?` <span class="seg-n hot">${n}</span>`:''}</button></div>`;
   if (UI.ftab === 'shop') return header('Einkaufsliste', 'Für die ganze Familie · live') + tabs + viewShopping();
   const fr = new Set(D.fridge), q = (UI.fq || '').trim().toLowerCase();
@@ -599,11 +599,11 @@ async function fillWeek(){
 }
 function viewWeek(){
   const fr = new Set(D.fridge), days = nextDays(7), empty = days.filter(d => !planFor(isoDay(d))).length, miss = plannedMissing().length;
-  const cookChip = p => p && p.cook ? `<span class="chip c-muted">👨‍🍳 ${esc(prof(p.cook).name)}</span>` : '';
+  const cookChip = p => p && p.cook ? `<span class="chip c-muted">👨‍🍳⁠ ${esc(prof(p.cook).name)}</span>` : '';
   return `<div class="week">${days.map((d, i) => { const iso = isoDay(d), p = planFor(iso), r = p && rec(p.recipe_id);
       const m = r ? r.i.filter(k => !fr.has(k)).length : 0;
       const extras = D.cap.plan3 ? SLOTS.filter(([k]) => k !== 'abend').map(([k, l, e]) => { const x = planFor(iso, k); if (!x) return ''; const xr = rec(x.recipe_id);
-        return `<button class="wk-extra" data-action="plan-day" data-v="${iso}" data-slot="${k}">${e} <b>${l}:</b> ${isOut(x) ? '🍕 ' + esc(x.label || 'Auswärts') : xr ? esc(xr.n) : ''}${x.cook ? ` · 👨‍🍳 ${esc(prof(x.cook).name)}` : ''}</button>`; }).join('') : '';
+        return `<button class="wk-extra" data-action="plan-day" data-v="${iso}" data-slot="${k}">${e} <b>${l}:</b> ${isOut(x) ? '🍕 ' + esc(x.label || 'Auswärts') : xr ? esc(xr.n) : ''}${x.cook ? ` · 👨‍🍳⁠ ${esc(prof(x.cook).name)}` : ''}</button>`; }).join('') : '';
       return `<div class="week-row ${i===0?'today':''}"><div class="wd"><b>${dayShort(d, i)}</b><small>${d.getDate()}.${d.getMonth()+1}.</small></div><div class="wk-main">
         ${isOut(p) ? `<button class="rc" data-action="plan-day" data-v="${iso}"><div class="em">🍕</div><div class="main"><div class="t">${esc(p.label || 'Auswärts essen')}</div><div class="s"><span class="chip c-yolk">Auswärts / Bestellt</span>${cookChip(p)}</div></div>${I.chev}</button>`
         : r ? `<button class="rc" data-action="plan-day" data-v="${iso}">${photoEm(r)}<div class="main"><div class="t">${esc(r.n)}</div><div class="s"><span>⏱ ${r.t} Min</span>${m ? `<span class="chip c-yolk">🛒 ${m} fehlt</span>` : '<span class="chip c-herb">✅ alles da</span>'}${cookChip(p)}</div></div>${I.chev}</button>`
@@ -631,7 +631,7 @@ function openPlanDay(iso, keep, slot){
       <button class="btn btn-ghost btn-block" style="color:var(--tomato);margin-bottom:6px" data-action="plan-clear" data-v="${iso}" data-slot="${slot}">Entfernen</button>` : ''}
     ${r ? `<div class="card" style="display:flex;gap:12px;align-items:center;margin-bottom:12px">${photoEm(r)}<div style="flex:1;min-width:0"><b>${esc(r.n)}</b><div class="muted" style="font-size:13px">⏱ ${r.t} Min</div></div></div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:6px"><button class="btn btn-ghost" data-action="open-recipe" data-id="${r.id}">Rezept öffnen</button><button class="btn btn-ghost" style="color:var(--tomato)" data-action="plan-clear" data-v="${iso}" data-slot="${slot}">Entfernen</button></div>` : ''}
-    ${p && D.cap.plan3 ? `<div class="h2">👨‍🍳 Wer kocht?</div><div class="chips">${active().map(m => { const a = prof(m.user_id); return `<button class="ing" data-action="plan-cook" data-v="${iso}" data-slot="${slot}" data-id="${a.id}" aria-pressed="${p.cook===a.id}">${esc(a.avatar && a.avatar.length < 9 ? a.avatar : '🙂')} ${esc(a.name)}</button>`; }).join('')}</div>` : ''}
+    ${p && D.cap.plan3 ? `<div class="h2">👨‍🍳⁠ Wer kocht?</div><div class="chips">${active().map(m => { const a = prof(m.user_id); return `<button class="ing" data-action="plan-cook" data-v="${iso}" data-slot="${slot}" data-id="${a.id}" aria-pressed="${p.cook===a.id}">${esc(a.avatar && a.avatar.length < 9 ? a.avatar : '🙂')} ${esc(a.name)}</button>`; }).join('')}</div>` : ''}
     <div class="h2">${p ? 'Tauschen gegen' : 'Was gibt\'s?'}</div>
     <div class="out-row"><input id="outIn" class="input" maxlength="40" placeholder="🍕 Auswärts / Bestellen, z. B. Pizza" autocomplete="off" aria-label="Auswärts essen oder bestellen"><button class="btn btn-line" data-action="plan-out" data-v="${iso}" data-slot="${slot}">Eintragen</button></div>
     <input id="planSearch" class="input" type="search" aria-label="Rezept suchen" placeholder="Rezept suchen …" value="${esc(UI.pq||'')}" autocomplete="off" style="margin:10px 0">
@@ -701,8 +701,9 @@ function viewFamily(){
 }
 
 /* ---------- Reiter „Mehr" ---------- */
-const VERSION = '4.5';
+const VERSION = '5.0';
 const CHANGELOG = [
+  { v:'5.0', d:'November 2026', items:['Aufgeräumt: Die Startseite ist jetzt ein kleines Dashboard – was bald abläuft, was auf der Liste steht, welche Wünsche offen sind, und ein Vorschlag für heute mit „Andere Idee"','Die Filter (wer isst mit, Zeit, Lust) stehen jetzt bei „Alle Rezepte", wo man wirklich sucht','Neue Icons überall statt Emojis – Essen bleibt bunt','Neuigkeiten in der Familie nach Tagen sortiert und zusammengefasst, nur die letzten 7 Tage'] },
   { v:'4.5', d:'12. November 2026', items:['Neues App-Icon: ein schlichter Kühlschrank','Neuer, cleaner Look: frischere Farben, Flächen statt Rahmen, runde Knöpfe und weichere Schrift','Knöpfe und Karten federn beim Antippen','Behoben: Falsche Adressen zeigten eine kaputte, weiße App-Seite – jetzt kommt eine richtige „Seite nicht gefunden"-Seite'] },
   { v:'4.4', d:'7. November 2026', items:['↩︎ Rückgängig: Wer aus Versehen etwas löscht (Einkaufsliste, Kühlschrank leeren, Wochenplan), tippt unten einfach auf „Rückgängig"','📳 Kurze Vibration beim Abhaken – jetzt auch am iPhone','🔎 Suche verzeiht Tippfehler jetzt auch im Kühlschrank und in der Einkaufsliste („Tomatn" findet Tomaten)','🛒 Selbst getippte Einträge wie „Klopapier" oder „Brötchen" landen im richtigen Bereich – neu: Getränke und Haushalt & Drogerie','Leere Seiten zeigen jetzt immer, was man als Nächstes tun kann','Verständlichere Fehlermeldungen: was passiert ist und was du tun kannst'] },
   { v:'4.3', d:'7. November 2026', items:['Neuer Ladebildschirm: Der Teller füllt sich mit Zutaten – „Was gibt\'s heute?"','Den Werbespot unseres Sponsors PiHILL kannst du jetzt jederzeit ansehen – jetzt mit Ton','Tipps von PiHILL in Kühlschrank, Wochenplan, Familie und Rezepten','Kühlschrank-Foto: Das erste Foto am Tag ist frei, danach gibt es vorher einen kurzen Spot – mit Plus nie'] },
@@ -1167,7 +1168,7 @@ function openRecipe(id, keep){
   const people = eatersNow().map(prof), notes = softNotes(r, people), blocked = people.map(p=>({p, c:conflicts(r,p)})).filter(x=>x.c.length);
   openSheet(`${sheetHead('')}
     ${recipeHero(r)}<div class="h1" style="text-align:center">${esc(r.n)}</div>
-    <div style="display:flex;gap:6px;justify-content:center;margin:10px 0 16px;flex-wrap:wrap"><span class="chip c-muted">⏱ ${r.t} Min</span>${r.m==='fast'?'<span class="chip c-yolk">Fastfood-Abend</span>':r.m==='gesund'?'<span class="chip c-herb">Gesund</span>':''}${r.x.includes('scharf')?'<span class="chip c-tomato">Scharf</span>':''}${(rt => rt.n ? `<span class="chip c-yolk">⭐ ${rt.avg.toFixed(1).replace('.', ',')} · ${rt.n} ${rt.n === 1 ? 'Bewertung' : 'Bewertungen'}</span>` : '')(ratingOf(id))}${inSeason(r) ? '<span class="chip c-herb">🍂 Saison</span>' : ''}${cookedTimes(id) ? `<span class="chip c-muted">🍳 ${cookedTimes(id)}× gekocht</span>` : ''}</div>
+    <div style="display:flex;gap:6px;justify-content:center;margin:10px 0 16px;flex-wrap:wrap"><span class="chip c-muted">⏱ ${r.t} Min</span>${r.m==='fast'?'<span class="chip c-yolk">Fastfood-Abend</span>':r.m==='gesund'?'<span class="chip c-herb">Gesund</span>':''}${r.x.includes('scharf')?'<span class="chip c-tomato">Scharf</span>':''}${(rt => rt.n ? `<span class="chip c-yolk">⭐ ${rt.avg.toFixed(1).replace('.', ',')} · ${rt.n} ${rt.n === 1 ? 'Bewertung' : 'Bewertungen'}</span>` : '')(ratingOf(id))}${inSeason(r) ? '<span class="chip c-herb">🍂 Saison</span>' : ''}${cookedTimes(id) ? `<span class="chip c-muted">🍳⁠ ${cookedTimes(id)}× gekocht</span>` : ''}</div>
     ${who.length?`<div class="card" style="display:flex;gap:10px;align-items:center;margin-bottom:12px"><span class="avatar-stack">${who.map(w=>`<span class="avatar sm">${avIn(prof(w))}</span>`).join('')}</span><span><b>${esc(names(who.map(w=>prof(w).name)))}</b> ${who.length>1?'wünschen':'wünscht'} sich das</span></div>`:''}
     ${blocked.length?`<div class="card" style="background:var(--tomato-soft);color:var(--tomato);margin-bottom:12px;font-weight:700">${blocked.map(b=>`${esc(b.p.name)} ${esc(b.c[0])}`).join('<br>')}</div>`:''}
     ${notes.length?`<div class="card" style="background:var(--yolk-soft);margin-bottom:12px;font-weight:700">💡 ${notes.map(esc).join('<br>💡 ')}</div>`:''}
@@ -1184,8 +1185,8 @@ function openRecipe(id, keep){
     <div class="h2">So geht's</div>
     <div class="card" style="padding:6px 16px">${r.s.map((s,n)=>`<div class="step"><b>${n+1}</b><span>${stepWithTimers(s)}</span></div>`).join('')}</div>
     ${recipeExtras(r)}${r.xdb ? `<p class="muted" style="font-size:12px;text-align:center;margin-top:10px">Neu aus der Rezept-Datenbank${r.src ? ' · Quelle: ' + esc(r.src) : ''}</p>` : ''}
-    <button class="btn btn-tomato btn-block" style="margin-top:16px" data-action="cook" data-id="${id}">👨‍🍳 Kochmodus starten</button>
-    <button class="btn btn-herb btn-block" style="margin-top:8px" data-action="cooked" data-id="${id}">🍽️ Heute gekocht</button>
+    <button class="btn btn-tomato btn-block" style="margin-top:16px" data-action="cook" data-id="${id}">👨‍🍳⁠ Kochmodus starten</button>
+    <button class="btn btn-herb btn-block" style="margin-top:8px" data-action="cooked" data-id="${id}">🍽️⁠ Heute gekocht</button>
     <button class="btn btn-ghost btn-block" style="margin-top:8px" data-action="share-recipe" data-id="${id}">📤 Rezept als Bild teilen</button>
     ${r.custom ? `<p class="muted" style="text-align:center;font-size:13px;margin:14px 0 0">Familienrezept von ${esc(prof(r.by).name)}</p>
       ${(r.by===D.user.id || isAdmin()) ? (UI.confirmDel===id ? `<div class="card" style="background:var(--tomato-soft);margin-top:10px"><b style="color:var(--tomato)">Rezept wirklich löschen?</b><div style="display:flex;gap:8px;margin-top:10px"><button class="btn btn-tomato btn-sm" style="flex:1" data-action="del-recipe" data-id="${id}">Löschen</button><button class="btn btn-ghost btn-sm" style="flex:1" data-action="cancel-del" data-id="${id}">Abbrechen</button></div></div>` : `<button class="linkbtn" style="display:block;margin:4px auto 0;color:var(--tomato)" data-action="ask-del" data-id="${id}">Rezept löschen</button>`) : ''}` : ''}`, keep);
@@ -1247,7 +1248,7 @@ function openPollSetup(){
   const list = suggest().filter(x => x.missing.length <= 1).slice(0, 12), pre = list.slice(0, 3).map(x => x.r.id);
   openSheet(`${sheetHead('Abstimmung starten')}
     <p class="muted" style="margin-top:-6px">Wähle 2 bis 4 Gerichte. Alle in der Familie können dann abstimmen.</p>
-    ${list.length < 2 ? `<div class="card empty"><div class="g">🧊</div><b>Zu wenig Auswahl</b>Trag im Kühlschrank mehr Zutaten ein.<button class="btn btn-line btn-block" style="margin-top:12px" data-tab="fridge">Zum Kühlschrank</button></div>` :
+    ${list.length < 2 ? `<div class="card empty"><div class="g">🧊⁠</div><b>Zu wenig Auswahl</b>Trag im Kühlschrank mehr Zutaten ein.<button class="btn btn-line btn-block" style="margin-top:12px" data-tab="fridge">Zum Kühlschrank</button></div>` :
     `<div class="stack" style="gap:8px">${list.map(x => `<button class="opt pick-opt" data-action="poll-pick" data-id="${x.r.id}" aria-pressed="${pre.includes(x.r.id)}"><span class="oe">${x.r.e}</span><span class="on">${esc(x.r.n)}</span>${x.missing.length?'<span class="chip c-yolk">🛒 1</span>':''}<span class="tick">✓</span></button>`).join('')}</div>
     <div class="h2">⏰ Endet automatisch</div>
     <div class="seg" role="group" aria-label="Ende">${[['0','Von Hand'],['30','in 30 Min'],['60','in 1 Std'],['120','in 2 Std']].map(([k,l]) => `<button data-action="poll-end-pick" data-v="${k}" aria-pressed="${(UI.pollEnd||'60')===k}">${l}</button>`).join('')}</div>
@@ -1262,11 +1263,11 @@ function openExpiry(){
     <button class="photo-card" data-action="exp-photo" style="margin-bottom:12px"><span class="cam">${I.cam}</span><span style="flex:1"><b style="font-size:17px">Datum fotografieren</b><br><span style="opacity:.9;font-size:14px">Foto vom Haltbarkeitsdatum – Produkt und Datum werden automatisch eingetragen</span></span></button>
     <p class="muted" style="margin-top:-2px">Oder trag es selbst ein. Die App schlägt dann zuerst Gerichte vor, die es aufbrauchen.</p>
     ${items.length ? `<div class="list">${items.map(k => `<label class="row" for="exp-${k}"><span style="font-size:22px">${ingEmoji(k)}</span><span class="grow"><b>${ingName(k)}</b></span><input id="exp-${k}" class="input date" type="date" value="${esc(D.expiries[k]||'')}"></label>`).join('')}</div>
-    <button class="btn btn-herb btn-block" style="margin-top:16px" data-action="save-expiry">Speichern</button>` : `<div class="card empty"><div class="g">🧊</div><b>Kühlschrank ist leer</b>Wähle zuerst aus, was da ist.</div>`}`);
+    <button class="btn btn-herb btn-block" style="margin-top:16px" data-action="save-expiry">Speichern</button>` : `<div class="card empty"><div class="g">🧊⁠</div><b>Kühlschrank ist leer</b>Wähle zuerst aus, was da ist.</div>`}`);
 }
 
 /* ---------- Eigenes Rezept eintragen ---------- */
-const FOOD_EMOJI = ['🍽️','🍲','🍝','🥘','🍛','🥗','🍕','🍔','🌮','🥪','🍳','🥞','🍰','🍗','🐟','🥦'];
+const FOOD_EMOJI = ['🍽️⁠','🍲','🍝','🥘','🍛','🥗','🍕','🍔','🌮','🥪','🍳⁠','🥞','🍰','🍗','🐟','🥦'];
 function openRecipeForm(){
   sheetFn = null;
   openSheet(`${sheetHead('Eigenes Rezept')}
@@ -1302,14 +1303,14 @@ function sceneFor(txt, r){
   const drop = ings.map((e, n) => `<span class="sc-ing" style="--d:${n * .18}s;--x:${(n - (ings.length - 1) / 2) * 46}px">${e}</span>`).join('');
   const pick = [
     [/schneid|hack|würfel|hobel|reib|streifen|scheiben|zerdrück|halbier/, 'chop', '🔪', 'Schneiden'],
-    [/brat|anbrat|anschwitz|röst|pfanne|ausback/, 'fry', '🍳', 'Braten'],
+    [/brat|anbrat|anschwitz|röst|pfanne|ausback/, 'fry', '🍳⁠', 'Braten'],
     [/back|ofen|überback|°c/, 'bake', '🔥', 'Backen'],
     [/köchel|koch|sieden|wasser|ziehen lassen|schmor/, 'boil', '🍲', 'Kochen'],
     [/rühr|verquirl|misch|schwenk|unterheb|vermeng/, 'stir', '🥄', 'Verrühren'],
     [/knet|teig|ausroll|formen|forme/, 'knead', '🫓', 'Kneten'],
     [/würz|salz|pfeffer|abschmeck/, 'season', '🧂', 'Würzen'],
     [/ruhen|gehen lassen|quellen|abkühl|warten/, 'rest', '⏳', 'Warten'],
-    [/servier|anricht|belegen|füllen|einroll|dazu/, 'serve', '🍽️', 'Anrichten'],
+    [/servier|anricht|belegen|füllen|einroll|dazu/, 'serve', '🍽️⁠', 'Anrichten'],
   ].find(([re]) => re.test(t)) || [null, 'idle', r.e, 'Los geht\'s'];
   const [, kind, icon, label] = pick;
   const extra = {
@@ -1406,7 +1407,7 @@ function renderCook(first){
   if (!c.steps){
     $('#overlay').innerHTML = `<div class="cook tone-idle enter" role="dialog" aria-label="Kochmodus"><div class="ck-aura" aria-hidden="true"><i></i><i></i><i></i></div>
       <header class="ck-top glass"><button class="ck-icon" data-action="cook-close" aria-label="Kochmodus beenden">${I.x}</button><div class="ck-title"><b>${r.e} ${esc(r.n)}</b><span>Wird vorbereitet …</span></div><div id="cookClock" class="ck-clock"></div></header>
-      <div class="ck-prep glass"><div class="ck-prep-ic">👨‍🍳</div><b>Ich schreibe dir die Schritte ausführlich auf</b><span>mit Herdstufe, Garzeiten und woran du erkennst, dass es fertig ist</span><div class="ck-dots"><i></i><i></i><i></i></div></div></div>`;
+      <div class="ck-prep glass"><div class="ck-prep-ic">👨‍🍳⁠</div><b>Ich schreibe dir die Schritte ausführlich auf</b><span>mit Herdstufe, Garzeiten und woran du erkennst, dass es fertig ist</span><div class="ck-dots"><i></i><i></i><i></i></div></div></div>`;
     tickCookClock(); return;
   }
   const S = c.steps, n = S.length, cur = S[c.step] || { text:'' }, txt = scaleQty(cur.text, (c.servings || 4) / 4), mins = cur.minutes || stepMinutes(txt), last = c.step === n - 1, sc = cur.warn ? { kind:'season', label:'Prüfen', html: `<div class="scene sc-idle"><div class="sc-stage"><span class="sc-main">⚠️</span></div></div>` } : sceneFor(txt, r);
@@ -1420,7 +1421,7 @@ function renderCook(first){
       </div>`;
   const navHTML = `
       <button class="ck-prev glass" data-action="cook-prev" ${c.step===0?'disabled':''} aria-label="Zurück">‹<span>Zurück</span></button>
-      ${last ? `<button class="ck-next glass tint gold" data-action="cook-done">Fertig <span>🍽️</span></button>` : `<button class="ck-next glass tint" data-action="cook-next">Weiter <span class="ck-arrow">›</span></button>`}`;
+      ${last ? `<button class="ck-next glass tint gold" data-action="cook-done">Fertig <span>🍽️⁠</span></button>` : `<button class="ck-next glass tint" data-action="cook-next">Weiter <span class="ck-arrow">›</span></button>`}`;
   const shell = $('.cook');
   if (first || !shell){
     $('#overlay').innerHTML = `<div class="cook tone-${sc.kind} ${first?'enter':''} ${UI.cookForce?'force':''}" role="dialog" aria-label="Kochmodus">
@@ -1663,7 +1664,7 @@ function storageOf(k){
   if (!ING[k]) return null;
   if (ING[k][2] === 'v') return ['🗄️', 'Vorrat', 'Gehört in den Vorratsschrank'];
   if (NOT_COLD.includes(k)) return ['🧺', 'Kühl & dunkel', 'Nicht in den Kühlschrank – kühl und dunkel lagern'];
-  return ['🧊', 'Kühlschrank', 'Gehört in den Kühlschrank'];
+  return ['🧊⁠', 'Kühlschrank', 'Gehört in den Kühlschrank'];
 }
 const fmtDate = iso => { const d = new Date(iso + 'T12:00:00'); return d.toLocaleDateString('de-DE', { day:'numeric', month:'long', year:'numeric' }); };
 function guessKey(text){
@@ -1863,7 +1864,7 @@ document.addEventListener('click', async e => {
       if (!name){ toast('Bitte gib dem Rezept einen Namen'); $('#r-name').focus(); break; }
       if (!ings.length){ toast('Bitte wähle mindestens eine Hauptzutat'); break; }
       if (!steps.length){ toast('Bitte beschreib die Zubereitung'); $('#r-steps').focus(); break; }
-      const row = { family_id:D.family.id, created_by:D.user.id, name, emoji:$('[data-action=r-emoji][aria-pressed=true]')?.dataset.v || '🍽️', minutes:+$('#r-time').value,
+      const row = { family_id:D.family.id, created_by:D.user.id, name, emoji:$('[data-action=r-emoji][aria-pressed=true]')?.dataset.v || '🍽️⁠', minutes:+$('#r-time').value,
         mood:$('[data-action=r-mood][aria-pressed=true]')?.dataset.v || 'normal', ingredients:ings, optional:[], traits:[...document.querySelectorAll('[data-action=r-trait][aria-pressed=true]')].map(b => b.dataset.k), steps };
       t.disabled = true; try { await save(() => sb.from('custom_recipes').insert(row).select().single()); } catch(err){ t.disabled = false; throw err; }
       await loadAll(true); closeSheet(); UI.rtab = 'fam'; render(); burstAt($('.rc')); toast('Rezept gespeichert 📖'); break; }
@@ -2079,7 +2080,7 @@ function recipeExtras(r){
   const warn = familyWarnings(r), notes = D.notes.filter(n => n.recipe_id === r.id);
   const last = D.log.find(l => l.recipe_id === r.id), inColl = D.colls.filter(c => (c.recipe_ids||[]).includes(r.id));
   return `${warn.length ? `<div class="card fam-warn"><b>⚠️ Achtung für die Familie</b>${warn.map(w => `<div>${esc(w.p.name)}: ${esc(w.c.join(', '))}</div>`).join('')}</div>` : ''}
-    ${last ? `<p class="muted" style="text-align:center;font-size:13px;margin:10px 0 0">🍳 Zuletzt gekocht ${agoText(last.cooked_at)}${last.user_id ? ' von ' + esc(prof(last.user_id).name) : ''}</p>` : ''}
+    ${last ? `<p class="muted" style="text-align:center;font-size:13px;margin:10px 0 0">🍳⁠ Zuletzt gekocht ${agoText(last.cooked_at)}${last.user_id ? ' von ' + esc(prof(last.user_id).name) : ''}</p>` : ''}
     ${D.cap.colls ? `<button class="btn btn-ghost btn-block" style="margin-top:8px" data-action="coll-pick" data-id="${r.id}">📁 ${inColl.length ? 'In: ' + esc(inColl.map(c => c.name).join(', ')) : 'Zu einer Sammlung hinzufügen'}</button>` : ''}
     ${D.cap.notes ? `<div class="h2">💬 Notizen der Familie</div>
       <div class="card notes">${notes.length ? notes.map(n => `<div class="note-row"><span class="avatar sm">${avIn(prof(n.user_id))}</span><div style="flex:1"><b>${esc(prof(n.user_id).name)}</b> <small class="muted">${agoText(n.created_at)}</small><div>${esc(n.body)}</div></div>${n.user_id === D.user.id ? `<button class="x" data-action="note-del" data-id="${n.id}" aria-label="Löschen">${I.x}</button>` : `<button class="x rep" data-action="report" data-k="note" data-id="${n.id}" aria-label="Notiz melden" title="Melden">⚑</button>`}</div>`).join('') : '<div class="muted" style="font-size:13px;padding:4px 0">Noch keine Notiz – z. B. „Nächstes Mal mehr Käse!"</div>'}
@@ -2111,9 +2112,9 @@ function openPrep(id){
   openSheet(`${sheetHead('Bereitlegen')}
     <p class="muted" style="margin:-6px 0 12px">${r.e} ${esc(r.n)} · Leg alles bereit und hak es ab – dann geht's los.</p>
     <div class="card prep">${[...r.i, ...r.o].map(k => `<button class="prep-row" data-action="prep-tick" data-k="${k}"><span class="tick"></span>${ingEmoji(k)} ${ingName(k)}${r.o.includes(k) ? ' <small class="muted">optional</small>' : ''}</button>`).join('')}
-      ${['🔪 Messer & Brett','🍳 Pfanne oder Topf','🥄 Kochlöffel'].map(g => `<button class="prep-row" data-action="prep-tick" data-k="${g}"><span class="tick"></span>${g}</button>`).join('')}</div>
+      ${['🔪 Messer & Brett','🍳⁠ Pfanne oder Topf','🥄 Kochlöffel'].map(g => `<button class="prep-row" data-action="prep-tick" data-k="${g}"><span class="tick"></span>${g}</button>`).join('')}</div>
     <div class="prep-bar"><i id="prepBar"></i></div>
-    <button class="btn btn-herb btn-block" style="margin-top:12px" data-action="prep-go" data-id="${id}">👨‍🍳 Los geht's</button>
+    <button class="btn btn-herb btn-block" style="margin-top:12px" data-action="prep-go" data-id="${id}">👨‍🍳⁠ Los geht's</button>
     <button class="btn btn-block" style="background:none;color:var(--muted);margin-top:4px" data-action="prep-go" data-id="${id}">Überspringen</button>`);
 }
 function prepTick(t){ const on = !t.classList.contains('on'); t.classList.toggle('on', on); buzz(6);
@@ -2191,7 +2192,7 @@ async function planImage(){
     g.fillStyle = herb; g.font = '800 26px Figtree, sans-serif'; g.fillText(`${WD[d.getDay()]} ${d.getDate()}.${d.getMonth()+1}.`, 48, y + 44);
     g.fillStyle = fg; g.font = '44px sans-serif'; g.fillText(isOut(p) ? '🍕' : r ? r.e : '·', 230, y + 50);
     g.font = '700 30px Figtree, sans-serif'; g.fillText((isOut(p) ? (p.label || 'Auswärts') : r ? r.n : 'noch offen').slice(0, 34), 300, y + 46);
-    if (p && p.cook){ g.globalAlpha = .6; g.font = '600 22px Figtree, sans-serif'; g.fillText('👨‍🍳 ' + prof(p.cook).name, 300, y + 76); g.globalAlpha = 1; } });
+    if (p && p.cook){ g.globalAlpha = .6; g.font = '600 22px Figtree, sans-serif'; g.fillText('👨‍🍳⁠ ' + prof(p.cook).name, 300, y + 76); g.globalAlpha = 1; } });
   g.globalAlpha = .5; g.fillStyle = fg; g.font = '600 20px Figtree, sans-serif'; g.fillText("Geplant mit „Was gibt's?\"", 48, H - 22); g.globalAlpha = 1;
   const blob = await new Promise(ok => cv.toBlob(ok, 'image/png')); const file = new File([blob], 'wochenplan.png', { type:'image/png' });
   try { if (navigator.canShare && navigator.canShare({ files:[file] })){ await navigator.share({ files:[file], title:'Unser Wochenplan' }); return; } } catch(e){ if (e && e.name === 'AbortError') return; }
@@ -2299,7 +2300,7 @@ function openProfile(id){
       <span class="avatar pf-hero">${avIn(a)}</span>
       <div class="h1" style="text-align:center;margin-top:8px">${esc(a.name)}</div>
       ${a.status ? `<p class="pf-status">${esc(a.status)}</p>` : mine && hasExtras() ? `<p class="pf-status muted">Noch kein Status – tipp auf „Profil bearbeiten"</p>` : ''}
-      <div class="pf-tags">${m && m.role === 'admin' ? '<span class="chip c-herb">Admin</span>' : ''}${isChef ? '<span class="chip c-yolk">👨‍🍳 Chef de Cuisine</span>' : ''}${a.veg ? '<span class="chip c-herb">🥦 Vegetarisch</span>' : ''}${since ? `<span class="chip c-muted">dabei seit ${since}</span>` : ''}</div>
+      <div class="pf-tags">${m && m.role === 'admin' ? '<span class="chip c-herb">Admin</span>' : ''}${isChef ? '<span class="chip c-yolk">👨‍🍳⁠ Chef de Cuisine</span>' : ''}${a.veg ? '<span class="chip c-herb">🥦 Vegetarisch</span>' : ''}${since ? `<span class="chip c-muted">dabei seit ${since}</span>` : ''}</div>
     </div>
     <div class="pf-stats"><div><b>${cooked.length}</b><small>gekocht</small></div><div><b>${rates.length}</b><small>bewertet</small></div><div><b>${wishes}</b><small>Wünsche offen</small></div></div>
     ${topR && rec(topR[0]) ? `<div class="card" style="display:flex;gap:12px;align-items:center;margin-top:12px"><span style="font-size:30px">${rec(topR[0]).e}</span><span><small class="muted" style="font-weight:700">Kocht am liebsten</small><br><b>${esc(rec(topR[0]).n)}</b> · ${topR[1]}×</span></div>` : ''}
@@ -2499,7 +2500,7 @@ function ratingOf(rid){ const rs = D.ratings.filter(x => x.recipe_id === rid); r
 const cookedTimes = rid => D.log.filter(l => l.recipe_id === rid).length;
 const FACES = [[1, '😖', 'Gar nicht'], [2, '😕', 'Na ja'], [3, '🙂', 'Okay'], [4, '😋', 'Lecker'], [5, '🤩', 'Mega!']];
 function openRate(logId){
-  const log = D.log.find(l => l.id === logId); if (!log) return; const r = rec(log.recipe_id) || { n: log.recipe_name, e:'🍽️' };
+  const log = D.log.find(l => l.id === logId); if (!log) return; const r = rec(log.recipe_id) || { n: log.recipe_name, e:'🍽️⁠' };
   const mine = D.ratings.find(x => x.log_id === logId && x.user_id === D.user.id);
   sheetFn = null;
   openSheet(`${sheetHead('')}
@@ -2512,7 +2513,7 @@ function rateBanner(){
   const since = Date.now() - 36 * 36e5;
   const log = D.log.find(l => !String(l.id).startsWith('tmp') && Date.parse(l.cooked_at) > since && !D.ratings.some(x => x.log_id === l.id && x.user_id === D.user.id));
   if (!log || L.rateSkip === log.id) return '';
-  const r = rec(log.recipe_id) || { n: log.recipe_name, e:'🍽️' };
+  const r = rec(log.recipe_id) || { n: log.recipe_name, e:'🍽️⁠' };
   return `<div class="banner rate-ban"><span style="font-size:24px">${r.e}</span><span style="flex:1"><b>Wie war ${esc(r.n)}?</b><br><span class="muted" style="font-size:13px">Tipp kurz an, wie's geschmeckt hat</span></span><button class="btn btn-herb btn-sm" data-action="rate" data-v="${log.id}">Bewerten</button><button class="icon-btn sm" data-action="rate-skip" data-v="${log.id}" aria-label="Ausblenden">${I.x}</button></div>`;
 }
 
@@ -2538,7 +2539,7 @@ function kitchenStats(){
     planned: nextDays(7).filter(d => planFor(isoDay(d))).length, bestRated, avgTime: log.length ? Math.round(log.reduce((a, l) => a + ((rec(l.recipe_id) || {}).t || 30), 0) / log.length) : 0 };
 }
 const BADGES = [
-  ['first','🍳','Erster Teller','Das erste Gericht gekocht', s => s.total >= 1],
+  ['first','🍳⁠','Erster Teller','Das erste Gericht gekocht', s => s.total >= 1],
   ['ten','🔟','Zehner-Club','10 Gerichte gekocht', s => s.total >= 10],
   ['fifty','🏅','Küchen-Profis','50 Gerichte gekocht', s => s.total >= 50],
   ['variety','🌈','Abwechslung','10 verschiedene Gerichte', s => s.distinct >= 10],
@@ -2585,7 +2586,7 @@ function feedText(g){
   }
   return '';
 }
-const FEED_IC = { wish:'🙋', cook:'🍳', rate:'⭐', shop:'🛒', plan:'📅' };
+const FEED_IC = { wish:'🙋', cook:'🍳⁠', rate:'⭐', shop:'🛒', plan:'📅' };
 function feedHtml(){
   const groups = feedItems(); if (!groups.length) return '';
   const day = t => { const d = new Date(t), today = new Date(); today.setHours(0,0,0,0); const diff = Math.round((today - new Date(d).setHours(0,0,0,0)) / 864e5); return diff <= 0 ? 'Heute' : diff === 1 ? 'Gestern' : 'Diese Woche'; };
@@ -2610,29 +2611,29 @@ function openKitchen(keep){
   sheetFn = openKitchen; const s = kitchenStats();
   const recent = D.log.slice(0, 12);
   openSheet(`${sheetHead('Eure Küche')}
-    <div class="kstats">${[[s.total,'Gerichte gekocht','🍳'],[s.distinct,'verschiedene','🌈'],[s.week,'diese Woche','📆'],[s.streak,'Tage am Stück','🔥']].map(([v, l, e]) => `<div><span>${e}</span><b>${v}</b><small>${l}</small></div>`).join('')}</div>
-    ${s.top.length ? `<div class="h2">Am häufigsten gekocht</div><div class="list">${s.top.slice(0, 3).map(([id, n], i) => { const r = rec(id) || { n:'?', e:'🍽️' }; return `<button class="row" data-action="open-recipe" data-id="${id}"><span class="medal">${['🥇','🥈','🥉'][i]}</span><span class="grow"><b>${esc(r.n)}</b><small>${n}× gekocht${(rt => rt.n ? ` · ⭐ ${rt.avg.toFixed(1).replace('.', ',')}` : '')(ratingOf(id))}</small></span>${I.chev}</button>`; }).join('')}</div>` : ''}
+    <div class="kstats">${[[s.total,'Gerichte gekocht','🍳⁠'],[s.distinct,'verschiedene','🌈'],[s.week,'diese Woche','📆'],[s.streak,'Tage am Stück','🔥']].map(([v, l, e]) => `<div><span>${e}</span><b>${v}</b><small>${l}</small></div>`).join('')}</div>
+    ${s.top.length ? `<div class="h2">Am häufigsten gekocht</div><div class="list">${s.top.slice(0, 3).map(([id, n], i) => { const r = rec(id) || { n:'?', e:'🍽️⁠' }; return `<button class="row" data-action="open-recipe" data-id="${id}"><span class="medal">${['🥇','🥈','🥉'][i]}</span><span class="grow"><b>${esc(r.n)}</b><small>${n}× gekocht${(rt => rt.n ? ` · ⭐ ${rt.avg.toFixed(1).replace('.', ',')}` : '')(ratingOf(id))}</small></span>${I.chev}</button>`; }).join('')}</div>` : ''}
     <div class="h2">Erfolge <span class="chip c-muted">${BADGES.filter(b => b[4](s)).length} von ${BADGES.length}</span></div>
     <div class="badges">${BADGES.map(b => { const ok = b[4](s); return `<div class="badge ${ok ? 'ok' : ''}"><span>${ok ? b[1] : '🔒'}</span><b>${b[2]}</b><small>${b[3]}</small></div>`; }).join('')}</div>
     <div class="h2">Kochverlauf</div>
-    ${recent.length ? `<div class="list">${recent.map(l => { const r = rec(l.recipe_id) || { n: l.recipe_name, e:'🍽️' }, rs = D.ratings.filter(x => x.log_id === l.id);
+    ${recent.length ? `<div class="list">${recent.map(l => { const r = rec(l.recipe_id) || { n: l.recipe_name, e:'🍽️⁠' }, rs = D.ratings.filter(x => x.log_id === l.id);
       return `<div class="row"><span style="font-size:24px">${r.e}</span><span class="grow"><b>${esc(r.n)}</b><small>${esc(prof(l.user_id).name || '')} · ${timeAgo(l.cooked_at)}${rs.length ? ' · ' + rs.map(x => FACES[x.stars - 1][1]).join('') : ''}</small></span>${!rs.some(x => x.user_id === D.user.id) && !String(l.id).startsWith('tmp') ? `<button class="btn btn-ghost btn-sm" data-action="rate" data-v="${l.id}">Bewerten</button>` : ''}</div>`; }).join('')}</div>`
-      : `<div class="card empty"><div class="g">🍳</div><b>Noch nichts gekocht</b>Tippe nach dem Essen im Rezept auf „Heute gekocht" – dann füllt sich hier euer Kochverlauf.<button class="btn btn-herb btn-block" style="margin-top:12px" data-tab="home">Was koche ich heute?</button></div>`}`, keep);
+      : `<div class="card empty"><div class="g">🍳⁠</div><b>Noch nichts gekocht</b>Tippe nach dem Essen im Rezept auf „Heute gekocht" – dann füllt sich hier euer Kochverlauf.<button class="btn btn-herb btn-block" style="margin-top:12px" data-tab="home">Was koche ich heute?</button></div>`}`, keep);
 }
 
 /* ---------- Rückblick als Story ---------- */
 function openStory(){
   const s = kitchenStats(), fam = D.family ? D.family.name : 'Eure Familie';
   const typeKey = Object.entries(s.types).filter(([k]) => k !== 'quick').sort((a, b) => b[1] - a[1])[0];
-  const persona = !s.total ? ['🍳','Die Küchen-Entdecker','Ihr fangt gerade erst an – das wird lecker!']
+  const persona = !s.total ? ['🍳⁠','Die Küchen-Entdecker','Ihr fangt gerade erst an – das wird lecker!']
     : s.avgTime && s.avgTime <= 20 && s.types.quick >= s.total / 2 ? ['⚡','Die Blitzköche','Schnell, lecker, fertig – ihr kocht im Turbo-Modus.']
-    : ({ pasta:['🍝','Die Pasta-Profis','Nudeln gehen bei euch einfach immer.'], veg:['🥦','Die Gemüse-Gang','Bunt, frisch und meistens ohne Fleisch.'], meat:['🥩','Die Fleisch-Fans','Ein ordentliches Stück gehört bei euch dazu.'], sweet:['🍰','Die Naschkatzen','Bei euch gibt\'s auch mal Süßes – zu Recht!'], fish:['🐟','Die Fischköpfe','Ihr wisst, was gut ist: Fisch!'] }[typeKey && typeKey[1] ? typeKey[0] : 'veg'] || ['🍳','Die Allesköche','Ihr probiert einfach alles.']);
+    : ({ pasta:['🍝','Die Pasta-Profis','Nudeln gehen bei euch einfach immer.'], veg:['🥦','Die Gemüse-Gang','Bunt, frisch und meistens ohne Fleisch.'], meat:['🥩','Die Fleisch-Fans','Ein ordentliches Stück gehört bei euch dazu.'], sweet:['🍰','Die Naschkatzen','Bei euch gibt\'s auch mal Süßes – zu Recht!'], fish:['🐟','Die Fischköpfe','Ihr wisst, was gut ist: Fisch!'] }[typeKey && typeKey[1] ? typeKey[0] : 'veg'] || ['🍳⁠','Die Allesköche','Ihr probiert einfach alles.']);
   const top = s.top[0] && rec(s.top[0][0]), cook = s.topCook && prof(s.topCook[0]), best = s.bestRated && rec(s.bestRated[0]);
   const slides = [
     `<div class="st-k">Was gibt's? · Rückblick</div><div class="st-big st-pop">✨</div><h2>${esc(fam)}</h2><p>Das war eure Küche bisher. Bereit?</p><div class="st-hint">Tippen zum Weitermachen</div>`,
     `<div class="st-k">Gekocht</div><div class="st-num" data-n="${s.total}">0</div><h2>${s.total === 1 ? 'Gericht' : 'Gerichte'}</h2><p>${s.total ? `${s.distinct === s.total ? 'alle verschieden' : s.distinct + ' davon verschieden'}${s.week ? ` · ${s.week} allein diese Woche` : ''}` : 'Noch nichts gekocht – tippt nach dem Essen auf „Heute gekocht"!'}</p>`,
     top ? `<div class="st-k">Euer Lieblingsessen</div><div class="st-big st-pop">${top.e}</div><h2>${esc(top.n)}</h2><p>${s.top[0][1]}× auf dem Tisch</p>` : `<div class="st-k">Euer Lieblingsessen</div><div class="st-big st-pop">🤔</div><h2>Noch offen</h2><p>Kocht ein paar Gerichte – dann wissen wir's.</p>`,
-    cook ? `<div class="st-k">Chef de Cuisine</div><div class="st-big st-pop">${avIn(cook)}</div><h2>${esc(cook.name)}</h2><p>stand am häufigsten am Herd: ${s.topCook[1]}×</p>` : `<div class="st-k">Chef de Cuisine</div><div class="st-big st-pop">👨‍🍳</div><h2>Wer wird's?</h2><p>Wer am meisten kocht, landet hier.</p>`,
+    cook ? `<div class="st-k">Chef de Cuisine</div><div class="st-big st-pop">${avIn(cook)}</div><h2>${esc(cook.name)}</h2><p>stand am häufigsten am Herd: ${s.topCook[1]}×</p>` : `<div class="st-k">Chef de Cuisine</div><div class="st-big st-pop">👨‍🍳⁠</div><h2>Wer wird's?</h2><p>Wer am meisten kocht, landet hier.</p>`,
     best ? `<div class="st-k">Bester Teller</div><div class="st-big st-pop">${best.e}</div><h2>${esc(best.n)}</h2><p>${'⭐'.repeat(Math.round(s.bestRated[1]))} – ${s.bestRated[1].toFixed(1).replace('.', ',')} von 5</p>` : `<div class="st-k">Bester Teller</div><div class="st-big st-pop">⭐</div><h2>Noch keine Sterne</h2><p>Nach dem Essen kurz bewerten – dann seht ihr hier euren Hit.</p>`,
     `<div class="st-k">Euer Küchen-Typ</div><div class="st-big st-pop">${persona[0]}</div><h2>${persona[1]}</h2><p>${persona[2]}</p>`,
     `<div class="st-k">Danke fürs Kochen!</div><div class="st-big st-pop">💚</div><h2>Bis zum nächsten Rückblick</h2><p>${BADGES.filter(b => b[4](s)).length} von ${BADGES.length} Erfolgen geschafft</p><button class="st-btn" data-action="story-close">Fertig</button>`,
@@ -2662,7 +2663,7 @@ function openSlot(){
   openSheet(`${sheetHead('Überrasch mich!')}
     <div class="slot no-drag"><div class="slot-win"></div><div class="slot-reel" id="slotReel">${items.map(r => `<div class="slot-item"><span>${r.e}</span><b>${esc(r.n)}</b></div>`).join('')}</div></div>
     <div class="slot-res" id="slotRes" hidden><div class="muted" style="font-weight:700;text-align:center">Heute gibt's …</div><div class="h1" style="text-align:center;margin:4px 0 14px">${w.e} ${esc(w.n)}</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><button class="btn btn-tomato" data-action="cook" data-id="${w.id}">👨‍🍳 Kochen</button><button class="btn btn-ghost" data-action="open-recipe" data-id="${w.id}">Rezept</button></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><button class="btn btn-tomato" data-action="cook" data-id="${w.id}">👨‍🍳⁠ Kochen</button><button class="btn btn-ghost" data-action="open-recipe" data-id="${w.id}">Rezept</button></div>
       <button class="btn btn-line btn-block" style="margin-top:8px" data-action="slot">🔄 Nochmal drehen</button></div>`);
   const reel = $('#slotReel'); if (!reel) return;
   const y = -(target * H) + H, anim = reel.animate([{ transform:'translateY(0)' }, { transform:`translateY(${y}px)` }], { duration:3400, easing:'cubic-bezier(.1,.7,.12,1)', fill:'forwards' });
@@ -2717,7 +2718,7 @@ function passFilters(r){ const f = UI.rf;
 function filterChips(){ return `<div class="fchips">${[['quick','⏱ Bis 20 Min'],['veg','🥦 Vegetarisch'],['have','✅ Alles da'],['season','🍂 Saison']].map(([k, l]) => `<button data-action="rf" data-v="${k}" aria-pressed="${!!UI.rf[k]}">${l}</button>`).join('')}</div>`; }
 
 /* ---------- Einkaufsliste: nach Supermarkt-Bereichen, teilen, Einkaufs-Modus ---------- */
-const AISLES = [['obst','🍎 Obst'],['gemuese','🥦 Gemüse'],['getreide','🍞 Brot, Nudeln & Reis'],['milch','🥛 Milch, Käse & Eier'],['kuehl','🧊 Kühlregal'],['fleisch','🥩 Fleisch & Fisch'],['dose','🥫 Dosen & Gläser'],['backen','🧁 Backen & Süßes'],['wuerz','🧂 Soßen & Gewürze']];
+const AISLES = [['obst','🍎 Obst'],['gemuese','🥦 Gemüse'],['getreide','🍞 Brot, Nudeln & Reis'],['milch','🥛 Milch, Käse & Eier'],['kuehl','🧊⁠ Kühlregal'],['fleisch','🥩 Fleisch & Fisch'],['dose','🥫 Dosen & Gläser'],['backen','🧁 Backen & Süßes'],['wuerz','🧂 Soßen & Gewürze']];
 function aisleOf(x){ if (!x.ing_key) return 'other'; const c = CATS.find(c => c[3].includes(x.ing_key)); return c ? c[0] : 'other'; }
 function aisles(items){ const g = [...AISLES, ['other','🧺 Sonstiges']].map(([id, t]) => [t, items.filter(x => aisleOf(x) === id)]).filter(x => x[1].length); return g; }
 async function shareList(){
@@ -2749,7 +2750,7 @@ async function exportICS(){
   const pad = n => String(n).padStart(2, '0'), ymd = d => d.getFullYear() + pad(d.getMonth() + 1) + pad(d.getDate());
   const stamp = new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d+/, '');
   const ev = D.plan.map(p => { const r = rec(p.recipe_id); if (!r) return ''; const d = new Date(p.day + 'T12:00:00'), e = new Date(d); e.setDate(e.getDate() + 1);
-    return ['BEGIN:VEVENT', `UID:${p.day}-${p.recipe_id}@wasgibts`, `DTSTAMP:${stamp}`, `DTSTART;VALUE=DATE:${ymd(d)}`, `DTEND;VALUE=DATE:${ymd(e)}`, `SUMMARY:🍽️ ${r.n}`,
+    return ['BEGIN:VEVENT', `UID:${p.day}-${p.recipe_id}@wasgibts`, `DTSTAMP:${stamp}`, `DTSTART;VALUE=DATE:${ymd(d)}`, `DTEND;VALUE=DATE:${ymd(e)}`, `SUMMARY:🍽️⁠ ${r.n}`,
       `DESCRIPTION:Zutaten: ${r.i.map(ingName).join(', ')}\\nGeplant mit „Was gibt's?"`, 'END:VEVENT'].join('\r\n'); }).filter(Boolean);
   const ics = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Was gibts//Wochenplan//DE', 'CALSCALE:GREGORIAN', ...ev, 'END:VCALENDAR'].join('\r\n');
   const file = new File([ics], 'wochenplan.ics', { type:'text/calendar' });
@@ -2786,10 +2787,10 @@ async function shareRecipe(id){
 
 /* ---------- Erste-Schritte-Tour und „Neu in 3.0" ---------- */
 const TOUR = [
-  ['🧊', ['🥕','🧀','🥚'], 'Sag, was da ist', 'Tippe im Kühlschrank an, was ihr habt – oder mach einfach ein Foto. Die App erkennt die Zutaten.', 't1'],
+  ['🧊⁠', ['🥕','🧀','🥚'], 'Sag, was da ist', 'Tippe im Kühlschrank an, was ihr habt – oder mach einfach ein Foto. Die App erkennt die Zutaten.', 't1'],
   ['👨‍👩‍👧', ['🥦','❤️','🚫'], 'Wer isst mit?', 'Jeder hat sein Profil: vegetarisch, keine Pilze, Allergien. Vorgeschlagen wird nur, was allen schmeckt.', 't2'],
   ['🙋', ['📅','🛒','🗳️'], 'Wünschen & planen', 'Wünscht euch Gerichte, plant die Woche und schreibt die Einkaufsliste – alles gemeinsam und live.', 't3'],
-  ['👨‍🍳', ['🔥','⏱','🎉'], 'Los geht\'s!', 'Der Kochmodus erklärt jeden Schritt – mit Herdstufe, Timern und Mengen für eure Personenzahl.', 't4'],
+  ['👨‍🍳⁠', ['🔥','⏱','🎉'], 'Los geht\'s!', 'Der Kochmodus erklärt jeden Schritt – mit Herdstufe, Timern und Mengen für eure Personenzahl.', 't4'],
 ];
 function openTour(){
   if ($('#tour')) return; const el = document.createElement('div'); el.id = 'tour';
@@ -3196,3 +3197,34 @@ aisleOf = function(x){
   const k = Object.keys(ING).find(k => norm(ING[k][0]) === norm(l)); if (k){ const c = CATS.find(c => c[3].includes(k)); if (c) return c[0]; }
   const hit = AISLE_WORDS.find(([, re]) => re.test(l)); return hit ? hit[0] : 'other';
 };
+
+/* ---------- 5.0 · Emojis der Bedienung → Icons8 Puffy Filled ----------
+   Essen (Zutaten, Gerichte) und Profilbilder bleiben Emojis. */
+const EMO_IC = {'👨‍🍳':'chef-hat','🧑‍🍳':'chef-hat','👩‍🍳':'chef-hat','🛒':'shopping-cart','✨':'star','🍳':'frying-pan','⏱':'stopwatch','⏰':'alarm-clock','🍽':'restaurant','⭐':'star','📅':'calendar','📆':'calendar','🙋':'wish-list','💬':'chat','✅':'checkmark','💚':'like','❤':'like','🧊':'fridge','📁':'opened-folder','🎬':'clapperboard','🚨':'siren','⚠':'error','🗳':'bar-chart','📊':'bar-chart','📷':'camera','📸':'camera','🛟':'help','🏆':'trophy','📤':'share','📖':'book','💡':'idea','🔥':'fire-element','🎁':'gift','🔒':'lock','🔐':'lock','⏳':'hourglass','🎤':'microphone','🎙':'microphone','👥':'conference-call','🔔':'bell','🎉':'confetti','🥳':'confetti','🎊':'confetti','🛠':'maintenance','🎰':'slot-machine','🔁':'repeat','🔄':'refresh','🖼':'image','♻':'recycling','👤':'user','📴':'no-connection','🐞':'bug','🔊':'high-volume','🔇':'mute','✏':'edit','✍':'edit','📝':'note','👋':'so-so','🔍':'search','🔎':'search','👍':'facebook-like','👎':'dislike','📌':'pin','🎨':'paint-palette','🚫':'cancel','⚡':'lightning-bolt','🤖':'bot','📡':'wifi','🔑':'key','🔌':'plug','📬':'inbox','⚙':'settings','🕘':'clock','🧾':'receipt','👑':'crown','🚪':'door','🧭':'compass','🗄':'archive-folder','👀':'visible','🙏':'handshake','📳':'iphone','❄':'snow','🍂':'autumn','🎄':'christmas-tree','⚑':'flag','☰':'menu'};
+const EMO_MARKED = new Set(['🍳','🍽','🧊']);
+const EMO_RE = new RegExp('(' + Object.keys(EMO_IC).sort((a, b) => b.length - a.length).map(k => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|') + ')\\uFE0F?(\\u2060)?\\uFE0F?', 'gu');
+const EMO_SKIP = '.icw,.em,.big,.oe,.avi,.avatar,.ing,.s2-stage,.emu,.faces,input,textarea,script,style,svg,canvas,[data-noic],.ic';
+function iconizeText(node){
+  const t = node.nodeValue; if (!t || !/[\u2300-\u23FF\u2600-\u27BF\uD83C-\uD83E\u2060]/.test(t)) return;
+  const p = node.parentElement; if (!p || p.closest(EMO_SKIP)) return;
+  EMO_RE.lastIndex = 0; if (!EMO_RE.test(t)) { if (t.includes('\u2060')) node.nodeValue = t.replace(/\u2060/g, ''); return; }
+  EMO_RE.lastIndex = 0; const hits = []; let m;
+  while ((m = EMO_RE.exec(t))){ const f = EMO_IC[m[1]]; if (f && !(EMO_MARKED.has(m[1]) && !m[2])) hits.push([m.index, m.index + m[0].length, f]); }
+  if (!hits.length){ if (t.includes('⁠')) node.nodeValue = t.replace(/⁠/g, ''); return; }
+  /* Icon + folgender Text in einem Span – bleibt so auch in Flex-Zeilen zusammen */
+  const clean = x => x.replace(/⁠/g, ''), frag = document.createDocumentFragment();
+  if (hits[0][0] > 0) frag.append(clean(t.slice(0, hits[0][0])));
+  hits.forEach(([s0, e0, f], k) => {
+    const w = document.createElement('span'); w.className = 'icw';
+    const i = document.createElement('i'); i.className = 'ic'; i.setAttribute('aria-hidden', 'true'); i.style.setProperty('--m', `url(icons/p/${f}.png)`);
+    w.append(i, clean(t.slice(e0, k + 1 < hits.length ? hits[k + 1][0] : t.length))); frag.append(w); });
+  node.replaceWith(frag);
+}
+function iconize(root){
+  if (!root) return; if (root.nodeType === 3) return iconizeText(root);
+  if (root.nodeType !== 1 || root.closest?.(EMO_SKIP)) return;
+  const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT), list = []; let n; while ((n = w.nextNode())) list.push(n); list.forEach(iconizeText);
+}
+new MutationObserver(ms => ms.forEach(m => { if (m.type === 'characterData') iconizeText(m.target); else m.addedNodes.forEach(iconize); }))
+  .observe(document.body, { childList:true, subtree:true, characterData:true });
+iconize(document.body);

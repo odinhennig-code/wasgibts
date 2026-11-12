@@ -1633,3 +1633,9 @@ html:not(.framed) #sbcol{display:block;position:fixed;left:0;right:0;top:0;heigh
 .feed .row{align-items:center}
 .feed-t{font-size:0.7647rem;color:var(--muted);white-space:nowrap;margin-left:8px}
 .feed-more{display:block;margin:10px auto 0;font-weight:600;color:var(--herb)}
+
+/* ===================== 5.0 · Icons8 Puffy Filled statt Emojis ===================== */
+.ic{display:inline-block;width:1.15em;height:1.15em;vertical-align:-.2em;background:currentColor;-webkit-mask:var(--m) center/contain no-repeat;mask:var(--m) center/contain no-repeat;flex:none}
+.card.empty .g .ic{width:1em;height:1em;vertical-align:0;color:var(--muted)}
+.tab .ti{width:24px;height:24px}
+.icw{display:inline}
