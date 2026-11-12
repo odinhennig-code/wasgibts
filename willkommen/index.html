@@ -4,11 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Was gibt's? – Die Koch-App für die ganze Familie</title>
-<meta name="description" content="Sag, was im Kühlschrank ist – „Was gibt's?" schlägt passende Gerichte vor. Mit Wünschen, Abstimmung, Wochenplan und Einkaufsliste für die ganze Familie. Kostenlos.">
-<meta name="theme-color" content="#F4F5F0" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#0E130F" media="(prefers-color-scheme: dark)">
+<meta name="description" content="Sag, was im Kühlschrank ist – „Was gibt's?" schlägt passende Gerichte vor. Probier es direkt hier aus. Kostenlos für die ganze Familie.">
+<meta name="theme-color" content="#F3EEE4" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0F130F" media="(prefers-color-scheme: dark)">
 <meta property="og:title" content="Was gibt's? – Die Koch-App für die ganze Familie">
-<meta property="og:description" content="Sag, was da ist. Wir sagen, was passt. Kostenlos für die ganze Familie.">
+<meta property="og:description" content="Sag, was da ist. Wir sagen, was passt. Probier's direkt aus.">
 <meta property="og:image" content="img/light_home.jpg">
 <link rel="icon" href="../icon.svg">
 <link rel="apple-touch-icon" href="../icon-192.png">
@@ -16,187 +16,259 @@
 @font-face{font-family:"Bricolage";src:url("../fonts/Bricolage.woff") format("woff");font-weight:200 800;font-display:swap}
 @font-face{font-family:"Figtree";src:url("../fonts/Figtree.woff") format("woff");font-weight:300 900;font-display:swap}
 :root{
-  --bg:#F7F8F4; --bg2:#FFFFFF; --fg:#16201A; --muted:#5D6A60; --line:rgba(22,32,26,.08);
-  --herb:#2F7A4C; --herb-ink:#fff; --herb-soft:rgba(47,122,76,.10); --tomato:#D9482F; --yolk:#E2A010;
-  --glass:rgba(255,255,255,.62); --glass-brd:rgba(255,255,255,.8);
-  --o1:#bfe7cb; --o2:#ffe3a3; --o3:#ffc6b8;
-  --sh:0 1px 2px rgba(22,32,26,.05),0 18px 40px -18px rgba(22,32,26,.25);
+  --bg:#F3EEE4; --card:#FFFDF8; --fg:#1B1712; --muted:#6B6257; --line:rgba(27,23,18,.10);
+  --herb:#2F7A4C; --herb-ink:#fff; --herb-soft:rgba(47,122,76,.11); --tomato:#D9482F; --tomato-soft:rgba(217,72,47,.10); --yolk:#E2A010;
+  --shelf:#E9E1D2; --fridge:#FBFAF7;
+  --sh:0 1px 2px rgba(27,23,18,.06),0 20px 44px -22px rgba(27,23,18,.35);
   --ease:cubic-bezier(.2,.8,.2,1); --spring:cubic-bezier(.34,1.56,.64,1);
   --f-d:"Bricolage","Arial Black",system-ui,sans-serif; --f-b:"Figtree",system-ui,-apple-system,"Segoe UI",sans-serif;
   color-scheme:light;
 }
 @media (prefers-color-scheme:dark){:root{
-  --bg:#0B100C; --bg2:#121914; --fg:#E8EEE8; --muted:#97A59B; --line:rgba(255,255,255,.08);
-  --herb:#5CC98A; --herb-ink:#07140C; --herb-soft:rgba(92,201,138,.12);
-  --glass:rgba(20,28,22,.6); --glass-brd:rgba(255,255,255,.08);
-  --o1:#1c4d30; --o2:#4d3b10; --o3:#4a1f16; --sh:0 1px 2px rgba(0,0,0,.4),0 18px 40px -18px rgba(0,0,0,.8); color-scheme:dark}}
+  --bg:#0F130F; --card:#171C17; --fg:#ECEBE5; --muted:#A39C90; --line:rgba(255,255,255,.09);
+  --herb:#5CC98A; --herb-ink:#07140C; --herb-soft:rgba(92,201,138,.13); --tomato:#FF7A60; --tomato-soft:rgba(255,122,96,.13);
+  --shelf:#232A23; --fridge:#1A201A; --sh:0 1px 2px rgba(0,0,0,.4),0 20px 44px -22px rgba(0,0,0,.9); color-scheme:dark}}
 *,*::before,*::after{box-sizing:border-box}
 html{scroll-behavior:smooth}
+main{overflow-x:clip}
 body{margin:0;background:var(--bg);color:var(--fg);font:17px/1.55 var(--f-b);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+/* feines Papierkorn statt Farbverläufe */
+body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.5;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .07 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
 a{color:inherit}
 img{display:block;max-width:100%}
-h1,h2,h3{font-family:var(--f-d);letter-spacing:-.03em;line-height:1.02;margin:0}
-.wrap{width:min(1120px,100% - 32px);margin:0 auto}
+h1,h2,h3{font-family:var(--f-d);letter-spacing:-.035em;line-height:.98;margin:0}
+button{font:inherit;color:inherit}
+.wrap{width:min(1180px,100% - 32px);margin:0 auto}
 .i{display:inline-block;width:22px;height:22px;background:currentColor;-webkit-mask:var(--m) center/contain no-repeat;mask:var(--m) center/contain no-repeat;flex:none}
+.hand{font-family:var(--f-d);font-weight:700;color:var(--tomato);transform:rotate(-4deg);display:inline-block}
 
-/* Hintergrund-Leuchten */
-.orbs{position:fixed;inset:0;z-index:-1;overflow:hidden;pointer-events:none}
-.orbs i{position:absolute;border-radius:50%;filter:blur(90px);opacity:.7;animation:drift 24s ease-in-out infinite alternate}
-.orbs i:nth-child(1){width:60vmax;height:60vmax;background:var(--o1);left:-20vmax;top:-25vmax}
-.orbs i:nth-child(2){width:46vmax;height:46vmax;background:var(--o2);right:-18vmax;top:10vh;animation-duration:30s;animation-delay:-6s}
-.orbs i:nth-child(3){width:40vmax;height:40vmax;background:var(--o3);left:20vw;top:80vh;opacity:.45;animation-duration:36s}
-@keyframes drift{to{transform:translate(5vmax,6vmax) scale(1.12)}}
+/* Fortschritt oben */
+#prog{position:fixed;left:0;top:0;height:3px;width:100%;transform-origin:0 50%;transform:scaleX(0);background:var(--herb);z-index:50}
 
 /* Kopfzeile */
-header{position:sticky;top:0;z-index:20;padding:12px 0;transition:padding .3s var(--ease)}
-.bar{display:flex;align-items:center;gap:12px;padding:10px 12px 10px 14px;border-radius:22px;background:transparent;border:1px solid transparent;transition:background .3s,border-color .3s,box-shadow .3s}
-header.scrolled .bar{background:var(--glass);-webkit-backdrop-filter:blur(24px) saturate(180%);backdrop-filter:blur(24px) saturate(180%);border-color:var(--glass-brd);box-shadow:var(--sh)}
+header{position:sticky;top:0;z-index:20;padding:10px 0}
+.bar{display:flex;align-items:center;gap:12px;padding:8px 8px 8px 14px;border-radius:20px;border:1px solid transparent;transition:background .3s,border-color .3s,box-shadow .3s}
+header.scrolled .bar{background:color-mix(in srgb,var(--card) 72%,transparent);-webkit-backdrop-filter:blur(22px) saturate(180%);backdrop-filter:blur(22px) saturate(180%);border-color:var(--line);box-shadow:var(--sh)}
 .brand{display:flex;align-items:center;gap:10px;font-family:var(--f-d);font-weight:800;font-size:19px;letter-spacing:-.02em;text-decoration:none;margin-right:auto}
 .brand img{width:34px;height:34px;border-radius:10px}
-nav.links{display:flex;gap:4px}
+nav.links{display:flex;gap:2px}
 nav.links a{text-decoration:none;font-weight:700;font-size:15px;color:var(--muted);padding:8px 12px;border-radius:12px;transition:color .2s,background .2s}
 nav.links a:hover{color:var(--fg);background:var(--herb-soft)}
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:0 22px;border-radius:16px;font:800 16px var(--f-b);text-decoration:none;border:0;cursor:pointer;transition:transform .3s var(--spring),box-shadow .3s}
-.btn:hover{transform:translateY(-2px)}
-.btn:active{transform:scale(.97)}
-.btn-main{background:var(--herb);color:var(--herb-ink);box-shadow:0 12px 28px -12px var(--herb)}
-.btn-line{background:var(--glass);border:1px solid var(--line);color:var(--fg)}
+.btn{position:relative;display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:50px;padding:0 24px;border-radius:16px;font:800 16px var(--f-b);text-decoration:none;border:0;cursor:pointer;transition:transform .35s var(--spring),box-shadow .3s,background .2s}
+.btn:active{transform:scale(.96) !important}
+.btn-main{background:var(--fg);color:var(--bg)}
+.btn-herb{background:var(--herb);color:var(--herb-ink);box-shadow:0 14px 30px -14px var(--herb)}
+.btn-line{background:transparent;border:1.5px solid var(--line);color:var(--fg)}
+.btn-line:hover{border-color:var(--fg)}
 .btn-sm{min-height:40px;padding:0 16px;border-radius:13px;font-size:15px}
 
-/* Startbereich */
-.hero{display:grid;grid-template-columns:1.1fr .9fr;gap:40px;align-items:center;padding:56px 0 40px;min-height:calc(100vh - 80px)}
-.eyebrow{display:inline-flex;align-items:center;gap:8px;font-weight:800;font-size:14px;letter-spacing:.04em;color:var(--herb);background:var(--herb-soft);padding:7px 14px;border-radius:999px}
-.eyebrow b{width:8px;height:8px;border-radius:50%;background:var(--herb);animation:pulse 2s infinite}
-@keyframes pulse{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--herb) 50%,transparent)}70%{box-shadow:0 0 0 10px transparent}100%{box-shadow:0 0 0 0 transparent}}
-.hero h1{font-size:clamp(46px,7.4vw,96px);margin:22px 0 0}
-.cycle{display:inline-grid;vertical-align:bottom;overflow:hidden;height:1.02em}
+/* ---------- Startbereich (bleibt) ---------- */
+.hero{display:grid;grid-template-columns:1.1fr .9fr;gap:40px;align-items:center;padding:40px 0 30px;min-height:calc(100vh - 70px)}
+.hero h1{font-size:clamp(52px,8vw,112px)}
+.cycle{display:inline-grid;vertical-align:bottom;overflow:hidden;height:1em}
 .cycle span{grid-area:1/1;color:var(--herb);transform:translateY(105%);opacity:0;transition:transform .6s var(--ease),opacity .6s}
 .cycle span.on{transform:none;opacity:1}
 .cycle span.out{transform:translateY(-105%);opacity:0}
 .cycle span:last-child{color:var(--tomato)}
-.hero p.lead{font-size:clamp(18px,1.6vw,21px);color:var(--muted);max-width:520px;margin:22px 0 30px}
+.hero p.lead{font-size:clamp(18px,1.6vw,21px);color:var(--muted);max-width:520px;margin:24px 0 30px}
 .cta{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
-.trust{display:flex;gap:18px;flex-wrap:wrap;margin-top:26px;color:var(--muted);font-weight:700;font-size:14.5px}
-.trust span{display:flex;align-items:center;gap:6px}
-.trust .i{width:17px;height:17px;color:var(--herb)}
-
-/* Handy */
+.meta{margin-top:26px;color:var(--muted);font-weight:700;font-size:14.5px;display:flex;gap:10px;flex-wrap:wrap}
+.meta b{color:var(--fg)}
+.meta i{font-style:normal;opacity:.4}
 .stage{position:relative;display:grid;place-items:center;perspective:1400px}
-.phone{position:relative;width:min(320px,74vw);aspect-ratio:393/852;border-radius:52px;background:#0d0f0e;padding:11px;box-shadow:0 50px 90px -30px rgba(22,32,26,.45),0 0 0 2px #2a2d2b inset;transform:rotateY(-14deg) rotateX(6deg);transition:transform .8s var(--ease);will-change:transform}
-.phone .scr{position:relative;width:100%;height:100%;border-radius:42px;overflow:hidden;background:#F4F5F0}
-.phone .scr img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transform:scale(1.04);transition:opacity .8s var(--ease),transform 1.2s var(--ease)}
-.phone .scr img.on{opacity:1;transform:none}
-.phone .island{position:absolute;top:21px;left:50%;width:30%;height:26px;margin-left:-15%;border-radius:20px;background:#000;z-index:2}
-.float{position:absolute;display:flex;align-items:center;gap:10px;padding:12px 16px;border-radius:18px;background:var(--glass);-webkit-backdrop-filter:blur(20px) saturate(180%);backdrop-filter:blur(20px) saturate(180%);border:1px solid var(--glass-brd);box-shadow:var(--sh);font-weight:800;font-size:14.5px;white-space:nowrap;animation:bob 6s ease-in-out infinite}
+.phone{position:relative;width:min(320px,74vw);aspect-ratio:393/852;border-radius:52px;background:#0d0f0e;padding:11px;box-shadow:0 50px 90px -30px rgba(27,23,18,.5),0 0 0 2px #2a2d2b inset;transform:rotateY(-14deg) rotateX(6deg);transition:transform .8s var(--ease);will-change:transform}
+.scr{position:relative;width:100%;height:100%;border-radius:42px;overflow:hidden;background:#F4F5F0}
+.scr img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transform:scale(1.04);filter:blur(6px);transition:opacity .7s var(--ease),transform 1.1s var(--ease),filter .7s}
+.scr img.on{opacity:1;transform:none;filter:none}
+.float{position:absolute;display:flex;align-items:center;gap:10px;padding:12px 16px;border-radius:18px;background:color-mix(in srgb,var(--card) 70%,transparent);-webkit-backdrop-filter:blur(20px) saturate(180%);backdrop-filter:blur(20px) saturate(180%);border:1px solid var(--line);box-shadow:var(--sh);font-weight:800;font-size:14.5px;white-space:nowrap;animation:bob 6s ease-in-out infinite;cursor:grab;user-select:none;touch-action:none}
+.float:active{cursor:grabbing}
 .float small{display:block;font-weight:600;color:var(--muted);font-size:12.5px}
 .float .em{font-size:26px}
-.f1{left:-4%;top:18%}
-.f2{right:-6%;top:46%;animation-delay:-2s}
-.f3{left:2%;bottom:12%;animation-delay:-4s}
-@keyframes bob{50%{transform:translateY(-10px)}}
+.f1{left:-4%;top:18%}.f2{right:-6%;top:46%;animation-delay:-2s}.f3{left:2%;bottom:12%;animation-delay:-4s}
+.float.dragging{animation:none;z-index:5}
+@keyframes bob{50%{translate:0 -10px}}
 .dots{display:flex;gap:8px;justify-content:center;margin-top:22px}
 .dots button{width:9px;height:9px;border-radius:5px;border:0;padding:0;background:var(--line);cursor:pointer;transition:width .4s var(--ease),background .3s}
-.dots button.on{width:26px;background:var(--herb)}
+.dots button.on{width:26px;background:var(--fg)}
+.hint{font-size:13px;color:var(--muted);font-weight:700;text-align:center;margin-top:10px}
 
-/* Abschnitte */
-section{padding:90px 0}
-.kicker{font-weight:800;font-size:14px;letter-spacing:.08em;text-transform:uppercase;color:var(--herb)}
-.sec-h{font-size:clamp(36px,5vw,62px);margin-top:10px;max-width:760px}
-.sec-p{color:var(--muted);font-size:19px;max-width:620px;margin:16px 0 0}
+/* ---------- Laufband ---------- */
+.marquee{overflow:hidden;border-block:1px solid var(--line);padding:16px 0;margin-top:20px;-webkit-mask:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent);mask:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent)}
+.marquee div{display:flex;gap:40px;width:max-content;animation:mq 60s linear infinite;font-family:var(--f-d);font-weight:700;font-size:26px;letter-spacing:-.02em;white-space:nowrap}
+.marquee:hover div{animation-play-state:paused}
+.marquee span{display:flex;align-items:center;gap:10px;color:var(--muted)}
+.marquee span:nth-child(3n){color:var(--fg)}
+@keyframes mq{to{transform:translateX(-50%)}}
 
-.story{display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center;padding:60px 0}
-.story.rev .txt{order:2}
-.story .shot{justify-self:center;width:min(300px,70vw);border-radius:44px;overflow:hidden;box-shadow:0 40px 80px -30px rgba(22,32,26,.4),0 0 0 10px #0d0f0e;background:#0d0f0e}
-.story .num{display:inline-grid;place-items:center;width:46px;height:46px;border-radius:15px;background:var(--herb-soft);color:var(--herb);margin-bottom:18px}
-.story .num .i{width:24px;height:24px}
-.story h3{font-size:clamp(32px,4vw,50px)}
-.story p{color:var(--muted);font-size:19px;margin:16px 0 0;max-width:460px}
-.story ul{list-style:none;padding:0;margin:22px 0 0;display:grid;gap:10px}
-.story li{display:flex;gap:10px;align-items:flex-start;font-weight:600}
-.story li .i{width:18px;height:18px;color:var(--herb);margin-top:4px}
+/* ---------- Scroll-Geschichte mit festem iPhone ---------- */
+section{padding:110px 0}
+.kicker{font-weight:800;font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.big{font-size:clamp(40px,6vw,80px);margin-top:12px}
+.story{display:grid;grid-template-columns:1fr 1fr;gap:60px;margin-top:40px}
+.chapters{display:flex;flex-direction:column}
+.ch{min-height:78vh;display:flex;flex-direction:column;justify-content:center;opacity:.25;transition:opacity .5s}
+.ch.act{opacity:1}
+.ch .no{font-family:var(--f-d);font-weight:800;font-size:96px;line-height:1;color:transparent;-webkit-text-stroke:1.5px var(--line);margin-bottom:6px}
+.ch.act .no{-webkit-text-stroke-color:var(--herb)}
+.ch h3{font-size:clamp(34px,4.2vw,58px)}
+.ch p{color:var(--muted);font-size:19px;max-width:440px;margin:16px 0 0}
+.ch .tags{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}
+.ch .tags span{padding:6px 12px;border-radius:999px;border:1px solid var(--line);font-weight:700;font-size:14px}
+.pin{position:sticky;top:12vh;height:76vh;display:grid;place-items:center}
+.pin .phone{transform:none;width:min(330px,80%)}
+.pin .ring{position:absolute;width:min(520px,95%);aspect-ratio:1;border-radius:50%;border:1px dashed var(--line);animation:spin 80s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.pin .bubble{position:absolute;padding:10px 14px;border-radius:16px;background:var(--card);border:1px solid var(--line);box-shadow:var(--sh);font-weight:800;font-size:14px;opacity:0;transform:translateY(12px) scale(.95);transition:all .5s var(--spring)}
+.pin .bubble.on{opacity:1;transform:none}
 
-.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:44px}
-.tile{padding:24px;border-radius:26px;background:var(--glass);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);border:1px solid var(--glass-brd);box-shadow:var(--sh);transition:transform .4s var(--spring)}
-.tile:hover{transform:translateY(-4px)}
-.tile .ic{width:44px;height:44px;border-radius:14px;display:grid;place-items:center;background:var(--herb-soft);color:var(--herb);margin-bottom:14px}
-.tile b{display:block;font-family:var(--f-d);font-size:22px;letter-spacing:-.02em}
-.tile p{margin:6px 0 0;color:var(--muted);font-size:16px}
+/* ---------- Probier's aus: Kühlschrank ---------- */
+.try{display:grid;grid-template-columns:1.05fr .95fr;gap:28px;margin-top:44px;align-items:start}
+.fridge{border-radius:34px;background:var(--fridge);border:1px solid var(--line);box-shadow:var(--sh),inset 0 0 0 10px color-mix(in srgb,var(--shelf) 55%,transparent);padding:26px 22px 20px;position:relative}
+.fridge::after{content:"";position:absolute;right:-7px;top:90px;width:8px;height:120px;border-radius:6px;background:var(--shelf);box-shadow:inset 0 0 0 1px var(--line)}
+.fridge-top{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px;padding:0 4px}
+.fridge-top b{font-family:var(--f-d);font-size:22px;letter-spacing:-.02em}
+.fridge-top button{border:0;background:none;color:var(--muted);font-weight:800;font-size:14px;cursor:pointer;padding:6px 8px;border-radius:10px}
+.fridge-top button:hover{color:var(--fg);background:var(--herb-soft)}
+.shelf{display:flex;flex-wrap:wrap;gap:8px;padding:14px 6px 16px;border-bottom:6px solid var(--shelf);border-radius:0 0 4px 4px}
+.shelf:last-child{border-bottom:0}
+.ing{display:inline-flex;align-items:center;gap:6px;padding:9px 13px;border-radius:14px;border:1.5px solid var(--line);background:var(--card);font-weight:700;font-size:15px;cursor:pointer;transition:transform .3s var(--spring),background .2s,border-color .2s,color .2s}
+.ing:hover{transform:translateY(-2px)}
+.ing .e{font-size:19px;transition:transform .4s var(--spring)}
+.ing[aria-pressed="true"]{background:var(--herb);border-color:var(--herb);color:var(--herb-ink)}
+.ing[aria-pressed="true"] .e{transform:scale(1.2) rotate(-8deg)}
+.res{border-radius:34px;background:var(--card);border:1px solid var(--line);box-shadow:var(--sh);padding:24px;min-height:100%}
+.res-h{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.res-h .n{font-family:var(--f-d);font-weight:800;font-size:64px;letter-spacing:-.04em;line-height:1;color:var(--herb)}
+.res-h span{font-weight:800;font-size:18px}
+.res-s{color:var(--muted);font-weight:600;font-size:15px;margin:4px 0 14px}
+.dish{display:flex;align-items:center;gap:12px;width:100%;padding:11px 10px;border:0;border-top:1px solid var(--line);background:none;text-align:left;cursor:pointer;border-radius:14px;transition:background .2s;animation:pop .45s var(--spring) both}
+.dish:hover{background:var(--herb-soft)}
+.dish .e{font-size:30px;width:46px;height:46px;border-radius:14px;display:grid;place-items:center;background:var(--bg);flex:none}
+.dish b{display:block;font-size:16px}
+.dish small{color:var(--muted);font-weight:600;font-size:13.5px}
+.dish small em{font-style:normal;color:var(--tomato);font-weight:800}
+.dish .go{margin-left:auto;color:var(--muted);font-weight:800}
+@keyframes pop{from{opacity:0;transform:translateY(10px) scale(.98)}}
+#mini{display:none}
+.empty{color:var(--muted);font-weight:600;padding:20px 4px}
 
-.install{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:40px;counter-reset:s}
-.step{padding:26px;border-radius:26px;background:var(--bg2);border:1px solid var(--line);box-shadow:var(--sh)}
-.step::before{counter-increment:s;content:counter(s);display:grid;place-items:center;width:40px;height:40px;border-radius:50%;background:var(--herb);color:var(--herb-ink);font:800 18px var(--f-d);margin-bottom:14px}
+/* ---------- Glücksrad ---------- */
+.spin-wrap{display:grid;grid-template-columns:1fr 1fr;gap:50px;align-items:center;margin-top:30px}
+.wheel-box{position:relative;width:min(460px,88vw);aspect-ratio:1;justify-self:center}
+#wheel{width:100%;height:100%;transition:transform 4.6s cubic-bezier(.12,.75,.1,1);filter:drop-shadow(0 30px 40px rgba(27,23,18,.25))}
+.pointer{position:absolute;left:50%;top:-10px;margin-left:-18px;width:0;height:0;border-left:18px solid transparent;border-right:18px solid transparent;border-top:34px solid var(--tomato);filter:drop-shadow(0 4px 4px rgba(0,0,0,.25));z-index:2;transform-origin:50% 0}
+.pointer.tick{animation:tick .12s}
+@keyframes tick{50%{transform:rotate(-14deg)}}
+.hub{position:absolute;left:50%;top:50%;width:96px;height:96px;margin:-48px 0 0 -48px;border-radius:50%;background:var(--fg);color:var(--bg);border:0;font:800 17px var(--f-d);cursor:pointer;box-shadow:0 10px 24px rgba(0,0,0,.3);transition:transform .3s var(--spring);z-index:2}
+.hub:hover{transform:scale(1.06)}
+.hub:disabled{opacity:.8;cursor:default}
+.win{min-height:200px}
+.win .card{border-radius:28px;background:var(--card);border:1px solid var(--line);box-shadow:var(--sh);padding:24px;animation:pop .6s var(--spring) both}
+.win .card .e{font-size:60px;line-height:1}
+.win .card h3{font-size:40px;margin-top:10px}
+.win .card p{color:var(--muted);margin:8px 0 16px;font-weight:600}
+.seg{display:inline-flex;gap:4px;padding:4px;border-radius:14px;background:var(--line);margin-top:20px}
+.seg button{border:0;background:none;font-weight:800;font-size:15px;color:var(--muted);padding:8px 14px;border-radius:11px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--card);color:var(--fg);box-shadow:0 2px 8px rgba(0,0,0,.08)}
+#confetti{position:fixed;inset:0;pointer-events:none;z-index:60}
+
+/* ---------- Rezept-Fenster ---------- */
+dialog{border:0;padding:0;border-radius:30px;width:min(520px,calc(100% - 24px));background:var(--card);color:var(--fg);box-shadow:0 40px 90px -20px rgba(0,0,0,.5)}
+dialog::backdrop{background:rgba(15,19,15,.45);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+dialog[open]{animation:dlg .45s var(--spring)}
+@keyframes dlg{from{opacity:0;transform:translateY(30px) scale(.97)}}
+.dlg{padding:26px}
+.dlg .e{font-size:58px;line-height:1}
+.dlg h3{font-size:36px;margin-top:10px}
+.dlg .chips{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0}
+.dlg .chips span{padding:5px 10px;border-radius:999px;background:var(--bg);font-weight:700;font-size:14px}
+.dlg .chips span.miss{background:var(--tomato-soft);color:var(--tomato)}
+.dlg ol{padding-left:22px;margin:14px 0 20px;display:grid;gap:8px}
+.dlg .x{position:absolute;right:14px;top:14px;width:40px;height:40px;border-radius:50%;border:0;background:var(--bg);cursor:pointer;font-size:18px}
+
+/* ---------- Zahlen ---------- */
+.nums{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--line);margin-top:40px}
+.nums div{padding:28px 4px 0}
+.nums div+div{border-left:1px solid var(--line);padding-left:28px}
+.nums b{display:block;font-family:var(--f-d);font-size:clamp(54px,7vw,96px);letter-spacing:-.05em;line-height:1}
+.nums span{color:var(--muted);font-weight:700}
+
+/* ---------- Installieren ---------- */
+.install{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:30px;counter-reset:s}
+.step{padding:26px;border-radius:26px;background:var(--card);border:1px solid var(--line)}
+.step::before{counter-increment:s;content:counter(s);display:block;font:800 44px/1 var(--f-d);color:var(--herb);margin-bottom:12px}
 .step b{font-size:19px;display:block}
 .step p{color:var(--muted);margin:6px 0 0;font-size:16px}
-.os{display:inline-flex;gap:4px;padding:4px;border-radius:14px;background:var(--line);margin-top:26px}
-.os button{border:0;background:none;font:800 15px var(--f-b);color:var(--muted);padding:8px 16px;border-radius:11px;cursor:pointer}
-.os button[aria-pressed="true"]{background:var(--bg2);color:var(--fg);box-shadow:0 2px 8px rgba(0,0,0,.08)}
 
-.final{text-align:center;padding:110px 0 120px}
-.final h2{font-size:clamp(44px,7vw,92px)}
+.final{text-align:center;padding:120px 0 120px}
+.final h2{font-size:clamp(56px,9vw,130px)}
 .final p{color:var(--muted);font-size:20px;margin:18px auto 32px;max-width:520px}
 .sponsor{display:flex;flex-direction:column;align-items:center;gap:8px;margin-top:70px;color:var(--muted);font-weight:800;font-size:12.5px;letter-spacing:.14em;text-transform:uppercase;text-decoration:none}
 .sponsor img{height:64px;width:auto}
 @media (prefers-color-scheme:dark){.sponsor img{filter:invert(1) brightness(1.5)}}
-
 footer{border-top:1px solid var(--line);padding:30px 0 50px;color:var(--muted);font-size:14.5px}
 footer .wrap{display:flex;gap:18px;flex-wrap:wrap;justify-content:space-between}
 footer a{text-decoration:none;font-weight:700}
-footer a:hover{color:var(--fg)}
 
-/* Einblenden beim Scrollen */
-.rv{opacity:0;transform:translateY(34px);transition:opacity .9s var(--ease),transform .9s var(--ease)}
+/* Einblenden: Wort für Wort und Blöcke */
+.rv{opacity:0;transform:translateY(30px);transition:opacity .9s var(--ease),transform .9s var(--ease)}
 .rv.in{opacity:1;transform:none}
-.rv.d1{transition-delay:.08s}.rv.d2{transition-delay:.16s}.rv.d3{transition-delay:.24s}
+.words .w{display:inline-block;opacity:0;transform:translateY(.4em) rotate(2deg);transition:opacity .6s var(--ease),transform .7s var(--ease)}
+.words.in .w{opacity:1;transform:none}
 
-/* Handy-Layout */
 @media (max-width:900px){
   nav.links{display:none}
-  .hero{grid-template-columns:1fr;min-height:auto;padding:28px 0 20px;text-align:center}
+  .hero{grid-template-columns:1fr;min-height:auto;padding:24px 0 10px;text-align:center}
   .hero p.lead{margin-left:auto;margin-right:auto}
-  .cta,.trust{justify-content:center}
-  .stage{margin-top:24px}
+  .cta,.meta{justify-content:center}
   .phone{transform:none}
   .f1{left:-2%;top:10%}.f2{right:-2%;top:44%}.f3{left:0;bottom:8%}
   .float{font-size:13px;padding:10px 12px}.float .em{font-size:22px}
-  section{padding:60px 0}
-  .story,.story.rev{grid-template-columns:1fr;gap:34px;text-align:center}
-  .story.rev .txt{order:0}
-  .story p,.story ul{margin-left:auto;margin-right:auto}
-  .story ul{text-align:left;max-width:340px}
-  .grid,.install{grid-template-columns:1fr}
-  .sec-h,.sec-p{margin-left:auto;margin-right:auto}
+  section{padding:70px 0}
+  .story{grid-template-columns:1fr;gap:0;margin-top:20px}
+  .pin{order:-1;top:68px;height:44vh;z-index:1;background:linear-gradient(var(--bg) 85%,transparent);padding-bottom:10px}
+  .pin .phone{width:auto;height:94%}
+  .pin .bubble{display:none}
+  .ch{min-height:58vh;justify-content:flex-start;padding-top:4vh;text-align:center;align-items:center}
+  .ch .no{display:none}
+  .ch .tags{justify-content:center}
+  .try,.spin-wrap{grid-template-columns:1fr}
+  .fridge-top{flex-wrap:wrap}.fridge-top b{width:100%}
+  #mini{display:flex;position:sticky;bottom:14px;margin-top:12px;align-items:center;justify-content:space-between;gap:10px;padding:12px 16px;border-radius:18px;border:0;background:var(--fg);color:var(--bg);font-weight:800;font-size:15px;width:100%;cursor:pointer;box-shadow:0 14px 30px -12px rgba(0,0,0,.5);z-index:2}
+  #mini b{font:800 22px var(--f-d);color:var(--herb)}
+  .install{grid-template-columns:1fr}
+  .nums{grid-template-columns:1fr}
+  .nums div+div{border-left:0;border-top:1px solid var(--line);padding-left:4px}
+  .nums div{padding-bottom:20px}
   .center-m{text-align:center}
 }
-@media (max-width:420px){ .f2{display:none} }
+@media (max-width:420px){ .f2{display:none} .ing{padding:8px 11px;font-size:14px} }
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation:none !important;transition:none !important}
-  .rv{opacity:1;transform:none}
+  .rv,.words .w{opacity:1;transform:none}
 }
 </style>
 </head>
 <body>
-<div class="orbs" aria-hidden="true"><i></i><i></i><i></i></div>
+<div id="prog"></div>
+<canvas id="confetti"></canvas>
 
 <header id="top"><div class="wrap"><div class="bar">
   <a class="brand" href="#"><img src="../icon-192.png" alt="">Was gibt's?</a>
-  <nav class="links" aria-label="Seitenbereiche"><a href="#so">So geht's</a><a href="#funktionen">Funktionen</a><a href="#installieren">Installieren</a></nav>
+  <nav class="links" aria-label="Seitenbereiche"><a href="#so">So geht's</a><a href="#probieren">Ausprobieren</a><a href="#rad">Glücksrad</a><a href="#installieren">Installieren</a></nav>
   <a class="btn btn-main btn-sm" href="../">App öffnen</a>
 </div></div></header>
 
 <main>
+  <!-- Startbereich -->
   <div class="wrap hero">
     <div>
-      <span class="eyebrow rv"><b></b>Kostenlos für die ganze Familie</span>
-      <h1 class="rv d1">Was gibt's<br><span class="cycle" aria-label="heute?"><span class="on">Pasta?</span><span>Curry?</span><span>Suppe?</span><span>heute?</span></span></h1>
-      <p class="lead rv d2">Sag, was im Kühlschrank ist – wir schlagen vor, was passt. Und die ganze Familie redet mit: Wünsche, Abstimmung, Wochenplan und Einkaufsliste an einem Ort.</p>
-      <div class="cta rv d3"><a class="btn btn-main" href="../">Kostenlos starten</a><a class="btn btn-line" href="#so">Wie funktioniert's?</a></div>
-      <div class="trust rv d3">
-        <span><i class="i" style="--m:url(ic/checkmark.png)"></i>Keine Installation nötig</span>
-        <span><i class="i" style="--m:url(ic/checkmark.png)"></i>iPhone &amp; Android</span>
-        <span><i class="i" style="--m:url(ic/checkmark.png)"></i>Über 600 Rezepte</span>
-      </div>
+      <h1 class="rv">Was gibt's<br><span class="cycle" aria-label="heute?"><span class="on">Pasta?</span><span>Curry?</span><span>Suppe?</span><span>heute?</span></span></h1>
+      <p class="lead rv">Die Frage, die jede Familie jeden Abend stellt. Sag, was im Kühlschrank ist – wir schlagen vor, was passt. Und alle reden mit.</p>
+      <div class="cta rv"><a class="btn btn-herb" href="../">Kostenlos starten</a><a class="btn btn-line" href="#probieren">Gleich hier ausprobieren ↓</a></div>
+      <div class="meta rv"><span><b id="cntR">620</b> Rezepte</span><i>/</i><span><b>0 €</b></span><i>/</i><span>iPhone &amp; Android</span><i>/</i><span>ohne App Store</span></div>
     </div>
-    <div class="stage rv d2">
+    <div class="stage rv">
       <div class="phone" id="phone"><div class="scr" id="scr">
         <img class="on" src="img/light_home.jpg" alt="Startseite der App mit dem Essensvorschlag für heute">
         <img src="img/light_fridge.jpg" alt="Kühlschrank mit vorhandenen Zutaten" loading="lazy">
@@ -206,61 +278,94 @@ footer a:hover{color:var(--fg)}
       <div class="float f1"><span class="em">🙋</span><span>Mia wünscht sich<small>Pfannkuchen</small></span></div>
       <div class="float f2"><span class="em">📊</span><span>Abstimmung<small>3 : 1 für Curry</small></span></div>
       <div class="float f3"><span class="em">🛒</span><span>Ben hat Milch<small>abgehakt ✓</small></span></div>
-      <div class="dots" id="dots" role="tablist" aria-label="App-Bilder"><button class="on" aria-label="Bild 1"></button><button aria-label="Bild 2"></button><button aria-label="Bild 3"></button><button aria-label="Bild 4"></button></div>
+      <div>
+        <div class="dots" id="dots" role="tablist" aria-label="App-Bilder"><button class="on" aria-label="Bild 1"></button><button aria-label="Bild 2"></button><button aria-label="Bild 3"></button><button aria-label="Bild 4"></button></div>
+        <div class="hint">Tipp: Die Kärtchen kannst du verschieben</div>
+      </div>
     </div>
   </div>
 
+  <div class="marquee" aria-hidden="true"><div id="mq"></div></div>
+
+  <!-- Scroll-Geschichte -->
   <section id="so"><div class="wrap">
-    <div class="center-m"><div class="kicker rv">So geht's</div><h2 class="sec-h rv d1">Drei Schritte zum Abendessen.</h2></div>
-
+    <div class="kicker rv">So geht's</div>
+    <h2 class="big words" data-words>Drei Schritte vom vollen Kühlschrank zum vollen Teller.</h2>
     <div class="story">
-      <div class="txt rv"><span class="num"><i class="i" style="--m:url(ic/fridge.png)"></i></span><h3>Sag, was da ist.</h3>
-        <p>Tipp Zutaten an, sag sie per Mikrofon – oder mach einfach ein Foto vom Kühlschrank.</p>
-        <ul><li><i class="i" style="--m:url(ic/checkmark.png)"></i>Erkennt Zutaten auf dem Foto</li><li><i class="i" style="--m:url(ic/checkmark.png)"></i>Erinnert an Sachen, die bald ablaufen</li></ul></div>
-      <img class="shot rv d1" src="img/light_fridge.jpg" alt="Kühlschrank-Ansicht der App" loading="lazy">
-    </div>
-
-    <div class="story rev">
-      <div class="txt rv"><span class="num"><i class="i" style="--m:url(ic/cooking-pot.png)"></i></span><h3>Wir sagen, was passt.</h3>
-        <p>Passende Gerichte aus über 600 Rezepten – nach Zeit, Lust und wer mitisst.</p>
-        <ul><li><i class="i" style="--m:url(ic/checkmark.png)"></i>„Mit einem kleinen Einkauf" zeigt, was fast geht</li><li><i class="i" style="--m:url(ic/checkmark.png)"></i>Kochmodus mit Timern, Schritt für Schritt</li></ul></div>
-      <img class="shot rv d1" src="img/light_home.jpg" alt="Essensvorschläge in der App" loading="lazy">
-    </div>
-
-    <div class="story">
-      <div class="txt rv"><span class="num"><i class="i" style="--m:url(ic/conference-call.png)"></i></span><h3>Die ganze Familie redet mit.</h3>
-        <p>Jeder darf sich etwas wünschen. Bei Streit wird abgestimmt. Und die Einkaufsliste ist für alle live.</p>
-        <ul><li><i class="i" style="--m:url(ic/checkmark.png)"></i>Familie per Code oder QR verbinden</li><li><i class="i" style="--m:url(ic/checkmark.png)"></i>Wochenplan mit Frühstück, Mittag, Abend</li></ul></div>
-      <img class="shot rv d1" src="img/light_family.jpg" alt="Familien-Ansicht der App" loading="lazy">
+      <div class="chapters">
+        <div class="ch act" data-shot="1" data-b="Erkannt: 19 Zutaten"><div class="no">01</div><h3>Sag, was da ist.</h3><p>Antippen, per Mikrofon sagen – oder einfach ein Foto vom Kühlschrank machen. Die App merkt sich auch, was bald abläuft.</p><div class="tags"><span>📷 Foto</span><span>🎤 Sprache</span><span>⏰ Ablaufdatum</span></div></div>
+        <div class="ch" data-shot="0" data-b="Gnocchi in Tomatensoße · 20 Min"><div class="no">02</div><h3>Wir sagen, was passt.</h3><p>Aus 620 Rezepten das, was ihr jetzt kochen könnt – nach Zeit, Lust und wer heute mitisst. Fehlt nur eine Kleinigkeit? Steht auch dabei.</p><div class="tags"><span>⏱ 15 / 30 Min</span><span>🥗 gesund</span><span>👨‍🍳 Kochmodus</span></div></div>
+        <div class="ch" data-shot="2" data-b="Wochenplan: 4 Tage gefüllt"><div class="no">03</div><h3>Alle reden mit.</h3><p>Wünsche, Abstimmungen, ein gemeinsamer Wochenplan und eine Einkaufsliste, die bei allen sofort aktuell ist.</p><div class="tags"><span>🙋 Wünsche</span><span>📊 Abstimmung</span><span>🛒 Liste live</span></div></div>
+      </div>
+      <div class="pin">
+        <div class="ring"></div>
+        <div class="phone"><div class="scr" id="scr2">
+          <img src="img/light_home.jpg" alt="" loading="lazy"><img class="on" src="img/light_fridge.jpg" alt="" loading="lazy"><img src="img/light_recipes.jpg" alt="" loading="lazy">
+        </div></div>
+        <div class="bubble" id="bub" style="left:2%;bottom:18%"></div>
+      </div>
     </div>
   </div></section>
 
-  <section id="funktionen"><div class="wrap">
-    <div class="center-m"><div class="kicker rv">Und außerdem</div><h2 class="sec-h rv d1">Alles, was eine Familienküche braucht.</h2></div>
-    <div class="grid">
-      <div class="tile rv"><span class="ic"><i class="i" style="--m:url(ic/calendar.png)"></i></span><b>Wochenplan</b><p>Die Woche mit einem Tipp füllen – oder jeden Tag selbst planen.</p></div>
-      <div class="tile rv d1"><span class="ic"><i class="i" style="--m:url(ic/checkmark.png)"></i></span><b>Einkaufsliste</b><p>Sortiert nach Supermarkt-Bereichen. Abhaken – alle sehen es sofort.</p></div>
-      <div class="tile rv d2"><span class="ic"><i class="i" style="--m:url(ic/chat.png)"></i></span><b>Pinnwand</b><p>Kurze Nachrichten an die Familie, direkt in der App.</p></div>
-      <div class="tile rv"><span class="ic"><i class="i" style="--m:url(ic/clock.png)"></i></span><b>Kochmodus</b><p>Große Schritte, eingebaute Timer – auch mit Mehl an den Fingern.</p></div>
-      <div class="tile rv d1"><span class="ic"><i class="i" style="--m:url(ic/send.png)"></i></span><b>Benachrichtigungen</b><p>Neue Wünsche oder Abstimmungen? Kommt direkt aufs Handy.</p></div>
-      <div class="tile rv d2"><span class="ic"><i class="i" style="--m:url(ic/shield.png)"></i></span><b>Eure Daten bleiben bei euch</b><p>Nur eure Familie sieht eure Pläne, Wünsche und Rezepte.</p></div>
+  <!-- Ausprobieren -->
+  <section id="probieren"><div class="wrap">
+    <div class="center-m"><div class="kicker rv">Probier's aus – ohne Anmeldung</div>
+    <h2 class="big words" data-words>Was hast du gerade da?</h2>
+    <p class="rv" style="color:var(--muted);font-size:19px;max-width:620px;margin:16px 0 0">Tippe an, was in deinem Kühlschrank ist. Die Vorschläge kommen live aus den echten Rezepten der App.</p></div>
+    <div class="try">
+      <div class="fridge rv" id="fridge" aria-label="Kühlschrank zum Ausprobieren">
+        <div class="fridge-top"><b>Dein Kühlschrank</b><button id="rand" type="button">🎲 Zufällig füllen</button><button id="clear" type="button">Leeren</button></div>
+        <div id="shelves"></div>
+        <button id="mini" type="button"><span><b id="miniN">0</b> Gerichte gehen sofort</span><span>Ansehen ↓</span></button>
+      </div>
+      <div class="res rv" aria-live="polite">
+        <div class="res-h"><span class="n" id="nOk">0</span><span id="nOkL">Gerichte gehen sofort</span></div>
+        <div class="res-s" id="nAlmost"></div>
+        <div id="dishes"></div>
+      </div>
     </div>
   </div></section>
 
+  <!-- Glücksrad -->
+  <section id="rad"><div class="wrap">
+    <div class="center-m"><div class="kicker rv">Keine Idee?</div>
+    <h2 class="big words" data-words>Dann entscheidet das Rad.</h2></div>
+    <div class="spin-wrap">
+      <div class="wheel-box rv"><div class="pointer" id="pointer"></div><svg id="wheel" viewBox="-200 -200 400 400" role="img" aria-label="Glücksrad mit Gerichten"></svg><button class="hub" id="spin" type="button">Drehen</button></div>
+      <div class="win" id="win">
+        <div class="rv"><p style="color:var(--muted);font-size:19px;margin:0">Acht Gerichte, ein Dreh. In der App gibt es das Ganze in schlau: als Vorschlag, der wirklich zu euch passt.</p>
+        <div class="seg" role="group" aria-label="Was soll aufs Rad?"><button data-mode="fridge" aria-pressed="true">Aus meinem Kühlschrank</button><button data-mode="all" aria-pressed="false">Alles</button></div></div>
+      </div>
+    </div>
+  </div></section>
+
+  <!-- Zahlen -->
+  <section style="padding-top:40px"><div class="wrap">
+    <div class="kicker rv">In Zahlen</div>
+    <div class="nums">
+      <div class="rv"><b data-count="620">0</b><span>Rezepte – von Pfannkuchen bis Curry</span></div>
+      <div class="rv"><b data-count="0" data-suffix=" €">0 €</b><span>kostet die App für eure Familie</span></div>
+      <div class="rv"><b data-count="3">0</b><span>Mahlzeiten am Tag im Wochenplan</span></div>
+    </div>
+  </div></section>
+
+  <!-- Installieren -->
   <section id="installieren"><div class="wrap">
-    <div class="center-m"><div class="kicker rv">Installieren</div><h2 class="sec-h rv d1">In 20 Sekunden auf dem Handy.</h2>
-      <p class="sec-p rv d2">Kein App Store nötig – „Was gibt's?" läuft direkt im Browser und kommt wie eine echte App auf den Home-Bildschirm.</p>
-      <div class="os rv d2" role="group" aria-label="Handy auswählen"><button data-os="ios" aria-pressed="true">iPhone</button><button data-os="android" aria-pressed="false">Android</button></div></div>
+    <div class="center-m"><div class="kicker rv">Installieren</div>
+    <h2 class="big words" data-words>In 20 Sekunden auf dem Handy.</h2>
+    <div class="seg rv" role="group" aria-label="Handy auswählen"><button data-os="ios" aria-pressed="true">iPhone</button><button data-os="android" aria-pressed="false">Android</button></div></div>
     <div class="install" id="steps"></div>
   </div></section>
 
   <div class="wrap final">
-    <h2 class="rv">Was gibt's<br><span style="color:var(--tomato)">heute?</span></h2>
-    <p class="rv d1">Schluss mit „Keine Ahnung, was willst du denn?". Probiert's heute Abend aus.</p>
-    <a class="btn btn-main rv d2" href="../" style="min-height:56px;padding:0 30px;font-size:18px">Jetzt kostenlos starten</a>
-    <a class="sponsor rv d3" href="https://www.etsy.com/de/shop/PiHILL" target="_blank" rel="noopener sponsored">Präsentiert von<img src="../sponsor/pihill.png" alt="PiHILL – Handgemachtes"></a>
+    <h2 class="words" data-words>Was gibt's heute?</h2>
+    <p class="rv">Probiert's heute Abend aus. Die ganze Familie, ein Gericht, keine Diskussion.</p>
+    <a class="btn btn-herb rv" id="magnet" href="../" style="min-height:58px;padding:0 32px;font-size:18px">Jetzt kostenlos starten</a>
+    <a class="sponsor rv" href="https://www.etsy.com/de/shop/PiHILL" target="_blank" rel="noopener sponsored">Präsentiert von<img src="../sponsor/pihill.png" alt="PiHILL – Handgemachtes"></a>
   </div>
 </main>
+
+<dialog id="dlg"><div class="dlg" id="dlgBody"></div></dialog>
 
 <footer><div class="wrap">
   <span>© 2026 „Was gibt's?"</span>
@@ -268,46 +373,159 @@ footer a:hover{color:var(--fg)}
   <span>Icons von <a href="https://icons8.com" target="_blank" rel="noopener">Icons8</a></span>
 </div></footer>
 
-<script>
-(() => {
-  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  // Kopfzeile wird beim Scrollen zu Glas
-  const hd = document.getElementById('top');
-  const onScroll = () => hd.classList.toggle('scrolled', scrollY > 10);
-  addEventListener('scroll', onScroll, { passive:true }); onScroll();
+<script type="module">
+import { R, ING, CATS } from '../data.js';
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+document.getElementById('cntR').textContent = R.length;
 
-  // Einblenden beim Scrollen
-  const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } }), { threshold:.15, rootMargin:'0px 0px -40px 0px' });
-  document.querySelectorAll('.rv').forEach(el => io.observe(el));
+/* Kopfzeile + Fortschritt */
+const hd = $('#top'), prog = $('#prog');
+const onScroll = () => { hd.classList.toggle('scrolled', scrollY > 10); prog.style.transform = `scaleX(${scrollY / (document.documentElement.scrollHeight - innerHeight || 1)})`; };
+addEventListener('scroll', onScroll, { passive:true }); onScroll();
 
-  // Wechselndes Wort: Pasta? Curry? Suppe? … heute?
-  const words = [...document.querySelectorAll('.cycle span')];
-  let w = 0;
-  if (!reduce){ const tick = () => { if (w >= words.length - 1) return; words[w].classList.remove('on'); words[w].classList.add('out'); w++; words[w].classList.add('on'); setTimeout(tick, w === words.length - 1 ? 0 : 950); }; setTimeout(tick, 1300); }
-  else { words.forEach(s => s.classList.remove('on')); words[words.length - 1].classList.add('on'); }
+/* Überschriften Wort für Wort */
+$$('[data-words]').forEach(h => { h.innerHTML = h.textContent.split(' ').map((w, i) => `<span class="w" style="transition-delay:${i * 70}ms">${esc(w)}</span>`).join(' '); });
+const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); if (e.target.dataset.count != null) countUp(e.target); } }), { threshold:.2 });
+$$('.rv,[data-words],[data-count]').forEach(el => io.observe(el));
+function countUp(el){ const to = +el.dataset.count, suf = el.dataset.suffix || ''; if (reduce || !to){ el.textContent = to + suf; return; }
+  const t0 = performance.now(); const f = t => { const k = Math.min(1, (t - t0) / 1400), v = Math.round(to * (1 - Math.pow(1 - k, 3))); el.textContent = v + suf; if (k < 1) requestAnimationFrame(f); }; requestAnimationFrame(f); }
 
-  // Handy: Bilder wechseln + leichtes Mitkippen mit der Maus
-  const imgs = [...document.querySelectorAll('#scr img')], dots = [...document.querySelectorAll('#dots button')];
-  let cur = 0, timer;
-  const show = n => { imgs[cur].classList.remove('on'); dots[cur].classList.remove('on'); cur = (n + imgs.length) % imgs.length; imgs[cur].classList.add('on'); dots[cur].classList.add('on'); };
-  const auto = () => { clearInterval(timer); if (!reduce) timer = setInterval(() => show(cur + 1), 3200); };
-  dots.forEach((d, i) => d.addEventListener('click', () => { show(i); auto(); })); auto();
-  const ph = document.getElementById('phone');
-  if (!reduce && matchMedia('(pointer:fine)').matches) addEventListener('mousemove', e => {
-    const x = e.clientX / innerWidth - .5, y = e.clientY / innerHeight - .5;
-    ph.style.transform = `rotateY(${-14 + x * 16}deg) rotateX(${6 - y * 10}deg)`;
-  }, { passive:true });
+/* Wechselndes Wort */
+const words = $$('.cycle span'); let wi = 0;
+if (!reduce){ const tick = () => { if (wi >= words.length - 1) return; words[wi].classList.replace('on', 'out'); wi++; words[wi].classList.add('on'); if (wi < words.length - 1) setTimeout(tick, 950); }; setTimeout(tick, 1300); }
+else { words.forEach(s => s.classList.remove('on')); words.at(-1).classList.add('on'); }
 
-  // Installieren: Schritte je nach Handy
-  const STEPS = {
-    ios: [['Öffnen', 'Tippe unten auf „App öffnen" – in Safari.'], ['Teilen', 'Tippe auf das Teilen-Symbol (Quadrat mit Pfeil nach oben).'], ['Zum Home-Bildschirm', 'Wähle „Zum Home-Bildschirm" – fertig. Die App liegt jetzt bei deinen anderen Apps.']],
-    android: [['Öffnen', 'Tippe auf „App öffnen" – in Chrome.'], ['Menü', 'Tippe oben rechts auf die drei Punkte ⋮.'], ['Installieren', 'Wähle „App installieren" oder „Zum Startbildschirm hinzufügen" – fertig.']],
-  };
-  const box = document.getElementById('steps');
-  const paint = os => { box.innerHTML = STEPS[os].map(([b, p]) => `<div class="step"><b>${b}</b><p>${p}</p></div>`).join(''); document.querySelectorAll('.os button').forEach(x => x.setAttribute('aria-pressed', x.dataset.os === os)); };
-  document.querySelectorAll('.os button').forEach(x => x.addEventListener('click', () => paint(x.dataset.os)));
-  paint(/android/i.test(navigator.userAgent) ? 'android' : 'ios');
-})();
+/* iPhone oben: Bilder, Kippen, verschiebbare Kärtchen */
+const imgs = $$('#scr img'), dots = $$('#dots button'); let cur = 0, timer;
+const show = n => { imgs[cur].classList.remove('on'); dots[cur].classList.remove('on'); cur = (n + imgs.length) % imgs.length; imgs[cur].classList.add('on'); dots[cur].classList.add('on'); };
+const auto = () => { clearInterval(timer); if (!reduce) timer = setInterval(() => show(cur + 1), 3200); };
+dots.forEach((d, i) => d.addEventListener('click', () => { show(i); auto(); })); auto();
+const ph = $('#phone');
+if (!reduce && matchMedia('(pointer:fine)').matches) addEventListener('mousemove', e => { if (scrollY > innerHeight) return;
+  const x = e.clientX / innerWidth - .5, y = e.clientY / innerHeight - .5; ph.style.transform = `rotateY(${-14 + x * 18}deg) rotateX(${6 - y * 12}deg)`; }, { passive:true });
+$$('.float').forEach(f => { let sx, sy, ox = 0, oy = 0;
+  f.addEventListener('pointerdown', e => { f.setPointerCapture(e.pointerId); f.classList.add('dragging'); sx = e.clientX - ox; sy = e.clientY - oy; });
+  f.addEventListener('pointermove', e => { if (!f.classList.contains('dragging')) return; ox = e.clientX - sx; oy = e.clientY - sy; f.style.transform = `translate(${ox}px,${oy}px) rotate(${ox * .03}deg)`; });
+  const end = () => { f.classList.remove('dragging'); f.style.transition = 'transform .6s cubic-bezier(.34,1.56,.64,1)'; f.style.transform = `translate(${ox}px,${oy}px)`; setTimeout(() => f.style.transition = '', 600); };
+  f.addEventListener('pointerup', end); f.addEventListener('pointercancel', end); });
+
+/* Laufband mit echten Gerichten */
+const pick = [...R].sort(() => Math.random() - .5).slice(0, 26);
+const mqHtml = pick.map(r => `<span>${r.e} ${esc(r.n)}</span>`).join('');
+$('#mq').innerHTML = mqHtml + mqHtml;
+
+/* Scroll-Geschichte: iPhone bleibt stehen, Bild wechselt mit dem Kapitel */
+const s2 = $$('#scr2 img'), bub = $('#bub');
+const chio = new IntersectionObserver(es => es.forEach(e => { if (!e.isIntersecting) return;
+  $$('.ch').forEach(c => c.classList.toggle('act', c === e.target));
+  const n = +e.target.dataset.shot; s2.forEach((im, i) => im.classList.toggle('on', i === n));
+  bub.classList.remove('on'); setTimeout(() => { bub.textContent = '✨ ' + e.target.dataset.b; bub.classList.add('on'); }, 250);
+}), { rootMargin: matchMedia('(max-width:900px)').matches ? '-60% 0px -30% 0px' : '-45% 0px -45% 0px' });
+$$('.ch').forEach(c => chio.observe(c));
+
+/* ---------- Kühlschrank zum Ausprobieren (echte Rezepte) ---------- */
+const freq = {}; R.forEach(r => r.i.forEach(k => freq[k] = (freq[k] || 0) + 1));
+const top = Object.keys(freq).filter(k => ING[k]).sort((a, b) => freq[b] - freq[a]).slice(0, 30);
+const shelves = [['Gemüse & Obst', ['gemuese','obst']], ['Milch, Käse & Fleisch', ['milch','fleisch','kuehl']], ['Vorrat', ['getreide','dose','backen','wuerz']]];
+const catOf = k => (CATS.find(c => c[3].includes(k)) || ['other'])[0];
+const have = new Set(['nudeln','eier','tomaten','zwiebeln','kaese'].filter(k => ING[k]));
+$('#shelves').innerHTML = shelves.map(([t, cs]) => { const ks = top.filter(k => cs.includes(catOf(k))); return ks.length ? `<div class="shelf" aria-label="${t}">${ks.map(k => `<button class="ing" data-k="${k}" aria-pressed="${have.has(k)}"><span class="e">${ING[k][1]}</span>${esc(ING[k][0])}</button>`).join('')}</div>` : ''; }).join('');
+const matches = () => R.map(r => ({ r, miss: r.i.filter(k => !have.has(k)) })).filter(x => x.miss.length <= 1 && x.r.i.length - x.miss.length >= 1).sort((a, b) => a.miss.length - b.miss.length || a.r.t - b.r.t);
+let lastOk = -1;
+function paint(){
+  const m = matches(), ok = m.filter(x => !x.miss.length), al = m.filter(x => x.miss.length === 1);
+  const nEl = $('#nOk'); const from = lastOk < 0 ? 0 : lastOk; lastOk = ok.length;
+  if (!reduce){ const t0 = performance.now(); const f = t => { const k = Math.min(1, (t - t0) / 450); nEl.textContent = Math.round(from + (ok.length - from) * k); if (k < 1) requestAnimationFrame(f); }; requestAnimationFrame(f); } else nEl.textContent = ok.length;
+  $('#miniN').textContent = ok.length;
+  $('#nOkL').textContent = ok.length === 1 ? 'Gericht geht sofort' : 'Gerichte gehen sofort';
+  $('#nAlmost').textContent = have.size ? `+ ${al.length} mit nur einer Zutat mehr` : 'Tippe links ein paar Zutaten an.';
+  const list = [...ok.slice(0, 5), ...al.slice(0, ok.length >= 5 ? 1 : 6 - Math.min(ok.length, 5))];
+  $('#dishes').innerHTML = list.length ? list.map((x, i) => `<button class="dish" data-id="${x.r.id}" style="animation-delay:${i * 45}ms"><span class="e">${x.r.e}</span><span><b>${esc(x.r.n)}</b><small>⏱ ${x.r.t} Min${x.miss.length ? ` · fehlt: <em>${esc(ING[x.miss[0]] ? ING[x.miss[0]][0] : x.miss[0])}</em>` : ' · alles da ✓'}</small></span><span class="go">›</span></button>`).join('')
+    : `<div class="empty">${have.size ? 'Hmm, damit wird es knapp. Tippe noch ein, zwei Sachen an.' : 'Noch leer – der Kühlschrank wartet. 🧊'}</div>`;
+  if (mode === 'fridge') buildWheel();
+}
+$('#shelves').addEventListener('click', e => { const b = e.target.closest('.ing'); if (!b) return; const k = b.dataset.k;
+  have.has(k) ? have.delete(k) : have.add(k); b.setAttribute('aria-pressed', have.has(k)); if (navigator.vibrate) navigator.vibrate(8); paint(); });
+$('#mini').addEventListener('click', () => document.querySelector('.res').scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block:'start' }));
+$('#clear').addEventListener('click', () => { have.clear(); $$('.ing').forEach(b => b.setAttribute('aria-pressed', false)); paint(); });
+$('#rand').addEventListener('click', () => { have.clear(); [...top].sort(() => Math.random() - .5).slice(0, 7).forEach(k => have.add(k)); $$('.ing').forEach(b => b.setAttribute('aria-pressed', have.has(b.dataset.k))); paint(); });
+
+/* Rezept ansehen */
+const dlg = $('#dlg');
+function openRecipe(id){ const r = R.find(x => x.id === id); if (!r) return;
+  $('#dlgBody').innerHTML = `<button class="x" aria-label="Schließen" onclick="this.closest('dialog').close()">✕</button><div class="e">${r.e}</div><h3>${esc(r.n)}</h3>
+    <div class="chips">${r.i.map(k => `<span class="${have.has(k) ? '' : 'miss'}">${ING[k] ? ING[k][1] + ' ' + esc(ING[k][0]) : esc(k)}</span>`).join('')}<span>⏱ ${r.t} Min</span></div>
+    <ol>${(r.s || []).map(s => `<li>${esc(s)}</li>`).join('')}</ol>
+    <a class="btn btn-herb" href="../" style="width:100%">In der App kochen – mit Timern</a>`;
+  dlg.showModal(); }
+document.addEventListener('click', e => { const d = e.target.closest('[data-id]'); if (d) openRecipe(d.dataset.id); });
+dlg.addEventListener('click', e => { if (e.target === dlg) dlg.close(); });
+
+/* ---------- Glücksrad ---------- */
+let mode = 'fridge', items = [], rot = 0, spinning = false;
+const COLS = ['#2F7A4C','#E2A010','#D9482F','#3E8C5C','#C98C06','#B93C26','#5A9E70','#F0B43A'];
+function buildWheel(){
+  if (spinning) return;
+  const pool = mode === 'fridge' ? matches().map(x => x.r) : [...R].sort(() => Math.random() - .5);
+  const base = pool.length >= 8 ? pool.slice(0, 8) : [...pool, ...[...R].sort(() => Math.random() - .5)].filter((r, i, a) => a.indexOf(r) === i).slice(0, 8);
+  items = base;
+  const n = items.length, a = 2 * Math.PI / n, R0 = 190;
+  $('#wheel').innerHTML = items.map((r, i) => { const a0 = i * a - Math.PI / 2 - a / 2, a1 = a0 + a;
+    const p = `M0 0 L${R0 * Math.cos(a0)} ${R0 * Math.sin(a0)} A${R0} ${R0} 0 0 1 ${R0 * Math.cos(a1)} ${R0 * Math.sin(a1)} Z`;
+    const am = (a0 + a1) / 2, tx = 118 * Math.cos(am), ty = 118 * Math.sin(am), deg = am * 180 / Math.PI;
+    const name = r.n.length > 15 ? r.n.slice(0, 14) + '…' : r.n;
+    const flip = Math.cos(am) < -0.01;
+    const lab = flip
+      ? `<g transform="translate(${tx} ${ty}) rotate(${deg + 180})"><text x="34" y="6" font-size="24">${r.e}</text><text x="28" y="5" text-anchor="end" fill="#fff" font-family="Figtree" font-weight="800" font-size="13">${esc(name)}</text></g>`
+      : `<g transform="translate(${tx} ${ty}) rotate(${deg})"><text x="-58" y="6" font-size="24">${r.e}</text><text x="-28" y="5" fill="#fff" font-family="Figtree" font-weight="800" font-size="13">${esc(name)}</text></g>`;
+    return `<path d="${p}" fill="${COLS[i % COLS.length]}" stroke="rgba(255,255,255,.6)" stroke-width="2"/>${lab}`; }).join('')
+    + `<circle r="196" fill="none" stroke="rgba(0,0,0,.12)" stroke-width="8"/>`;
+}
+$$('#win .seg button').forEach(b => b.addEventListener('click', () => { mode = b.dataset.mode; $$('#win .seg button').forEach(x => x.setAttribute('aria-pressed', x === b)); buildWheel(); }));
+$('#spin').addEventListener('click', () => {
+  if (spinning || !items.length) return; spinning = true; $('#spin').disabled = true;
+  const n = items.length, win = Math.floor(Math.random() * n), seg = 360 / n;
+  const target = 360 * (5 + Math.floor(Math.random() * 3)) + (360 - win * seg) + (Math.random() - .5) * seg * .6;
+  rot = rot - (rot % 360) + target;
+  const w = $('#wheel'); w.style.transitionDuration = reduce ? '0s' : '4.6s'; w.style.transform = `rotate(${rot}deg)`;
+  // Zeiger tickt beim Vorbeilaufen
+  let last = -1; const t0 = performance.now(); const pt = $('#pointer');
+  const tk = () => { const m = getComputedStyle(w).transform; if (m && m !== 'none'){ const [a, b] = m.slice(7, -1).split(',').map(Number); const deg = (Math.atan2(b, a) * 180 / Math.PI + 360) % 360; const s = Math.floor(deg / seg); if (s !== last){ last = s; pt.classList.remove('tick'); void pt.offsetWidth; pt.classList.add('tick'); } }
+    if (performance.now() - t0 < 4700) requestAnimationFrame(tk); };
+  if (!reduce) requestAnimationFrame(tk);
+  setTimeout(() => { spinning = false; $('#spin').disabled = false; $('#spin').textContent = 'Nochmal';
+    const r = items[win]; const box = $('#win');
+    box.querySelector('.card')?.remove();
+    box.insertAdjacentHTML('afterbegin', `<div class="card"><div class="e">${r.e}</div><h3>${esc(r.n)}</h3><p>⏱ ${r.t} Min · ${r.i.length} Zutaten</p><button class="btn btn-main btn-sm" data-id="${r.id}">Rezept ansehen</button></div>`);
+    confetti(); }, reduce ? 50 : 4700);
+});
+
+/* Konfetti */
+const cv = $('#confetti'), cx = cv.getContext('2d');
+function confetti(){ if (reduce) return; cv.width = innerWidth; cv.height = innerHeight; const P = [];
+  for (let i = 0; i < 140; i++) P.push({ x:innerWidth / 2, y:innerHeight * .45, vx:(Math.random() - .5) * 16, vy:-Math.random() * 16 - 4, s:5 + Math.random() * 7, c:COLS[i % COLS.length], r:Math.random() * 6, vr:(Math.random() - .5) * .4 });
+  const t0 = performance.now(); const f = t => { const d = t - t0; cx.clearRect(0, 0, cv.width, cv.height);
+    P.forEach(p => { p.vy += .45; p.x += p.vx; p.y += p.vy; p.r += p.vr; cx.save(); cx.translate(p.x, p.y); cx.rotate(p.r); cx.globalAlpha = Math.max(0, 1 - d / 2200); cx.fillStyle = p.c; cx.fillRect(-p.s / 2, -p.s / 3, p.s, p.s * .66); cx.restore(); });
+    if (d < 2300) requestAnimationFrame(f); else cx.clearRect(0, 0, cv.width, cv.height); }; requestAnimationFrame(f); }
+
+/* Installieren */
+const STEPS = {
+  ios: [['Öffnen', 'Tippe auf „App öffnen" – in Safari.'], ['Teilen', 'Tippe auf das Teilen-Symbol (Quadrat mit Pfeil nach oben).'], ['Zum Home-Bildschirm', 'Wähle „Zum Home-Bildschirm" – fertig. Die App liegt jetzt bei deinen anderen Apps.']],
+  android: [['Öffnen', 'Tippe auf „App öffnen" – in Chrome.'], ['Menü', 'Tippe oben rechts auf die drei Punkte ⋮.'], ['Installieren', 'Wähle „App installieren" – fertig.']],
+};
+const paintSteps = os => { $('#steps').innerHTML = STEPS[os].map(([b, p]) => `<div class="step"><b>${b}</b><p>${p}</p></div>`).join(''); $$('#installieren .seg button').forEach(x => x.setAttribute('aria-pressed', x.dataset.os === os)); };
+$$('#installieren .seg button').forEach(x => x.addEventListener('click', () => paintSteps(x.dataset.os)));
+paintSteps(/android/i.test(navigator.userAgent) ? 'android' : 'ios');
+
+/* Magnetischer Knopf */
+const mg = $('#magnet');
+if (!reduce && matchMedia('(pointer:fine)').matches){
+  mg.addEventListener('mousemove', e => { const r = mg.getBoundingClientRect(); mg.style.transform = `translate(${(e.clientX - r.left - r.width / 2) * .25}px,${(e.clientY - r.top - r.height / 2) * .35}px)`; });
+  mg.addEventListener('mouseleave', () => mg.style.transform = ''); }
+
+paint(); buildWheel();
 </script>
 </body>
 </html>
