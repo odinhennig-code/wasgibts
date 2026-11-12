@@ -1,0 +1,313 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Was gibt's? – Die Koch-App für die ganze Familie</title>
+<meta name="description" content="Sag, was im Kühlschrank ist – „Was gibt's?" schlägt passende Gerichte vor. Mit Wünschen, Abstimmung, Wochenplan und Einkaufsliste für die ganze Familie. Kostenlos.">
+<meta name="theme-color" content="#F4F5F0" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0E130F" media="(prefers-color-scheme: dark)">
+<meta property="og:title" content="Was gibt's? – Die Koch-App für die ganze Familie">
+<meta property="og:description" content="Sag, was da ist. Wir sagen, was passt. Kostenlos für die ganze Familie.">
+<meta property="og:image" content="img/light_home.jpg">
+<link rel="icon" href="../icon.svg">
+<link rel="apple-touch-icon" href="../icon-192.png">
+<style>
+@font-face{font-family:"Bricolage";src:url("../fonts/Bricolage.woff") format("woff");font-weight:200 800;font-display:swap}
+@font-face{font-family:"Figtree";src:url("../fonts/Figtree.woff") format("woff");font-weight:300 900;font-display:swap}
+:root{
+  --bg:#F7F8F4; --bg2:#FFFFFF; --fg:#16201A; --muted:#5D6A60; --line:rgba(22,32,26,.08);
+  --herb:#2F7A4C; --herb-ink:#fff; --herb-soft:rgba(47,122,76,.10); --tomato:#D9482F; --yolk:#E2A010;
+  --glass:rgba(255,255,255,.62); --glass-brd:rgba(255,255,255,.8);
+  --o1:#bfe7cb; --o2:#ffe3a3; --o3:#ffc6b8;
+  --sh:0 1px 2px rgba(22,32,26,.05),0 18px 40px -18px rgba(22,32,26,.25);
+  --ease:cubic-bezier(.2,.8,.2,1); --spring:cubic-bezier(.34,1.56,.64,1);
+  --f-d:"Bricolage","Arial Black",system-ui,sans-serif; --f-b:"Figtree",system-ui,-apple-system,"Segoe UI",sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#0B100C; --bg2:#121914; --fg:#E8EEE8; --muted:#97A59B; --line:rgba(255,255,255,.08);
+  --herb:#5CC98A; --herb-ink:#07140C; --herb-soft:rgba(92,201,138,.12);
+  --glass:rgba(20,28,22,.6); --glass-brd:rgba(255,255,255,.08);
+  --o1:#1c4d30; --o2:#4d3b10; --o3:#4a1f16; --sh:0 1px 2px rgba(0,0,0,.4),0 18px 40px -18px rgba(0,0,0,.8); color-scheme:dark}}
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--fg);font:17px/1.55 var(--f-b);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+a{color:inherit}
+img{display:block;max-width:100%}
+h1,h2,h3{font-family:var(--f-d);letter-spacing:-.03em;line-height:1.02;margin:0}
+.wrap{width:min(1120px,100% - 32px);margin:0 auto}
+.i{display:inline-block;width:22px;height:22px;background:currentColor;-webkit-mask:var(--m) center/contain no-repeat;mask:var(--m) center/contain no-repeat;flex:none}
+
+/* Hintergrund-Leuchten */
+.orbs{position:fixed;inset:0;z-index:-1;overflow:hidden;pointer-events:none}
+.orbs i{position:absolute;border-radius:50%;filter:blur(90px);opacity:.7;animation:drift 24s ease-in-out infinite alternate}
+.orbs i:nth-child(1){width:60vmax;height:60vmax;background:var(--o1);left:-20vmax;top:-25vmax}
+.orbs i:nth-child(2){width:46vmax;height:46vmax;background:var(--o2);right:-18vmax;top:10vh;animation-duration:30s;animation-delay:-6s}
+.orbs i:nth-child(3){width:40vmax;height:40vmax;background:var(--o3);left:20vw;top:80vh;opacity:.45;animation-duration:36s}
+@keyframes drift{to{transform:translate(5vmax,6vmax) scale(1.12)}}
+
+/* Kopfzeile */
+header{position:sticky;top:0;z-index:20;padding:12px 0;transition:padding .3s var(--ease)}
+.bar{display:flex;align-items:center;gap:12px;padding:10px 12px 10px 14px;border-radius:22px;background:transparent;border:1px solid transparent;transition:background .3s,border-color .3s,box-shadow .3s}
+header.scrolled .bar{background:var(--glass);-webkit-backdrop-filter:blur(24px) saturate(180%);backdrop-filter:blur(24px) saturate(180%);border-color:var(--glass-brd);box-shadow:var(--sh)}
+.brand{display:flex;align-items:center;gap:10px;font-family:var(--f-d);font-weight:800;font-size:19px;letter-spacing:-.02em;text-decoration:none;margin-right:auto}
+.brand img{width:34px;height:34px;border-radius:10px}
+nav.links{display:flex;gap:4px}
+nav.links a{text-decoration:none;font-weight:700;font-size:15px;color:var(--muted);padding:8px 12px;border-radius:12px;transition:color .2s,background .2s}
+nav.links a:hover{color:var(--fg);background:var(--herb-soft)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:0 22px;border-radius:16px;font:800 16px var(--f-b);text-decoration:none;border:0;cursor:pointer;transition:transform .3s var(--spring),box-shadow .3s}
+.btn:hover{transform:translateY(-2px)}
+.btn:active{transform:scale(.97)}
+.btn-main{background:var(--herb);color:var(--herb-ink);box-shadow:0 12px 28px -12px var(--herb)}
+.btn-line{background:var(--glass);border:1px solid var(--line);color:var(--fg)}
+.btn-sm{min-height:40px;padding:0 16px;border-radius:13px;font-size:15px}
+
+/* Startbereich */
+.hero{display:grid;grid-template-columns:1.1fr .9fr;gap:40px;align-items:center;padding:56px 0 40px;min-height:calc(100vh - 80px)}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;font-weight:800;font-size:14px;letter-spacing:.04em;color:var(--herb);background:var(--herb-soft);padding:7px 14px;border-radius:999px}
+.eyebrow b{width:8px;height:8px;border-radius:50%;background:var(--herb);animation:pulse 2s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--herb) 50%,transparent)}70%{box-shadow:0 0 0 10px transparent}100%{box-shadow:0 0 0 0 transparent}}
+.hero h1{font-size:clamp(46px,7.4vw,96px);margin:22px 0 0}
+.cycle{display:inline-grid;vertical-align:bottom;overflow:hidden;height:1.02em}
+.cycle span{grid-area:1/1;color:var(--herb);transform:translateY(105%);opacity:0;transition:transform .6s var(--ease),opacity .6s}
+.cycle span.on{transform:none;opacity:1}
+.cycle span.out{transform:translateY(-105%);opacity:0}
+.cycle span:last-child{color:var(--tomato)}
+.hero p.lead{font-size:clamp(18px,1.6vw,21px);color:var(--muted);max-width:520px;margin:22px 0 30px}
+.cta{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.trust{display:flex;gap:18px;flex-wrap:wrap;margin-top:26px;color:var(--muted);font-weight:700;font-size:14.5px}
+.trust span{display:flex;align-items:center;gap:6px}
+.trust .i{width:17px;height:17px;color:var(--herb)}
+
+/* Handy */
+.stage{position:relative;display:grid;place-items:center;perspective:1400px}
+.phone{position:relative;width:min(320px,74vw);aspect-ratio:393/852;border-radius:52px;background:#0d0f0e;padding:11px;box-shadow:0 50px 90px -30px rgba(22,32,26,.45),0 0 0 2px #2a2d2b inset;transform:rotateY(-14deg) rotateX(6deg);transition:transform .8s var(--ease);will-change:transform}
+.phone .scr{position:relative;width:100%;height:100%;border-radius:42px;overflow:hidden;background:#F4F5F0}
+.phone .scr img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transform:scale(1.04);transition:opacity .8s var(--ease),transform 1.2s var(--ease)}
+.phone .scr img.on{opacity:1;transform:none}
+.phone .island{position:absolute;top:21px;left:50%;width:30%;height:26px;margin-left:-15%;border-radius:20px;background:#000;z-index:2}
+.float{position:absolute;display:flex;align-items:center;gap:10px;padding:12px 16px;border-radius:18px;background:var(--glass);-webkit-backdrop-filter:blur(20px) saturate(180%);backdrop-filter:blur(20px) saturate(180%);border:1px solid var(--glass-brd);box-shadow:var(--sh);font-weight:800;font-size:14.5px;white-space:nowrap;animation:bob 6s ease-in-out infinite}
+.float small{display:block;font-weight:600;color:var(--muted);font-size:12.5px}
+.float .em{font-size:26px}
+.f1{left:-4%;top:18%}
+.f2{right:-6%;top:46%;animation-delay:-2s}
+.f3{left:2%;bottom:12%;animation-delay:-4s}
+@keyframes bob{50%{transform:translateY(-10px)}}
+.dots{display:flex;gap:8px;justify-content:center;margin-top:22px}
+.dots button{width:9px;height:9px;border-radius:5px;border:0;padding:0;background:var(--line);cursor:pointer;transition:width .4s var(--ease),background .3s}
+.dots button.on{width:26px;background:var(--herb)}
+
+/* Abschnitte */
+section{padding:90px 0}
+.kicker{font-weight:800;font-size:14px;letter-spacing:.08em;text-transform:uppercase;color:var(--herb)}
+.sec-h{font-size:clamp(36px,5vw,62px);margin-top:10px;max-width:760px}
+.sec-p{color:var(--muted);font-size:19px;max-width:620px;margin:16px 0 0}
+
+.story{display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center;padding:60px 0}
+.story.rev .txt{order:2}
+.story .shot{justify-self:center;width:min(300px,70vw);border-radius:44px;overflow:hidden;box-shadow:0 40px 80px -30px rgba(22,32,26,.4),0 0 0 10px #0d0f0e;background:#0d0f0e}
+.story .num{display:inline-grid;place-items:center;width:46px;height:46px;border-radius:15px;background:var(--herb-soft);color:var(--herb);margin-bottom:18px}
+.story .num .i{width:24px;height:24px}
+.story h3{font-size:clamp(32px,4vw,50px)}
+.story p{color:var(--muted);font-size:19px;margin:16px 0 0;max-width:460px}
+.story ul{list-style:none;padding:0;margin:22px 0 0;display:grid;gap:10px}
+.story li{display:flex;gap:10px;align-items:flex-start;font-weight:600}
+.story li .i{width:18px;height:18px;color:var(--herb);margin-top:4px}
+
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:44px}
+.tile{padding:24px;border-radius:26px;background:var(--glass);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);border:1px solid var(--glass-brd);box-shadow:var(--sh);transition:transform .4s var(--spring)}
+.tile:hover{transform:translateY(-4px)}
+.tile .ic{width:44px;height:44px;border-radius:14px;display:grid;place-items:center;background:var(--herb-soft);color:var(--herb);margin-bottom:14px}
+.tile b{display:block;font-family:var(--f-d);font-size:22px;letter-spacing:-.02em}
+.tile p{margin:6px 0 0;color:var(--muted);font-size:16px}
+
+.install{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:40px;counter-reset:s}
+.step{padding:26px;border-radius:26px;background:var(--bg2);border:1px solid var(--line);box-shadow:var(--sh)}
+.step::before{counter-increment:s;content:counter(s);display:grid;place-items:center;width:40px;height:40px;border-radius:50%;background:var(--herb);color:var(--herb-ink);font:800 18px var(--f-d);margin-bottom:14px}
+.step b{font-size:19px;display:block}
+.step p{color:var(--muted);margin:6px 0 0;font-size:16px}
+.os{display:inline-flex;gap:4px;padding:4px;border-radius:14px;background:var(--line);margin-top:26px}
+.os button{border:0;background:none;font:800 15px var(--f-b);color:var(--muted);padding:8px 16px;border-radius:11px;cursor:pointer}
+.os button[aria-pressed="true"]{background:var(--bg2);color:var(--fg);box-shadow:0 2px 8px rgba(0,0,0,.08)}
+
+.final{text-align:center;padding:110px 0 120px}
+.final h2{font-size:clamp(44px,7vw,92px)}
+.final p{color:var(--muted);font-size:20px;margin:18px auto 32px;max-width:520px}
+.sponsor{display:flex;flex-direction:column;align-items:center;gap:8px;margin-top:70px;color:var(--muted);font-weight:800;font-size:12.5px;letter-spacing:.14em;text-transform:uppercase;text-decoration:none}
+.sponsor img{height:64px;width:auto}
+@media (prefers-color-scheme:dark){.sponsor img{filter:invert(1) brightness(1.5)}}
+
+footer{border-top:1px solid var(--line);padding:30px 0 50px;color:var(--muted);font-size:14.5px}
+footer .wrap{display:flex;gap:18px;flex-wrap:wrap;justify-content:space-between}
+footer a{text-decoration:none;font-weight:700}
+footer a:hover{color:var(--fg)}
+
+/* Einblenden beim Scrollen */
+.rv{opacity:0;transform:translateY(34px);transition:opacity .9s var(--ease),transform .9s var(--ease)}
+.rv.in{opacity:1;transform:none}
+.rv.d1{transition-delay:.08s}.rv.d2{transition-delay:.16s}.rv.d3{transition-delay:.24s}
+
+/* Handy-Layout */
+@media (max-width:900px){
+  nav.links{display:none}
+  .hero{grid-template-columns:1fr;min-height:auto;padding:28px 0 20px;text-align:center}
+  .hero p.lead{margin-left:auto;margin-right:auto}
+  .cta,.trust{justify-content:center}
+  .stage{margin-top:24px}
+  .phone{transform:none}
+  .f1{left:-2%;top:10%}.f2{right:-2%;top:44%}.f3{left:0;bottom:8%}
+  .float{font-size:13px;padding:10px 12px}.float .em{font-size:22px}
+  section{padding:60px 0}
+  .story,.story.rev{grid-template-columns:1fr;gap:34px;text-align:center}
+  .story.rev .txt{order:0}
+  .story p,.story ul{margin-left:auto;margin-right:auto}
+  .story ul{text-align:left;max-width:340px}
+  .grid,.install{grid-template-columns:1fr}
+  .sec-h,.sec-p{margin-left:auto;margin-right:auto}
+  .center-m{text-align:center}
+}
+@media (max-width:420px){ .f2{display:none} }
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none !important;transition:none !important}
+  .rv{opacity:1;transform:none}
+}
+</style>
+</head>
+<body>
+<div class="orbs" aria-hidden="true"><i></i><i></i><i></i></div>
+
+<header id="top"><div class="wrap"><div class="bar">
+  <a class="brand" href="#"><img src="../icon-192.png" alt="">Was gibt's?</a>
+  <nav class="links" aria-label="Seitenbereiche"><a href="#so">So geht's</a><a href="#funktionen">Funktionen</a><a href="#installieren">Installieren</a></nav>
+  <a class="btn btn-main btn-sm" href="../">App öffnen</a>
+</div></div></header>
+
+<main>
+  <div class="wrap hero">
+    <div>
+      <span class="eyebrow rv"><b></b>Kostenlos für die ganze Familie</span>
+      <h1 class="rv d1">Was gibt's<br><span class="cycle" aria-label="heute?"><span class="on">Pasta?</span><span>Curry?</span><span>Suppe?</span><span>heute?</span></span></h1>
+      <p class="lead rv d2">Sag, was im Kühlschrank ist – wir schlagen vor, was passt. Und die ganze Familie redet mit: Wünsche, Abstimmung, Wochenplan und Einkaufsliste an einem Ort.</p>
+      <div class="cta rv d3"><a class="btn btn-main" href="../">Kostenlos starten</a><a class="btn btn-line" href="#so">Wie funktioniert's?</a></div>
+      <div class="trust rv d3">
+        <span><i class="i" style="--m:url(ic/checkmark.png)"></i>Keine Installation nötig</span>
+        <span><i class="i" style="--m:url(ic/checkmark.png)"></i>iPhone &amp; Android</span>
+        <span><i class="i" style="--m:url(ic/checkmark.png)"></i>Über 600 Rezepte</span>
+      </div>
+    </div>
+    <div class="stage rv d2">
+      <div class="phone" id="phone"><div class="scr" id="scr">
+        <img class="on" src="img/light_home.jpg" alt="Startseite der App mit dem Essensvorschlag für heute">
+        <img src="img/light_fridge.jpg" alt="Kühlschrank mit vorhandenen Zutaten" loading="lazy">
+        <img src="img/light_recipes.jpg" alt="Wochenplan der Familie" loading="lazy">
+        <img src="img/u_shop.jpg" alt="Gemeinsame Einkaufsliste" loading="lazy">
+      </div></div>
+      <div class="float f1"><span class="em">🙋</span><span>Mia wünscht sich<small>Pfannkuchen</small></span></div>
+      <div class="float f2"><span class="em">📊</span><span>Abstimmung<small>3 : 1 für Curry</small></span></div>
+      <div class="float f3"><span class="em">🛒</span><span>Ben hat Milch<small>abgehakt ✓</small></span></div>
+      <div class="dots" id="dots" role="tablist" aria-label="App-Bilder"><button class="on" aria-label="Bild 1"></button><button aria-label="Bild 2"></button><button aria-label="Bild 3"></button><button aria-label="Bild 4"></button></div>
+    </div>
+  </div>
+
+  <section id="so"><div class="wrap">
+    <div class="center-m"><div class="kicker rv">So geht's</div><h2 class="sec-h rv d1">Drei Schritte zum Abendessen.</h2></div>
+
+    <div class="story">
+      <div class="txt rv"><span class="num"><i class="i" style="--m:url(ic/fridge.png)"></i></span><h3>Sag, was da ist.</h3>
+        <p>Tipp Zutaten an, sag sie per Mikrofon – oder mach einfach ein Foto vom Kühlschrank.</p>
+        <ul><li><i class="i" style="--m:url(ic/checkmark.png)"></i>Erkennt Zutaten auf dem Foto</li><li><i class="i" style="--m:url(ic/checkmark.png)"></i>Erinnert an Sachen, die bald ablaufen</li></ul></div>
+      <img class="shot rv d1" src="img/light_fridge.jpg" alt="Kühlschrank-Ansicht der App" loading="lazy">
+    </div>
+
+    <div class="story rev">
+      <div class="txt rv"><span class="num"><i class="i" style="--m:url(ic/cooking-pot.png)"></i></span><h3>Wir sagen, was passt.</h3>
+        <p>Passende Gerichte aus über 600 Rezepten – nach Zeit, Lust und wer mitisst.</p>
+        <ul><li><i class="i" style="--m:url(ic/checkmark.png)"></i>„Mit einem kleinen Einkauf" zeigt, was fast geht</li><li><i class="i" style="--m:url(ic/checkmark.png)"></i>Kochmodus mit Timern, Schritt für Schritt</li></ul></div>
+      <img class="shot rv d1" src="img/light_home.jpg" alt="Essensvorschläge in der App" loading="lazy">
+    </div>
+
+    <div class="story">
+      <div class="txt rv"><span class="num"><i class="i" style="--m:url(ic/conference-call.png)"></i></span><h3>Die ganze Familie redet mit.</h3>
+        <p>Jeder darf sich etwas wünschen. Bei Streit wird abgestimmt. Und die Einkaufsliste ist für alle live.</p>
+        <ul><li><i class="i" style="--m:url(ic/checkmark.png)"></i>Familie per Code oder QR verbinden</li><li><i class="i" style="--m:url(ic/checkmark.png)"></i>Wochenplan mit Frühstück, Mittag, Abend</li></ul></div>
+      <img class="shot rv d1" src="img/light_family.jpg" alt="Familien-Ansicht der App" loading="lazy">
+    </div>
+  </div></section>
+
+  <section id="funktionen"><div class="wrap">
+    <div class="center-m"><div class="kicker rv">Und außerdem</div><h2 class="sec-h rv d1">Alles, was eine Familienküche braucht.</h2></div>
+    <div class="grid">
+      <div class="tile rv"><span class="ic"><i class="i" style="--m:url(ic/calendar.png)"></i></span><b>Wochenplan</b><p>Die Woche mit einem Tipp füllen – oder jeden Tag selbst planen.</p></div>
+      <div class="tile rv d1"><span class="ic"><i class="i" style="--m:url(ic/checkmark.png)"></i></span><b>Einkaufsliste</b><p>Sortiert nach Supermarkt-Bereichen. Abhaken – alle sehen es sofort.</p></div>
+      <div class="tile rv d2"><span class="ic"><i class="i" style="--m:url(ic/chat.png)"></i></span><b>Pinnwand</b><p>Kurze Nachrichten an die Familie, direkt in der App.</p></div>
+      <div class="tile rv"><span class="ic"><i class="i" style="--m:url(ic/clock.png)"></i></span><b>Kochmodus</b><p>Große Schritte, eingebaute Timer – auch mit Mehl an den Fingern.</p></div>
+      <div class="tile rv d1"><span class="ic"><i class="i" style="--m:url(ic/send.png)"></i></span><b>Benachrichtigungen</b><p>Neue Wünsche oder Abstimmungen? Kommt direkt aufs Handy.</p></div>
+      <div class="tile rv d2"><span class="ic"><i class="i" style="--m:url(ic/shield.png)"></i></span><b>Eure Daten bleiben bei euch</b><p>Nur eure Familie sieht eure Pläne, Wünsche und Rezepte.</p></div>
+    </div>
+  </div></section>
+
+  <section id="installieren"><div class="wrap">
+    <div class="center-m"><div class="kicker rv">Installieren</div><h2 class="sec-h rv d1">In 20 Sekunden auf dem Handy.</h2>
+      <p class="sec-p rv d2">Kein App Store nötig – „Was gibt's?" läuft direkt im Browser und kommt wie eine echte App auf den Home-Bildschirm.</p>
+      <div class="os rv d2" role="group" aria-label="Handy auswählen"><button data-os="ios" aria-pressed="true">iPhone</button><button data-os="android" aria-pressed="false">Android</button></div></div>
+    <div class="install" id="steps"></div>
+  </div></section>
+
+  <div class="wrap final">
+    <h2 class="rv">Was gibt's<br><span style="color:var(--tomato)">heute?</span></h2>
+    <p class="rv d1">Schluss mit „Keine Ahnung, was willst du denn?". Probiert's heute Abend aus.</p>
+    <a class="btn btn-main rv d2" href="../" style="min-height:56px;padding:0 30px;font-size:18px">Jetzt kostenlos starten</a>
+    <a class="sponsor rv d3" href="https://www.etsy.com/de/shop/PiHILL" target="_blank" rel="noopener sponsored">Präsentiert von<img src="../sponsor/pihill.png" alt="PiHILL – Handgemachtes"></a>
+  </div>
+</main>
+
+<footer><div class="wrap">
+  <span>© 2026 „Was gibt's?"</span>
+  <span><a href="../">App öffnen</a> &nbsp;·&nbsp; <a href="../">Datenschutz &amp; Impressum (in der App unter „Mehr")</a></span>
+  <span>Icons von <a href="https://icons8.com" target="_blank" rel="noopener">Icons8</a></span>
+</div></footer>
+
+<script>
+(() => {
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  // Kopfzeile wird beim Scrollen zu Glas
+  const hd = document.getElementById('top');
+  const onScroll = () => hd.classList.toggle('scrolled', scrollY > 10);
+  addEventListener('scroll', onScroll, { passive:true }); onScroll();
+
+  // Einblenden beim Scrollen
+  const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } }), { threshold:.15, rootMargin:'0px 0px -40px 0px' });
+  document.querySelectorAll('.rv').forEach(el => io.observe(el));
+
+  // Wechselndes Wort: Pasta? Curry? Suppe? … heute?
+  const words = [...document.querySelectorAll('.cycle span')];
+  let w = 0;
+  if (!reduce){ const tick = () => { if (w >= words.length - 1) return; words[w].classList.remove('on'); words[w].classList.add('out'); w++; words[w].classList.add('on'); setTimeout(tick, w === words.length - 1 ? 0 : 950); }; setTimeout(tick, 1300); }
+  else { words.forEach(s => s.classList.remove('on')); words[words.length - 1].classList.add('on'); }
+
+  // Handy: Bilder wechseln + leichtes Mitkippen mit der Maus
+  const imgs = [...document.querySelectorAll('#scr img')], dots = [...document.querySelectorAll('#dots button')];
+  let cur = 0, timer;
+  const show = n => { imgs[cur].classList.remove('on'); dots[cur].classList.remove('on'); cur = (n + imgs.length) % imgs.length; imgs[cur].classList.add('on'); dots[cur].classList.add('on'); };
+  const auto = () => { clearInterval(timer); if (!reduce) timer = setInterval(() => show(cur + 1), 3200); };
+  dots.forEach((d, i) => d.addEventListener('click', () => { show(i); auto(); })); auto();
+  const ph = document.getElementById('phone');
+  if (!reduce && matchMedia('(pointer:fine)').matches) addEventListener('mousemove', e => {
+    const x = e.clientX / innerWidth - .5, y = e.clientY / innerHeight - .5;
+    ph.style.transform = `rotateY(${-14 + x * 16}deg) rotateX(${6 - y * 10}deg)`;
+  }, { passive:true });
+
+  // Installieren: Schritte je nach Handy
+  const STEPS = {
+    ios: [['Öffnen', 'Tippe unten auf „App öffnen" – in Safari.'], ['Teilen', 'Tippe auf das Teilen-Symbol (Quadrat mit Pfeil nach oben).'], ['Zum Home-Bildschirm', 'Wähle „Zum Home-Bildschirm" – fertig. Die App liegt jetzt bei deinen anderen Apps.']],
+    android: [['Öffnen', 'Tippe auf „App öffnen" – in Chrome.'], ['Menü', 'Tippe oben rechts auf die drei Punkte ⋮.'], ['Installieren', 'Wähle „App installieren" oder „Zum Startbildschirm hinzufügen" – fertig.']],
+  };
+  const box = document.getElementById('steps');
+  const paint = os => { box.innerHTML = STEPS[os].map(([b, p]) => `<div class="step"><b>${b}</b><p>${p}</p></div>`).join(''); document.querySelectorAll('.os button').forEach(x => x.setAttribute('aria-pressed', x.dataset.os === os)); };
+  document.querySelectorAll('.os button').forEach(x => x.addEventListener('click', () => paint(x.dataset.os)));
+  paint(/android/i.test(navigator.userAgent) ? 'android' : 'ios');
+})();
+</script>
+</body>
+</html>
