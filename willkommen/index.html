@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Was gibt's? – Die Koch-App für die ganze Familie</title>
 <meta name="description" content="Sag, was im Kühlschrank ist – „Was gibt's?" schlägt passende Gerichte vor. Probier es direkt hier aus. Kostenlos für die ganze Familie.">
-<meta name="theme-color" content="#F3EEE4" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#0F130F" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#FAF9F6" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#101211" media="(prefers-color-scheme: dark)">
 <meta property="og:title" content="Was gibt's? – Die Koch-App für die ganze Familie">
 <meta property="og:description" content="Sag, was da ist. Wir sagen, was passt. Probier's direkt aus.">
 <meta property="og:image" content="img/light_home.jpg">
@@ -16,236 +16,260 @@
 @font-face{font-family:"Bricolage";src:url("../fonts/Bricolage.woff") format("woff");font-weight:200 800;font-display:swap}
 @font-face{font-family:"Figtree";src:url("../fonts/Figtree.woff") format("woff");font-weight:300 900;font-display:swap}
 :root{
-  --bg:#F3EEE4; --card:#FFFDF8; --fg:#1B1712; --muted:#6B6257; --line:rgba(27,23,18,.10);
-  --herb:#2F7A4C; --herb-ink:#fff; --herb-soft:rgba(47,122,76,.11); --tomato:#D9482F; --tomato-soft:rgba(217,72,47,.10); --yolk:#E2A010;
-  --shelf:#E9E1D2; --fridge:#FBFAF7;
-  --sh:0 1px 2px rgba(27,23,18,.06),0 20px 44px -22px rgba(27,23,18,.35);
-  --ease:cubic-bezier(.2,.8,.2,1); --spring:cubic-bezier(.34,1.56,.64,1);
-  --f-d:"Bricolage","Arial Black",system-ui,sans-serif; --f-b:"Figtree",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --bg:#FAF9F6; --card:#FFFFFF; --soft:#F1EFEA; --hover:#E7E4DD; --fg:#191816; --muted:#6B665E; --faint:#A39D94;
+  --herb:#1F8A5B; --herb-ink:#fff; --herb-soft:rgba(31,138,91,.10); --tomato:#EB5A3C; --tomato-soft:rgba(235,90,60,.10); --yolk:#F2A91C;
+  --door:#ECE9E3; --lift:0 18px 50px -24px rgba(29,26,22,.28);
+  --ease:cubic-bezier(.2,.8,.2,1); --spring:cubic-bezier(.34,1.56,.64,1); --soft-spring:cubic-bezier(.45,1.35,.5,1);
+  --f-d:"Bricolage",system-ui,sans-serif; --f-b:"Figtree",system-ui,-apple-system,"Segoe UI",sans-serif;
   color-scheme:light;
 }
 @media (prefers-color-scheme:dark){:root{
-  --bg:#0F130F; --card:#171C17; --fg:#ECEBE5; --muted:#A39C90; --line:rgba(255,255,255,.09);
-  --herb:#5CC98A; --herb-ink:#07140C; --herb-soft:rgba(92,201,138,.13); --tomato:#FF7A60; --tomato-soft:rgba(255,122,96,.13);
-  --shelf:#232A23; --fridge:#1A201A; --sh:0 1px 2px rgba(0,0,0,.4),0 20px 44px -22px rgba(0,0,0,.9); color-scheme:dark}}
+  --bg:#101211; --card:#181B19; --soft:#1F2320; --hover:#292E2A; --fg:#ECEBE5; --muted:#A39C90; --faint:#6F6A61;
+  --herb:#4FD192; --herb-ink:#06150D; --herb-soft:rgba(79,209,146,.12); --tomato:#FF7B5C; --tomato-soft:rgba(255,122,96,.12);
+  --door:#232923; --lift:0 18px 50px -20px rgba(0,0,0,.8); color-scheme:dark}}
 *,*::before,*::after{box-sizing:border-box}
 html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--fg);font:17px/1.6 var(--f-b);-webkit-font-smoothing:antialiased;overflow-x:hidden}
 main{overflow-x:clip}
-body{margin:0;background:var(--bg);color:var(--fg);font:17px/1.55 var(--f-b);-webkit-font-smoothing:antialiased;overflow-x:hidden}
-/* feines Papierkorn statt Farbverläufe */
-body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.5;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .07 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
 a{color:inherit}
 img{display:block;max-width:100%}
-h1,h2,h3{font-family:var(--f-d);letter-spacing:-.035em;line-height:.98;margin:0}
-button{font:inherit;color:inherit}
-.wrap{width:min(1180px,100% - 32px);margin:0 auto}
-.i{display:inline-block;width:22px;height:22px;background:currentColor;-webkit-mask:var(--m) center/contain no-repeat;mask:var(--m) center/contain no-repeat;flex:none}
-.hand{font-family:var(--f-d);font-weight:700;color:var(--tomato);transform:rotate(-4deg);display:inline-block}
+h1,h2,h3{font-family:var(--f-d);font-weight:600;letter-spacing:-.03em;line-height:1.02;margin:0}
+button{font:inherit;color:inherit;-webkit-tap-highlight-color:transparent}
+:focus-visible{outline:2px solid var(--herb);outline-offset:3px}
+.wrap{width:min(1160px,100% - 32px);margin:0 auto}
 
-/* Fortschritt oben */
-#prog{position:fixed;left:0;top:0;height:3px;width:100%;transform-origin:0 50%;transform:scaleX(0);background:var(--herb);z-index:50}
+/* Fortschritt */
+#prog{position:fixed;left:0;top:0;height:2px;width:100%;transform-origin:0 50%;transform:scaleX(0);background:var(--herb);z-index:50}
 
 /* Kopfzeile */
 header{position:sticky;top:0;z-index:20;padding:10px 0}
-.bar{display:flex;align-items:center;gap:12px;padding:8px 8px 8px 14px;border-radius:20px;border:1px solid transparent;transition:background .3s,border-color .3s,box-shadow .3s}
-header.scrolled .bar{background:color-mix(in srgb,var(--card) 72%,transparent);-webkit-backdrop-filter:blur(22px) saturate(180%);backdrop-filter:blur(22px) saturate(180%);border-color:var(--line);box-shadow:var(--sh)}
-.brand{display:flex;align-items:center;gap:10px;font-family:var(--f-d);font-weight:800;font-size:19px;letter-spacing:-.02em;text-decoration:none;margin-right:auto}
-.brand img{width:34px;height:34px;border-radius:10px}
+.bar{display:flex;align-items:center;gap:8px;padding:6px 6px 6px 12px;border-radius:999px;transition:background .35s,box-shadow .35s}
+header.scrolled .bar{background:color-mix(in srgb,var(--card) 78%,transparent);-webkit-backdrop-filter:blur(20px) saturate(170%);backdrop-filter:blur(20px) saturate(170%);box-shadow:0 6px 24px -14px rgba(0,0,0,.25)}
+.brand{display:flex;align-items:center;gap:10px;font-family:var(--f-d);font-weight:600;font-size:19px;letter-spacing:-.02em;text-decoration:none;margin-right:auto}
+.brand img{width:32px;height:32px;border-radius:10px}
 nav.links{display:flex;gap:2px}
-nav.links a{text-decoration:none;font-weight:700;font-size:15px;color:var(--muted);padding:8px 12px;border-radius:12px;transition:color .2s,background .2s}
-nav.links a:hover{color:var(--fg);background:var(--herb-soft)}
-.btn{position:relative;display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:50px;padding:0 24px;border-radius:16px;font:800 16px var(--f-b);text-decoration:none;border:0;cursor:pointer;transition:transform .35s var(--spring),box-shadow .3s,background .2s}
-.btn:active{transform:scale(.96) !important}
+nav.links a{text-decoration:none;font-weight:500;font-size:15px;color:var(--muted);padding:9px 14px;border-radius:999px;transition:color .2s,background .2s}
+nav.links a:hover{color:var(--fg);background:var(--soft)}
+.btn{position:relative;display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:50px;padding:0 24px;border-radius:999px;font:600 16px var(--f-b);text-decoration:none;border:0;cursor:pointer;transition:transform .45s var(--soft-spring),background .2s,color .2s}
+.btn:active{transform:scale(.95) !important;transition-duration:.12s}
 .btn-main{background:var(--fg);color:var(--bg)}
-.btn-herb{background:var(--herb);color:var(--herb-ink);box-shadow:0 14px 30px -14px var(--herb)}
-.btn-line{background:transparent;border:1.5px solid var(--line);color:var(--fg)}
-.btn-line:hover{border-color:var(--fg)}
-.btn-sm{min-height:40px;padding:0 16px;border-radius:13px;font-size:15px}
+.btn-herb{background:var(--herb);color:var(--herb-ink)}
+.btn-soft{background:var(--soft);color:var(--fg)}
+.btn-soft:hover{background:var(--hover)}
+.btn-sm{min-height:42px;padding:0 18px;font-size:15px}
 
-/* ---------- Startbereich (bleibt) ---------- */
-.hero{display:grid;grid-template-columns:1.1fr .9fr;gap:40px;align-items:center;padding:40px 0 30px;min-height:calc(100vh - 70px)}
-.hero h1{font-size:clamp(52px,8vw,112px)}
-.cycle{display:inline-grid;vertical-align:bottom;overflow:hidden;height:1em}
-.cycle span{grid-area:1/1;color:var(--herb);transform:translateY(105%);opacity:0;transition:transform .6s var(--ease),opacity .6s}
-.cycle span.on{transform:none;opacity:1}
+/* Buchstaben: einblenden + federn bei Berührung */
+.w{display:inline-block;white-space:nowrap}
+.c{display:inline-block;will-change:transform}
+.split .c{opacity:0;transform:translateY(.45em);filter:blur(8px);transition:opacity .6s var(--ease),transform .8s var(--soft-spring),filter .6s var(--ease);transition-delay:calc(var(--i) * 22ms)}
+.split.in .c{opacity:1;transform:none;filter:none}
+.c.hop{animation:hop .55s var(--spring)}
+@keyframes hop{35%{transform:translateY(-.16em) scale(1.06)}}
+
+/* ---------- Startbereich ---------- */
+.hero{display:grid;grid-template-columns:1.1fr .9fr;gap:32px;align-items:center;padding:20px 0 10px;min-height:min(820px,calc(100vh - 70px))}
+.hero h1{font-size:clamp(54px,8vw,108px)}
+.cycle{display:inline-grid;vertical-align:bottom;overflow:hidden;height:1.05em}
+.cycle span{grid-area:1/1;color:var(--herb);transform:translateY(105%);opacity:0;filter:blur(6px);transition:transform .7s var(--ease),opacity .6s,filter .6s}
+.cycle span.on{transform:none;opacity:1;filter:none}
 .cycle span.out{transform:translateY(-105%);opacity:0}
 .cycle span:last-child{color:var(--tomato)}
-.hero p.lead{font-size:clamp(18px,1.6vw,21px);color:var(--muted);max-width:520px;margin:24px 0 30px}
-.cta{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
-.meta{margin-top:26px;color:var(--muted);font-weight:700;font-size:14.5px;display:flex;gap:10px;flex-wrap:wrap}
-.meta b{color:var(--fg)}
-.meta i{font-style:normal;opacity:.4}
+.lead{font-size:clamp(18px,1.6vw,21px);color:var(--muted);max-width:500px;margin:18px 0 24px}
+.cta{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.meta{margin-top:20px;color:var(--faint);font-weight:500;font-size:14.5px;display:flex;gap:16px;flex-wrap:wrap}
+.meta b{color:var(--fg);font-weight:600}
 .stage{position:relative;display:grid;place-items:center;perspective:1400px}
-.phone{position:relative;width:min(320px,74vw);aspect-ratio:393/852;border-radius:52px;background:#0d0f0e;padding:11px;box-shadow:0 50px 90px -30px rgba(27,23,18,.5),0 0 0 2px #2a2d2b inset;transform:rotateY(-14deg) rotateX(6deg);transition:transform .8s var(--ease);will-change:transform}
-.scr{position:relative;width:100%;height:100%;border-radius:42px;overflow:hidden;background:#F4F5F0}
-.scr img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transform:scale(1.04);filter:blur(6px);transition:opacity .7s var(--ease),transform 1.1s var(--ease),filter .7s}
+.phone{position:relative;width:min(320px,74vw);aspect-ratio:393/852;border-radius:52px;background:#0d0f0e;padding:10px;box-shadow:0 50px 90px -34px rgba(29,26,22,.5),0 0 0 1.5px #2a2d2b inset;transform:rotateY(-14deg) rotateX(6deg);will-change:transform}
+.scr{position:relative;width:100%;height:100%;border-radius:43px;overflow:hidden;background:#F4F5F0}
+.scr img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transform:scale(1.05);filter:blur(8px);transition:opacity .7s var(--ease),transform 1.2s var(--ease),filter .7s}
 .scr img.on{opacity:1;transform:none;filter:none}
-.float{position:absolute;display:flex;align-items:center;gap:10px;padding:12px 16px;border-radius:18px;background:color-mix(in srgb,var(--card) 70%,transparent);-webkit-backdrop-filter:blur(20px) saturate(180%);backdrop-filter:blur(20px) saturate(180%);border:1px solid var(--line);box-shadow:var(--sh);font-weight:800;font-size:14.5px;white-space:nowrap;animation:bob 6s ease-in-out infinite;cursor:grab;user-select:none;touch-action:none}
+.float{position:absolute;display:flex;align-items:center;gap:10px;padding:10px 16px 10px 10px;border-radius:999px;background:color-mix(in srgb,var(--card) 76%,transparent);-webkit-backdrop-filter:blur(20px) saturate(180%);backdrop-filter:blur(20px) saturate(180%);box-shadow:var(--lift);font-weight:600;font-size:14px;line-height:1.25;white-space:nowrap;animation:bob 6s ease-in-out infinite;cursor:grab;user-select:none;touch-action:none}
 .float:active{cursor:grabbing}
-.float small{display:block;font-weight:600;color:var(--muted);font-size:12.5px}
-.float .em{font-size:26px}
+.float small{display:block;font-weight:500;color:var(--muted);font-size:12.5px}
+.float .em{font-size:22px;width:38px;height:38px;border-radius:50%;display:grid;place-items:center;background:var(--soft)}
 .f1{left:-4%;top:18%}.f2{right:-6%;top:46%;animation-delay:-2s}.f3{left:2%;bottom:12%;animation-delay:-4s}
 .float.dragging{animation:none;z-index:5}
 @keyframes bob{50%{translate:0 -10px}}
-.dots{display:flex;gap:8px;justify-content:center;margin-top:22px}
-.dots button{width:9px;height:9px;border-radius:5px;border:0;padding:0;background:var(--line);cursor:pointer;transition:width .4s var(--ease),background .3s}
-.dots button.on{width:26px;background:var(--fg)}
-.hint{font-size:13px;color:var(--muted);font-weight:700;text-align:center;margin-top:10px}
+.dots{display:flex;gap:6px;justify-content:center;margin-top:24px}
+.dots button{width:8px;height:8px;border-radius:4px;border:0;padding:0;background:var(--hover);cursor:pointer;transition:width .45s var(--soft-spring),background .3s}
+.dots button.on{width:24px;background:var(--fg)}
+.hint{font-size:13px;color:var(--faint);font-weight:500;text-align:center;margin-top:10px}
 
-/* ---------- Laufband ---------- */
-.marquee{overflow:hidden;border-block:1px solid var(--line);padding:16px 0;margin-top:20px;-webkit-mask:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent);mask:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent)}
-.marquee div{display:flex;gap:40px;width:max-content;animation:mq 60s linear infinite;font-family:var(--f-d);font-weight:700;font-size:26px;letter-spacing:-.02em;white-space:nowrap}
-.marquee:hover div{animation-play-state:paused}
-.marquee span{display:flex;align-items:center;gap:10px;color:var(--muted)}
-.marquee span:nth-child(3n){color:var(--fg)}
-@keyframes mq{to{transform:translateX(-50%)}}
+/* ---------- Laufband (reagiert aufs Scrollen) ---------- */
+.marquee{overflow:hidden;padding:14px 0;margin-top:0;-webkit-mask:linear-gradient(90deg,transparent,#000 10%,#000 90%,transparent);mask:linear-gradient(90deg,transparent,#000 10%,#000 90%,transparent)}
+.marquee div{display:flex;gap:44px;width:max-content;font-family:var(--f-d);font-weight:500;font-size:26px;letter-spacing:-.02em;white-space:nowrap;will-change:transform}
+.marquee span{display:flex;align-items:center;gap:10px;color:var(--faint);transition:color .3s}
+.marquee span:hover{color:var(--fg)}
 
-/* ---------- Scroll-Geschichte mit festem iPhone ---------- */
-section{padding:110px 0}
-.kicker{font-weight:800;font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
-.big{font-size:clamp(40px,6vw,80px);margin-top:12px}
-.story{display:grid;grid-template-columns:1fr 1fr;gap:60px;margin-top:40px}
-.chapters{display:flex;flex-direction:column}
-.ch{min-height:78vh;display:flex;flex-direction:column;justify-content:center;opacity:.25;transition:opacity .5s}
-.ch.act{opacity:1}
-.ch .no{font-family:var(--f-d);font-weight:800;font-size:96px;line-height:1;color:transparent;-webkit-text-stroke:1.5px var(--line);margin-bottom:6px}
-.ch.act .no{-webkit-text-stroke-color:var(--herb)}
-.ch h3{font-size:clamp(34px,4.2vw,58px)}
+/* ---------- Abschnitte ---------- */
+section{padding:72px 0}
+.kicker{font-weight:500;font-size:15px;color:var(--herb)}
+.big{font-size:clamp(40px,6vw,76px);margin-top:10px}
+.sub{color:var(--muted);font-size:19px;max-width:600px;margin:12px 0 0}
+
+/* Scroll-Geschichte */
+.story{display:grid;grid-template-columns:1fr 1fr;gap:48px;margin-top:10px}
+.ch{min-height:66vh;display:flex;flex-direction:column;justify-content:center;opacity:.22;filter:blur(2px);transition:opacity .6s,filter .6s}
+.ch.act{opacity:1;filter:none}
+.ch .no{font-weight:500;font-size:15px;color:var(--muted);margin-bottom:14px;display:flex;align-items:center;gap:10px}
+.ch .no i{display:block;width:60px;height:2px;border-radius:2px;background:var(--hover);overflow:hidden;position:relative}
+.ch .no i::after{content:"";position:absolute;inset:0;background:var(--herb);transform:scaleX(0);transform-origin:0 50%;transition:transform 1s var(--ease)}
+.ch.act .no i::after{transform:none}
+.ch h3{font-size:clamp(34px,4.2vw,56px)}
 .ch p{color:var(--muted);font-size:19px;max-width:440px;margin:16px 0 0}
-.ch .tags{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}
-.ch .tags span{padding:6px 12px;border-radius:999px;border:1px solid var(--line);font-weight:700;font-size:14px}
-.pin{position:sticky;top:12vh;height:76vh;display:grid;place-items:center}
-.pin .phone{transform:none;width:min(330px,80%)}
-.pin .ring{position:absolute;width:min(520px,95%);aspect-ratio:1;border-radius:50%;border:1px dashed var(--line);animation:spin 80s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
-.pin .bubble{position:absolute;padding:10px 14px;border-radius:16px;background:var(--card);border:1px solid var(--line);box-shadow:var(--sh);font-weight:800;font-size:14px;opacity:0;transform:translateY(12px) scale(.95);transition:all .5s var(--spring)}
+.tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:20px}
+.tags span{padding:7px 14px;border-radius:999px;background:var(--soft);font-weight:500;font-size:14px}
+.pin{position:sticky;top:12vh;height:76vh;display:grid;place-items:center;perspective:1200px}
+.pin .phone{transform:none;width:min(320px,80%)}
+.pin .bubble{position:absolute;left:0;bottom:18%;padding:10px 16px;border-radius:999px;background:color-mix(in srgb,var(--card) 80%,transparent);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);box-shadow:var(--lift);font-weight:600;font-size:14px;opacity:0;transform:translateY(12px) scale(.95);transition:all .55s var(--soft-spring)}
 .pin .bubble.on{opacity:1;transform:none}
 
-/* ---------- Probier's aus: Kühlschrank ---------- */
-.try{display:grid;grid-template-columns:1.05fr .95fr;gap:28px;margin-top:44px;align-items:start}
-.fridge{border-radius:34px;background:var(--fridge);border:1px solid var(--line);box-shadow:var(--sh),inset 0 0 0 10px color-mix(in srgb,var(--shelf) 55%,transparent);padding:26px 22px 20px;position:relative}
-.fridge::after{content:"";position:absolute;right:-7px;top:90px;width:8px;height:120px;border-radius:6px;background:var(--shelf);box-shadow:inset 0 0 0 1px var(--line)}
-.fridge-top{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px;padding:0 4px}
-.fridge-top b{font-family:var(--f-d);font-size:22px;letter-spacing:-.02em}
-.fridge-top button{border:0;background:none;color:var(--muted);font-weight:800;font-size:14px;cursor:pointer;padding:6px 8px;border-radius:10px}
-.fridge-top button:hover{color:var(--fg);background:var(--herb-soft)}
-.shelf{display:flex;flex-wrap:wrap;gap:8px;padding:14px 6px 16px;border-bottom:6px solid var(--shelf);border-radius:0 0 4px 4px}
-.shelf:last-child{border-bottom:0}
-.ing{display:inline-flex;align-items:center;gap:6px;padding:9px 13px;border-radius:14px;border:1.5px solid var(--line);background:var(--card);font-weight:700;font-size:15px;cursor:pointer;transition:transform .3s var(--spring),background .2s,border-color .2s,color .2s}
-.ing:hover{transform:translateY(-2px)}
-.ing .e{font-size:19px;transition:transform .4s var(--spring)}
-.ing[aria-pressed="true"]{background:var(--herb);border-color:var(--herb);color:var(--herb-ink)}
-.ing[aria-pressed="true"] .e{transform:scale(1.2) rotate(-8deg)}
-.res{border-radius:34px;background:var(--card);border:1px solid var(--line);box-shadow:var(--sh);padding:24px;min-height:100%}
-.res-h{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
-.res-h .n{font-family:var(--f-d);font-weight:800;font-size:64px;letter-spacing:-.04em;line-height:1;color:var(--herb)}
-.res-h span{font-weight:800;font-size:18px}
-.res-s{color:var(--muted);font-weight:600;font-size:15px;margin:4px 0 14px}
-.dish{display:flex;align-items:center;gap:12px;width:100%;padding:11px 10px;border:0;border-top:1px solid var(--line);background:none;text-align:left;cursor:pointer;border-radius:14px;transition:background .2s;animation:pop .45s var(--spring) both}
-.dish:hover{background:var(--herb-soft)}
-.dish .e{font-size:30px;width:46px;height:46px;border-radius:14px;display:grid;place-items:center;background:var(--bg);flex:none}
-.dish b{display:block;font-size:16px}
-.dish small{color:var(--muted);font-weight:600;font-size:13.5px}
-.dish small em{font-style:normal;color:var(--tomato);font-weight:800}
-.dish .go{margin-left:auto;color:var(--muted);font-weight:800}
-@keyframes pop{from{opacity:0;transform:translateY(10px) scale(.98)}}
+/* ---------- Kühlschrank ---------- */
+.try{display:grid;grid-template-columns:1.05fr .95fr;gap:16px;margin-top:28px;align-items:start}
+.fridge{position:relative;border-radius:32px;background:var(--card);padding:22px 18px 18px;perspective:1800px}
+.door{position:absolute;inset:0;z-index:3;border-radius:inherit;background:var(--door);transform-origin:0 50%;display:grid;place-items:center;cursor:pointer;border:0;width:100%;
+  transition:transform 1.3s var(--soft-spring) .35s,opacity .5s ease 1s,visibility 0s 1.5s;box-shadow:inset -14px 0 30px -20px rgba(0,0,0,.2)}
+.door::after{content:"";position:absolute;right:22px;top:50%;width:6px;height:110px;margin-top:-55px;border-radius:6px;background:var(--hover)}
+.door span{font-weight:500;color:var(--muted);font-size:15px}
+.fridge.in .door{transform:rotateY(-108deg);opacity:0;visibility:hidden}
+.fridge.in #shelves{animation:light 1.4s ease .6s both}
+@keyframes light{0%{filter:brightness(1.18) saturate(.7)}100%{filter:none}}
+.fridge-top{display:flex;align-items:center;gap:4px;margin:0 2px 8px}
+.fridge-top b{font-family:var(--f-d);font-weight:600;font-size:21px;letter-spacing:-.02em;margin-right:auto}
+.fridge-top button{border:0;background:none;color:var(--muted);font-weight:500;font-size:14px;cursor:pointer;padding:8px 12px;border-radius:999px;transition:background .2s,color .2s}
+.fridge-top button:hover{color:var(--fg);background:var(--soft)}
+.shelf{display:flex;flex-wrap:wrap;gap:6px;padding:12px 2px 14px}
+.shelf+.shelf{border-top:1px solid var(--soft)}
+.shelf-t{width:100%;font-size:13px;font-weight:500;color:var(--faint);margin:0 4px 2px}
+.ing{display:inline-flex;align-items:center;gap:6px;padding:8px 14px 8px 10px;border-radius:999px;border:0;background:var(--soft);font-weight:500;font-size:15px;cursor:pointer;transition:transform .45s var(--soft-spring),background .25s,color .25s}
+.ing:hover{background:var(--hover);transform:translateY(-2px)}
+.ing:active{transform:scale(.93);transition-duration:.1s}
+.ing .e{font-size:18px;transition:transform .5s var(--spring)}
+.ing[aria-pressed="true"]{background:var(--herb);color:var(--herb-ink)}
+.ing[aria-pressed="true"] .e{transform:scale(1.18) rotate(-8deg)}
+.res{border-radius:32px;background:var(--card);padding:24px 18px 14px;position:sticky;top:90px}
+.res-h{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;padding:0 6px}
+.res-h .n{font-family:var(--f-d);font-weight:600;font-size:60px;letter-spacing:-.04em;line-height:1;color:var(--herb);display:inline-block}
+.res-h .n.bump{animation:bump .5s var(--spring)}
+@keyframes bump{40%{transform:scale(1.18)}}
+.res-h span{font-weight:600;font-size:18px}
+.res-s{color:var(--muted);font-weight:500;font-size:15px;margin:4px 6px 14px}
+.dish{display:flex;align-items:center;gap:12px;width:100%;padding:10px;border:0;background:none;text-align:left;cursor:pointer;border-radius:18px;transition:background .2s;animation:pop .5s var(--soft-spring) both}
+.dish:hover{background:var(--soft)}
+.dish:hover .go{transform:translateX(3px);color:var(--fg)}
+.dish .e{font-size:26px;width:46px;height:46px;border-radius:50%;display:grid;place-items:center;background:var(--soft);flex:none}
+.dish b{display:block;font-size:16px;font-weight:600}
+.dish small{color:var(--muted);font-weight:500;font-size:13.5px}
+.dish small em{font-style:normal;color:var(--tomato)}
+.dish .go{margin-left:auto;color:var(--faint);transition:transform .3s var(--ease),color .2s}
+@keyframes pop{from{opacity:0;transform:translateY(10px) scale(.98);filter:blur(4px)}}
+.empty{color:var(--muted);padding:20px 6px}
+.fly{position:fixed;left:0;top:0;z-index:70;font-size:22px;pointer-events:none}
 #mini{display:none}
-.empty{color:var(--muted);font-weight:600;padding:20px 4px}
 
 /* ---------- Glücksrad ---------- */
-.spin-wrap{display:grid;grid-template-columns:1fr 1fr;gap:50px;align-items:center;margin-top:30px}
-.wheel-box{position:relative;width:min(460px,88vw);aspect-ratio:1;justify-self:center}
-#wheel{width:100%;height:100%;transition:transform 4.6s cubic-bezier(.12,.75,.1,1);filter:drop-shadow(0 30px 40px rgba(27,23,18,.25))}
-.pointer{position:absolute;left:50%;top:-10px;margin-left:-18px;width:0;height:0;border-left:18px solid transparent;border-right:18px solid transparent;border-top:34px solid var(--tomato);filter:drop-shadow(0 4px 4px rgba(0,0,0,.25));z-index:2;transform-origin:50% 0}
+.spin-wrap{display:grid;grid-template-columns:1fr 1fr;gap:44px;align-items:center;margin-top:24px}
+.wheel-box{position:relative;width:min(460px,86vw);aspect-ratio:1;justify-self:center}
+#wheel{width:100%;height:100%;transition:transform 4.6s cubic-bezier(.12,.75,.1,1)}
+.bulb{position:absolute;width:7px;height:7px;margin:-3.5px;border-radius:50%;background:var(--yolk);opacity:.25;transition:opacity .2s}
+.wheel-box.spinning .bulb{animation:blink .5s steps(1) infinite}
+.wheel-box.spinning .bulb:nth-child(2n){animation-delay:-.25s}
+.wheel-box.won .bulb{animation:blink .18s steps(1) 6}
+@keyframes blink{0%{opacity:1;box-shadow:0 0 10px var(--yolk)}50%{opacity:.25;box-shadow:none}}
+.pointer{position:absolute;left:50%;top:-12px;margin-left:-15px;width:0;height:0;border-left:15px solid transparent;border-right:15px solid transparent;border-top:28px solid var(--fg);z-index:2;transform-origin:50% 0}
 .pointer.tick{animation:tick .12s}
-@keyframes tick{50%{transform:rotate(-14deg)}}
-.hub{position:absolute;left:50%;top:50%;width:96px;height:96px;margin:-48px 0 0 -48px;border-radius:50%;background:var(--fg);color:var(--bg);border:0;font:800 17px var(--f-d);cursor:pointer;box-shadow:0 10px 24px rgba(0,0,0,.3);transition:transform .3s var(--spring);z-index:2}
-.hub:hover{transform:scale(1.06)}
-.hub:disabled{opacity:.8;cursor:default}
-.win{min-height:200px}
-.win .card{border-radius:28px;background:var(--card);border:1px solid var(--line);box-shadow:var(--sh);padding:24px;animation:pop .6s var(--spring) both}
-.win .card .e{font-size:60px;line-height:1}
-.win .card h3{font-size:40px;margin-top:10px}
-.win .card p{color:var(--muted);margin:8px 0 16px;font-weight:600}
-.seg{display:inline-flex;gap:4px;padding:4px;border-radius:14px;background:var(--line);margin-top:20px}
-.seg button{border:0;background:none;font-weight:800;font-size:15px;color:var(--muted);padding:8px 14px;border-radius:11px;cursor:pointer}
-.seg button[aria-pressed="true"]{background:var(--card);color:var(--fg);box-shadow:0 2px 8px rgba(0,0,0,.08)}
+@keyframes tick{50%{transform:rotate(-16deg)}}
+.hub{position:absolute;left:50%;top:50%;width:92px;height:92px;margin:-46px 0 0 -46px;border-radius:50%;background:var(--card);color:var(--fg);border:0;font:600 17px var(--f-b);cursor:pointer;box-shadow:0 10px 30px -8px rgba(0,0,0,.35);transition:transform .5s var(--soft-spring);z-index:2}
+.hub:hover{transform:scale(1.07)}
+.hub:active{transform:scale(.94)}
+.hub:disabled{cursor:default}
+.win .card{border-radius:28px;background:var(--card);padding:26px;animation:pop .7s var(--soft-spring) both;margin-bottom:24px}
+.win .card .e{font-size:56px;line-height:1;display:inline-block;animation:hop .8s var(--spring) .2s}
+.win .card h3{font-size:38px;margin-top:12px}
+.win .card p{color:var(--muted);margin:8px 0 18px}
+.seg{display:inline-flex;gap:2px;padding:4px;border-radius:999px;background:var(--soft);margin-top:22px;position:relative}
+.seg button{border:0;background:none;font-weight:500;font-size:15px;color:var(--muted);padding:9px 16px;border-radius:999px;cursor:pointer;position:relative;z-index:1;transition:color .25s}
+.seg button[aria-pressed="true"]{color:var(--fg)}
+.seg .pill{position:absolute;top:4px;bottom:4px;left:0;border-radius:999px;background:var(--card);box-shadow:0 2px 10px rgba(0,0,0,.08);transition:transform .5s var(--soft-spring),width .5s var(--soft-spring)}
 #confetti{position:fixed;inset:0;pointer-events:none;z-index:60}
 
 /* ---------- Rezept-Fenster ---------- */
-dialog{border:0;padding:0;border-radius:30px;width:min(520px,calc(100% - 24px));background:var(--card);color:var(--fg);box-shadow:0 40px 90px -20px rgba(0,0,0,.5)}
-dialog::backdrop{background:rgba(15,19,15,.45);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
-dialog[open]{animation:dlg .45s var(--spring)}
-@keyframes dlg{from{opacity:0;transform:translateY(30px) scale(.97)}}
-.dlg{padding:26px}
-.dlg .e{font-size:58px;line-height:1}
-.dlg h3{font-size:36px;margin-top:10px}
-.dlg .chips{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0}
-.dlg .chips span{padding:5px 10px;border-radius:999px;background:var(--bg);font-weight:700;font-size:14px}
+dialog{border:0;padding:0;border-radius:32px;width:min(520px,calc(100% - 24px));max-height:86vh;background:var(--card);color:var(--fg);box-shadow:0 40px 90px -20px rgba(0,0,0,.45)}
+dialog::backdrop{background:rgba(15,19,15,.35);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+dialog[open]{animation:dlg .55s var(--soft-spring)}
+@keyframes dlg{from{opacity:0;transform:translateY(40px) scale(.96)}}
+.dlg{padding:28px}
+.dlg .e{font-size:54px;line-height:1}
+.dlg h3{font-size:34px;margin-top:12px}
+.dlg .chips{display:flex;flex-wrap:wrap;gap:6px;margin:14px 0}
+.dlg .chips span{padding:6px 12px;border-radius:999px;background:var(--soft);font-weight:500;font-size:14px}
 .dlg .chips span.miss{background:var(--tomato-soft);color:var(--tomato)}
-.dlg ol{padding-left:22px;margin:14px 0 20px;display:grid;gap:8px}
-.dlg .x{position:absolute;right:14px;top:14px;width:40px;height:40px;border-radius:50%;border:0;background:var(--bg);cursor:pointer;font-size:18px}
+.dlg ol{padding-left:22px;margin:16px 0 22px;display:grid;gap:10px;color:var(--muted)}
+.dlg ol li::marker{color:var(--herb);font-weight:600}
+.dlg .x{position:absolute;right:16px;top:16px;width:40px;height:40px;border-radius:50%;border:0;background:var(--soft);cursor:pointer;font-size:16px;transition:background .2s,transform .4s var(--soft-spring)}
+.dlg .x:hover{background:var(--hover);transform:rotate(90deg)}
 
 /* ---------- Zahlen ---------- */
-.nums{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--line);margin-top:40px}
-.nums div{padding:28px 4px 0}
-.nums div+div{border-left:1px solid var(--line);padding-left:28px}
-.nums b{display:block;font-family:var(--f-d);font-size:clamp(54px,7vw,96px);letter-spacing:-.05em;line-height:1}
-.nums span{color:var(--muted);font-weight:700}
+.nums{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:20px}
+.nums div{padding:28px;border-radius:28px;background:var(--card)}
+.nums b{display:block;font-family:var(--f-d);font-weight:600;font-size:clamp(54px,6.5vw,88px);letter-spacing:-.05em;line-height:1}
+.nums span{color:var(--muted);font-weight:500}
 
 /* ---------- Installieren ---------- */
-.install{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:30px;counter-reset:s}
-.step{padding:26px;border-radius:26px;background:var(--card);border:1px solid var(--line)}
-.step::before{counter-increment:s;content:counter(s);display:block;font:800 44px/1 var(--f-d);color:var(--herb);margin-bottom:12px}
-.step b{font-size:19px;display:block}
+.install{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:24px;counter-reset:s}
+.step{padding:28px;border-radius:28px;background:var(--card);animation:pop .6s var(--soft-spring) both}
+.step:nth-child(2){animation-delay:.08s}.step:nth-child(3){animation-delay:.16s}
+.step::before{counter-increment:s;content:counter(s);display:grid;place-items:center;width:40px;height:40px;border-radius:50%;background:var(--herb-soft);color:var(--herb);font-weight:600;margin-bottom:18px}
+.step b{font-size:19px;font-weight:600;display:block}
 .step p{color:var(--muted);margin:6px 0 0;font-size:16px}
 
-.final{text-align:center;padding:120px 0 120px}
-.final h2{font-size:clamp(56px,9vw,130px)}
-.final p{color:var(--muted);font-size:20px;margin:18px auto 32px;max-width:520px}
-.sponsor{display:flex;flex-direction:column;align-items:center;gap:8px;margin-top:70px;color:var(--muted);font-weight:800;font-size:12.5px;letter-spacing:.14em;text-transform:uppercase;text-decoration:none}
-.sponsor img{height:64px;width:auto}
+.final{text-align:center;padding:70px 0 80px}
+.final h2{font-size:clamp(56px,9vw,124px)}
+.final p{color:var(--muted);font-size:20px;margin:14px auto 26px;max-width:500px}
+.sponsor{display:flex;flex-direction:column;align-items:center;gap:8px;margin-top:56px;color:var(--faint);font-weight:500;font-size:13px;text-decoration:none}
+.sponsor img{height:60px;width:auto;transition:transform .5s var(--soft-spring)}
+.sponsor:hover img{transform:scale(1.06) rotate(-2deg)}
 @media (prefers-color-scheme:dark){.sponsor img{filter:invert(1) brightness(1.5)}}
-footer{border-top:1px solid var(--line);padding:30px 0 50px;color:var(--muted);font-size:14.5px}
+footer{padding:30px 0 50px;color:var(--faint);font-size:14.5px}
 footer .wrap{display:flex;gap:18px;flex-wrap:wrap;justify-content:space-between}
-footer a{text-decoration:none;font-weight:700}
+footer a{text-decoration:none;font-weight:500;transition:color .2s}
+footer a:hover{color:var(--fg)}
 
-/* Einblenden: Wort für Wort und Blöcke */
-.rv{opacity:0;transform:translateY(30px);transition:opacity .9s var(--ease),transform .9s var(--ease)}
-.rv.in{opacity:1;transform:none}
-.words .w{display:inline-block;opacity:0;transform:translateY(.4em) rotate(2deg);transition:opacity .6s var(--ease),transform .7s var(--ease)}
-.words.in .w{opacity:1;transform:none}
+/* Einblenden */
+.rv{opacity:0;transform:translateY(28px);filter:blur(6px);transition:opacity .9s var(--ease),transform 1s var(--ease),filter .9s var(--ease)}
+.rv.in{opacity:1;transform:none;filter:none}
+.fridge.rv{filter:none}
 
 @media (max-width:900px){
   nav.links{display:none}
-  .hero{grid-template-columns:1fr;min-height:auto;padding:24px 0 10px;text-align:center}
-  .hero p.lead{margin-left:auto;margin-right:auto}
+  .hero{grid-template-columns:1fr;min-height:auto;padding:20px 0 0;text-align:center}
+  .lead{margin-left:auto;margin-right:auto}
   .cta,.meta{justify-content:center}
   .phone{transform:none}
   .f1{left:-2%;top:10%}.f2{right:-2%;top:44%}.f3{left:0;bottom:8%}
-  .float{font-size:13px;padding:10px 12px}.float .em{font-size:22px}
-  section{padding:70px 0}
+  .float{font-size:13px}
+  section{padding:52px 0}
   .story{grid-template-columns:1fr;gap:0;margin-top:20px}
   .pin{order:-1;top:68px;height:44vh;z-index:1;background:linear-gradient(var(--bg) 85%,transparent);padding-bottom:10px}
   .pin .phone{width:auto;height:94%}
   .pin .bubble{display:none}
-  .ch{min-height:58vh;justify-content:flex-start;padding-top:4vh;text-align:center;align-items:center}
-  .ch .no{display:none}
-  .ch .tags{justify-content:center}
+  .ch{min-height:52vh;justify-content:flex-start;padding-top:4vh;text-align:center;align-items:center}
+  .tags{justify-content:center}
   .try,.spin-wrap{grid-template-columns:1fr}
-  .fridge-top{flex-wrap:wrap}.fridge-top b{width:100%}
-  #mini{display:flex;position:sticky;bottom:14px;margin-top:12px;align-items:center;justify-content:space-between;gap:10px;padding:12px 16px;border-radius:18px;border:0;background:var(--fg);color:var(--bg);font-weight:800;font-size:15px;width:100%;cursor:pointer;box-shadow:0 14px 30px -12px rgba(0,0,0,.5);z-index:2}
-  #mini b{font:800 22px var(--f-d);color:var(--herb)}
-  .install{grid-template-columns:1fr}
-  .nums{grid-template-columns:1fr}
-  .nums div+div{border-left:0;border-top:1px solid var(--line);padding-left:4px}
-  .nums div{padding-bottom:20px}
+  .res{position:static}
+  .fridge-top{flex-wrap:wrap}.fridge-top b{width:100%;margin-bottom:4px}
+  #mini{display:flex;position:sticky;bottom:14px;margin-top:12px;align-items:center;justify-content:space-between;gap:10px;padding:10px 10px 10px 18px;border-radius:999px;border:0;background:var(--fg);color:var(--bg);font-weight:600;font-size:15px;width:100%;cursor:pointer;box-shadow:0 14px 30px -12px rgba(0,0,0,.5);z-index:2}
+  #mini b{font:600 22px var(--f-d);color:var(--herb)}
+  #mini .go{padding:8px 14px;border-radius:999px;background:color-mix(in srgb,var(--bg) 14%,transparent)}
+  .install,.nums{grid-template-columns:1fr}
   .center-m{text-align:center}
+  .center-m .sub{margin-left:auto;margin-right:auto}
 }
-@media (max-width:420px){ .f2{display:none} .ing{padding:8px 11px;font-size:14px} }
+@media (max-width:420px){ .f2{display:none} .ing{font-size:14px} }
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation:none !important;transition:none !important}
-  .rv,.words .w{opacity:1;transform:none}
+  .rv,.split .c{opacity:1;transform:none;filter:none}
+  .door{display:none}
 }
 </style>
 </head>
@@ -263,10 +287,10 @@ footer a{text-decoration:none;font-weight:700}
   <!-- Startbereich -->
   <div class="wrap hero">
     <div>
-      <h1 class="rv">Was gibt's<br><span class="cycle" aria-label="heute?"><span class="on">Pasta?</span><span>Curry?</span><span>Suppe?</span><span>heute?</span></span></h1>
+      <h1><span class="split hop-me" data-split>Was gibt's</span><br><span class="cycle" aria-label="heute?"><span class="on">Pasta?</span><span>Curry?</span><span>Suppe?</span><span>heute?</span></span></h1>
       <p class="lead rv">Die Frage, die jede Familie jeden Abend stellt. Sag, was im Kühlschrank ist – wir schlagen vor, was passt. Und alle reden mit.</p>
-      <div class="cta rv"><a class="btn btn-herb" href="../">Kostenlos starten</a><a class="btn btn-line" href="#probieren">Gleich hier ausprobieren ↓</a></div>
-      <div class="meta rv"><span><b id="cntR">620</b> Rezepte</span><i>/</i><span><b>0 €</b></span><i>/</i><span>iPhone &amp; Android</span><i>/</i><span>ohne App Store</span></div>
+      <div class="cta rv"><a class="btn btn-herb" href="../">Kostenlos starten</a><a class="btn btn-soft" href="#probieren">Gleich hier ausprobieren</a></div>
+      <div class="meta rv"><span><b id="cntR">620</b> Rezepte</span><span><b>0 €</b> für die Familie</span><span>iPhone &amp; Android</span></div>
     </div>
     <div class="stage rv">
       <div class="phone" id="phone"><div class="scr" id="scr">
@@ -277,10 +301,10 @@ footer a{text-decoration:none;font-weight:700}
       </div></div>
       <div class="float f1"><span class="em">🙋</span><span>Mia wünscht sich<small>Pfannkuchen</small></span></div>
       <div class="float f2"><span class="em">📊</span><span>Abstimmung<small>3 : 1 für Curry</small></span></div>
-      <div class="float f3"><span class="em">🛒</span><span>Ben hat Milch<small>abgehakt ✓</small></span></div>
+      <div class="float f3"><span class="em">🛒</span><span>Ben hat Milch<small>abgehakt</small></span></div>
       <div>
         <div class="dots" id="dots" role="tablist" aria-label="App-Bilder"><button class="on" aria-label="Bild 1"></button><button aria-label="Bild 2"></button><button aria-label="Bild 3"></button><button aria-label="Bild 4"></button></div>
-        <div class="hint">Tipp: Die Kärtchen kannst du verschieben</div>
+        <div class="hint">Die Kärtchen kannst du verschieben</div>
       </div>
     </div>
   </div>
@@ -290,19 +314,18 @@ footer a{text-decoration:none;font-weight:700}
   <!-- Scroll-Geschichte -->
   <section id="so"><div class="wrap">
     <div class="kicker rv">So geht's</div>
-    <h2 class="big words" data-words>Drei Schritte vom vollen Kühlschrank zum vollen Teller.</h2>
+    <h2 class="big split hop-me" data-split>Vom vollen Kühlschrank zum vollen Teller.</h2>
     <div class="story">
       <div class="chapters">
-        <div class="ch act" data-shot="1" data-b="Erkannt: 19 Zutaten"><div class="no">01</div><h3>Sag, was da ist.</h3><p>Antippen, per Mikrofon sagen – oder einfach ein Foto vom Kühlschrank machen. Die App merkt sich auch, was bald abläuft.</p><div class="tags"><span>📷 Foto</span><span>🎤 Sprache</span><span>⏰ Ablaufdatum</span></div></div>
-        <div class="ch" data-shot="0" data-b="Gnocchi in Tomatensoße · 20 Min"><div class="no">02</div><h3>Wir sagen, was passt.</h3><p>Aus 620 Rezepten das, was ihr jetzt kochen könnt – nach Zeit, Lust und wer heute mitisst. Fehlt nur eine Kleinigkeit? Steht auch dabei.</p><div class="tags"><span>⏱ 15 / 30 Min</span><span>🥗 gesund</span><span>👨‍🍳 Kochmodus</span></div></div>
-        <div class="ch" data-shot="2" data-b="Wochenplan: 4 Tage gefüllt"><div class="no">03</div><h3>Alle reden mit.</h3><p>Wünsche, Abstimmungen, ein gemeinsamer Wochenplan und eine Einkaufsliste, die bei allen sofort aktuell ist.</p><div class="tags"><span>🙋 Wünsche</span><span>📊 Abstimmung</span><span>🛒 Liste live</span></div></div>
+        <div class="ch act" data-shot="1" data-b="Erkannt: 19 Zutaten"><div class="no">1 von 3 <i></i></div><h3>Sag, was da ist.</h3><p>Antippen, per Mikrofon sagen – oder einfach ein Foto vom Kühlschrank machen. Die App merkt sich auch, was bald abläuft.</p><div class="tags"><span>📷 Foto</span><span>🎤 Sprache</span><span>⏰ Ablaufdatum</span></div></div>
+        <div class="ch" data-shot="0" data-b="Gnocchi in Tomatensoße · 20 Min"><div class="no">2 von 3 <i></i></div><h3>Wir sagen, was passt.</h3><p>Aus 620 Rezepten das, was ihr jetzt kochen könnt – nach Zeit, Lust und wer heute mitisst. Fehlt nur eine Kleinigkeit? Steht auch dabei.</p><div class="tags"><span>⏱ 15 / 30 Min</span><span>🥗 gesund</span><span>👨‍🍳 Kochmodus</span></div></div>
+        <div class="ch" data-shot="2" data-b="Wochenplan: 4 Tage gefüllt"><div class="no">3 von 3 <i></i></div><h3>Alle reden mit.</h3><p>Wünsche, Abstimmungen, ein gemeinsamer Wochenplan und eine Einkaufsliste, die bei allen sofort aktuell ist.</p><div class="tags"><span>🙋 Wünsche</span><span>📊 Abstimmung</span><span>🛒 Liste live</span></div></div>
       </div>
       <div class="pin">
-        <div class="ring"></div>
-        <div class="phone"><div class="scr" id="scr2">
+        <div class="phone" id="pinPhone"><div class="scr" id="scr2">
           <img src="img/light_home.jpg" alt="" loading="lazy"><img class="on" src="img/light_fridge.jpg" alt="" loading="lazy"><img src="img/light_recipes.jpg" alt="" loading="lazy">
         </div></div>
-        <div class="bubble" id="bub" style="left:2%;bottom:18%"></div>
+        <div class="bubble" id="bub"></div>
       </div>
     </div>
   </div></section>
@@ -310,13 +333,14 @@ footer a{text-decoration:none;font-weight:700}
   <!-- Ausprobieren -->
   <section id="probieren"><div class="wrap">
     <div class="center-m"><div class="kicker rv">Probier's aus – ohne Anmeldung</div>
-    <h2 class="big words" data-words>Was hast du gerade da?</h2>
-    <p class="rv" style="color:var(--muted);font-size:19px;max-width:620px;margin:16px 0 0">Tippe an, was in deinem Kühlschrank ist. Die Vorschläge kommen live aus den echten Rezepten der App.</p></div>
+    <h2 class="big split hop-me" data-split>Was hast du gerade da?</h2>
+    <p class="sub rv">Tippe an, was in deinem Kühlschrank ist. Die Vorschläge kommen live aus den echten Rezepten der App.</p></div>
     <div class="try">
       <div class="fridge rv" id="fridge" aria-label="Kühlschrank zum Ausprobieren">
-        <div class="fridge-top"><b>Dein Kühlschrank</b><button id="rand" type="button">🎲 Zufällig füllen</button><button id="clear" type="button">Leeren</button></div>
+        <button class="door" type="button" tabindex="-1" aria-hidden="true"><span>Kühlschrank öffnen</span></button>
+        <div class="fridge-top"><b>Dein Kühlschrank</b><button id="rand" type="button">🎲 Zufällig</button><button id="clear" type="button">Leeren</button></div>
         <div id="shelves"></div>
-        <button id="mini" type="button"><span><b id="miniN">0</b> Gerichte gehen sofort</span><span>Ansehen ↓</span></button>
+        <button id="mini" type="button"><span><b id="miniN">0</b> Gerichte gehen sofort</span><span class="go">Ansehen</span></button>
       </div>
       <div class="res rv" aria-live="polite">
         <div class="res-h"><span class="n" id="nOk">0</span><span id="nOkL">Gerichte gehen sofort</span></div>
@@ -329,18 +353,18 @@ footer a{text-decoration:none;font-weight:700}
   <!-- Glücksrad -->
   <section id="rad"><div class="wrap">
     <div class="center-m"><div class="kicker rv">Keine Idee?</div>
-    <h2 class="big words" data-words>Dann entscheidet das Rad.</h2></div>
+    <h2 class="big split hop-me" data-split>Dann entscheidet das Rad.</h2></div>
     <div class="spin-wrap">
-      <div class="wheel-box rv"><div class="pointer" id="pointer"></div><svg id="wheel" viewBox="-200 -200 400 400" role="img" aria-label="Glücksrad mit Gerichten"></svg><button class="hub" id="spin" type="button">Drehen</button></div>
+      <div class="wheel-box rv" id="wbox"><div class="pointer" id="pointer"></div><svg id="wheel" viewBox="-200 -200 400 400" role="img" aria-label="Glücksrad mit Gerichten"></svg><button class="hub" id="spin" type="button">Drehen</button></div>
       <div class="win" id="win">
-        <div class="rv"><p style="color:var(--muted);font-size:19px;margin:0">Acht Gerichte, ein Dreh. In der App gibt es das Ganze in schlau: als Vorschlag, der wirklich zu euch passt.</p>
-        <div class="seg" role="group" aria-label="Was soll aufs Rad?"><button data-mode="fridge" aria-pressed="true">Aus meinem Kühlschrank</button><button data-mode="all" aria-pressed="false">Alles</button></div></div>
+        <div class="rv"><p class="sub" style="margin:0">Acht Gerichte, ein Dreh. In der App gibt es das Ganze in schlau: als Vorschlag, der wirklich zu euch passt.</p>
+        <div class="seg" id="wseg" role="group" aria-label="Was soll aufs Rad?"><span class="pill"></span><button data-mode="fridge" aria-pressed="true">Aus meinem Kühlschrank</button><button data-mode="all" aria-pressed="false">Alles</button></div></div>
       </div>
     </div>
   </div></section>
 
   <!-- Zahlen -->
-  <section style="padding-top:40px"><div class="wrap">
+  <section style="padding-top:0"><div class="wrap">
     <div class="kicker rv">In Zahlen</div>
     <div class="nums">
       <div class="rv"><b data-count="620">0</b><span>Rezepte – von Pfannkuchen bis Curry</span></div>
@@ -352,15 +376,15 @@ footer a{text-decoration:none;font-weight:700}
   <!-- Installieren -->
   <section id="installieren"><div class="wrap">
     <div class="center-m"><div class="kicker rv">Installieren</div>
-    <h2 class="big words" data-words>In 20 Sekunden auf dem Handy.</h2>
-    <div class="seg rv" role="group" aria-label="Handy auswählen"><button data-os="ios" aria-pressed="true">iPhone</button><button data-os="android" aria-pressed="false">Android</button></div></div>
+    <h2 class="big split hop-me" data-split>In 20 Sekunden auf dem Handy.</h2>
+    <div class="seg rv" id="oseg" role="group" aria-label="Handy auswählen"><span class="pill"></span><button data-os="ios" aria-pressed="true">iPhone</button><button data-os="android" aria-pressed="false">Android</button></div></div>
     <div class="install" id="steps"></div>
   </div></section>
 
   <div class="wrap final">
-    <h2 class="words" data-words>Was gibt's heute?</h2>
+    <h2 class="split hop-me" data-split>Was gibt's heute?</h2>
     <p class="rv">Probiert's heute Abend aus. Die ganze Familie, ein Gericht, keine Diskussion.</p>
-    <a class="btn btn-herb rv" id="magnet" href="../" style="min-height:58px;padding:0 32px;font-size:18px">Jetzt kostenlos starten</a>
+    <a class="btn btn-herb rv" href="../" style="min-height:58px;padding:0 34px;font-size:18px">Jetzt kostenlos starten</a>
     <a class="sponsor rv" href="https://www.etsy.com/de/shop/PiHILL" target="_blank" rel="noopener sponsored">Präsentiert von<img src="../sponsor/pihill.png" alt="PiHILL – Handgemachtes"></a>
   </div>
 </main>
@@ -376,81 +400,123 @@ footer a{text-decoration:none;font-weight:700}
 <script type="module">
 import { R, ING, CATS } from '../data.js';
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const fine = matchMedia('(pointer:fine)').matches;
+const mobile = () => matchMedia('(max-width:900px)').matches;
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
 const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-document.getElementById('cntR').textContent = R.length;
+$('#cntR').textContent = R.length;
 
 /* Kopfzeile + Fortschritt */
 const hd = $('#top'), prog = $('#prog');
 const onScroll = () => { hd.classList.toggle('scrolled', scrollY > 10); prog.style.transform = `scaleX(${scrollY / (document.documentElement.scrollHeight - innerHeight || 1)})`; };
 addEventListener('scroll', onScroll, { passive:true }); onScroll();
 
-/* Überschriften Wort für Wort */
-$$('[data-words]').forEach(h => { h.innerHTML = h.textContent.split(' ').map((w, i) => `<span class="w" style="transition-delay:${i * 70}ms">${esc(w)}</span>`).join(' '); });
-const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); if (e.target.dataset.count != null) countUp(e.target); } }), { threshold:.2 });
-$$('.rv,[data-words],[data-count]').forEach(el => io.observe(el));
+/* Überschriften: Buchstabe für Buchstabe, federn bei Berührung */
+$$('[data-split]').forEach(h => { let i = 0;
+  h.setAttribute('aria-label', h.textContent);
+  h.innerHTML = h.textContent.split(' ').map(w => `<span class="w" aria-hidden="true">${[...w].map(ch => `<span class="c" style="--i:${i++}">${esc(ch)}</span>`).join('')}</span>`).join(' '); });
+const hop = c => { if (reduce || c.classList.contains('hop')) return; c.classList.add('hop'); c.addEventListener('animationend', () => c.classList.remove('hop'), { once:true }); };
+document.addEventListener('pointerover', e => { const c = e.target.closest('.hop-me .c'); if (c) hop(c); });
+
+const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); if (e.target.dataset.count != null) countUp(e.target); } }), { threshold:.18 });
+$$('.rv,[data-split],[data-count]').forEach(el => io.observe(el));
 function countUp(el){ const to = +el.dataset.count, suf = el.dataset.suffix || ''; if (reduce || !to){ el.textContent = to + suf; return; }
-  const t0 = performance.now(); const f = t => { const k = Math.min(1, (t - t0) / 1400), v = Math.round(to * (1 - Math.pow(1 - k, 3))); el.textContent = v + suf; if (k < 1) requestAnimationFrame(f); }; requestAnimationFrame(f); }
+  const t0 = performance.now(); const f = t => { const k = Math.min(1, (t - t0) / 1400); el.textContent = Math.round(to * (1 - Math.pow(1 - k, 3))) + suf; if (k < 1) requestAnimationFrame(f); }; requestAnimationFrame(f); }
 
 /* Wechselndes Wort */
 const words = $$('.cycle span'); let wi = 0;
-if (!reduce){ const tick = () => { if (wi >= words.length - 1) return; words[wi].classList.replace('on', 'out'); wi++; words[wi].classList.add('on'); if (wi < words.length - 1) setTimeout(tick, 950); }; setTimeout(tick, 1300); }
+if (!reduce){ const tick = () => { if (wi >= words.length - 1) return; words[wi].classList.replace('on', 'out'); wi++; words[wi].classList.add('on'); if (wi < words.length - 1) setTimeout(tick, 950); }; setTimeout(tick, 1500); }
 else { words.forEach(s => s.classList.remove('on')); words.at(-1).classList.add('on'); }
 
-/* iPhone oben: Bilder, Kippen, verschiebbare Kärtchen */
+/* iPhone oben: Bilder, Maus + Scroll bewegen es */
 const imgs = $$('#scr img'), dots = $$('#dots button'); let cur = 0, timer;
 const show = n => { imgs[cur].classList.remove('on'); dots[cur].classList.remove('on'); cur = (n + imgs.length) % imgs.length; imgs[cur].classList.add('on'); dots[cur].classList.add('on'); };
 const auto = () => { clearInterval(timer); if (!reduce) timer = setInterval(() => show(cur + 1), 3200); };
 dots.forEach((d, i) => d.addEventListener('click', () => { show(i); auto(); })); auto();
-const ph = $('#phone');
-if (!reduce && matchMedia('(pointer:fine)').matches) addEventListener('mousemove', e => { if (scrollY > innerHeight) return;
-  const x = e.clientX / innerWidth - .5, y = e.clientY / innerHeight - .5; ph.style.transform = `rotateY(${-14 + x * 18}deg) rotateX(${6 - y * 12}deg)`; }, { passive:true });
+const ph = $('#phone'); let mx = 0, my = 0, tx = 0, ty = 0;
+if (fine) addEventListener('mousemove', e => { mx = e.clientX / innerWidth - .5; my = e.clientY / innerHeight - .5; }, { passive:true });
+
+/* Laufband mit echten Gerichten – Tempo und Neigung folgen dem Scrollen */
+const pick = [...R].sort(() => Math.random() - .5).slice(0, 26);
+const mqEl = $('#mq'), mqHtml = pick.map(r => `<span>${r.e} ${esc(r.n)}</span>`).join('');
+mqEl.innerHTML = mqHtml + mqHtml;
+let mqX = 0, lastY = scrollY, vel = 0;
+
+const loop = () => {
+  const v = scrollY - lastY; lastY = scrollY; vel += (v - vel) * .12;
+  // iPhone
+  tx += (mx - tx) * .08; ty += (my - ty) * .08;
+  const s = Math.min(1, scrollY / innerHeight);
+  if (!mobile()) ph.style.transform = `translateY(${-s * 60}px) rotateY(${-14 + tx * 18 + s * 10}deg) rotateX(${6 - ty * 12 + s * 14}deg) scale(${1 - s * .06})`;
+  // Laufband
+  const half = mqEl.scrollWidth / 2;
+  mqX -= .6 + Math.min(14, Math.abs(vel) * .35); if (half && -mqX > half) mqX += half;
+  mqEl.style.transform = `translateX(${mqX}px) skewX(${Math.max(-10, Math.min(10, -vel * .25))}deg)`;
+  requestAnimationFrame(loop);
+};
+if (!reduce) requestAnimationFrame(loop);
+
+/* Kärtchen verschieben */
 $$('.float').forEach(f => { let sx, sy, ox = 0, oy = 0;
-  f.addEventListener('pointerdown', e => { f.setPointerCapture(e.pointerId); f.classList.add('dragging'); sx = e.clientX - ox; sy = e.clientY - oy; });
-  f.addEventListener('pointermove', e => { if (!f.classList.contains('dragging')) return; ox = e.clientX - sx; oy = e.clientY - sy; f.style.transform = `translate(${ox}px,${oy}px) rotate(${ox * .03}deg)`; });
-  const end = () => { f.classList.remove('dragging'); f.style.transition = 'transform .6s cubic-bezier(.34,1.56,.64,1)'; f.style.transform = `translate(${ox}px,${oy}px)`; setTimeout(() => f.style.transition = '', 600); };
+  f.addEventListener('pointerdown', e => { f.setPointerCapture(e.pointerId); f.classList.add('dragging'); f.style.transition = ''; sx = e.clientX - ox; sy = e.clientY - oy; });
+  f.addEventListener('pointermove', e => { if (!f.classList.contains('dragging')) return; ox = e.clientX - sx; oy = e.clientY - sy; f.style.transform = `translate(${ox}px,${oy}px) rotate(${ox * .03}deg) scale(1.05)`; });
+  const end = () => { if (!f.classList.contains('dragging')) return; f.classList.remove('dragging'); f.style.transition = 'transform .7s cubic-bezier(.34,1.56,.64,1)'; f.style.transform = `translate(${ox}px,${oy}px)`; };
   f.addEventListener('pointerup', end); f.addEventListener('pointercancel', end); });
 
-/* Laufband mit echten Gerichten */
-const pick = [...R].sort(() => Math.random() - .5).slice(0, 26);
-const mqHtml = pick.map(r => `<span>${r.e} ${esc(r.n)}</span>`).join('');
-$('#mq').innerHTML = mqHtml + mqHtml;
-
-/* Scroll-Geschichte: iPhone bleibt stehen, Bild wechselt mit dem Kapitel */
-const s2 = $$('#scr2 img'), bub = $('#bub');
+/* Scroll-Geschichte */
+const s2 = $$('#scr2 img'), bub = $('#bub'), pinPh = $('#pinPhone'); let shot = 1;
 const chio = new IntersectionObserver(es => es.forEach(e => { if (!e.isIntersecting) return;
   $$('.ch').forEach(c => c.classList.toggle('act', c === e.target));
-  const n = +e.target.dataset.shot; s2.forEach((im, i) => im.classList.toggle('on', i === n));
-  bub.classList.remove('on'); setTimeout(() => { bub.textContent = '✨ ' + e.target.dataset.b; bub.classList.add('on'); }, 250);
-}), { rootMargin: matchMedia('(max-width:900px)').matches ? '-60% 0px -30% 0px' : '-45% 0px -45% 0px' });
+  const n = +e.target.dataset.shot;
+  if (n !== shot && !reduce) pinPh.animate([{ transform:'none' }, { transform:'rotateY(-16deg) scale(.96)' }, { transform:'none' }], { duration:700, easing:'cubic-bezier(.45,1.35,.5,1)' });
+  shot = n; s2.forEach((im, i) => im.classList.toggle('on', i === n));
+  bub.classList.remove('on'); setTimeout(() => { bub.textContent = '✨ ' + e.target.dataset.b; bub.classList.add('on'); }, 280);
+}), { rootMargin: mobile() ? '-60% 0px -30% 0px' : '-45% 0px -45% 0px' });
 $$('.ch').forEach(c => chio.observe(c));
 
-/* ---------- Kühlschrank zum Ausprobieren (echte Rezepte) ---------- */
+/* ---------- Kühlschrank (echte Rezepte) ---------- */
 const freq = {}; R.forEach(r => r.i.forEach(k => freq[k] = (freq[k] || 0) + 1));
 const top = Object.keys(freq).filter(k => ING[k]).sort((a, b) => freq[b] - freq[a]).slice(0, 30);
-const shelves = [['Gemüse & Obst', ['gemuese','obst']], ['Milch, Käse & Fleisch', ['milch','fleisch','kuehl']], ['Vorrat', ['getreide','dose','backen','wuerz']]];
+const shelves = [['Gemüse & Obst', ['gemuese','obst']], ['Kühlfach', ['milch','fleisch','kuehl']], ['Vorrat', ['getreide','dose','backen','wuerz']]];
 const catOf = k => (CATS.find(c => c[3].includes(k)) || ['other'])[0];
 const have = new Set(['nudeln','eier','tomaten','zwiebeln','kaese'].filter(k => ING[k]));
-$('#shelves').innerHTML = shelves.map(([t, cs]) => { const ks = top.filter(k => cs.includes(catOf(k))); return ks.length ? `<div class="shelf" aria-label="${t}">${ks.map(k => `<button class="ing" data-k="${k}" aria-pressed="${have.has(k)}"><span class="e">${ING[k][1]}</span>${esc(ING[k][0])}</button>`).join('')}</div>` : ''; }).join('');
+$('#shelves').innerHTML = shelves.map(([t, cs]) => { const ks = top.filter(k => cs.includes(catOf(k))); return ks.length ? `<div class="shelf"><div class="shelf-t">${t}</div>${ks.map(k => `<button class="ing" data-k="${k}" aria-pressed="${have.has(k)}"><span class="e">${ING[k][1]}</span>${esc(ING[k][0])}</button>`).join('')}</div>` : ''; }).join('');
+$('.door').addEventListener('click', () => $('#fridge').classList.add('in'));
 const matches = () => R.map(r => ({ r, miss: r.i.filter(k => !have.has(k)) })).filter(x => x.miss.length <= 1 && x.r.i.length - x.miss.length >= 1).sort((a, b) => a.miss.length - b.miss.length || a.r.t - b.r.t);
 let lastOk = -1;
 function paint(){
   const m = matches(), ok = m.filter(x => !x.miss.length), al = m.filter(x => x.miss.length === 1);
-  const nEl = $('#nOk'); const from = lastOk < 0 ? 0 : lastOk; lastOk = ok.length;
+  const nEl = $('#nOk'), from = lastOk < 0 ? 0 : lastOk; lastOk = ok.length;
   if (!reduce){ const t0 = performance.now(); const f = t => { const k = Math.min(1, (t - t0) / 450); nEl.textContent = Math.round(from + (ok.length - from) * k); if (k < 1) requestAnimationFrame(f); }; requestAnimationFrame(f); } else nEl.textContent = ok.length;
   $('#miniN').textContent = ok.length;
   $('#nOkL').textContent = ok.length === 1 ? 'Gericht geht sofort' : 'Gerichte gehen sofort';
-  $('#nAlmost').textContent = have.size ? `+ ${al.length} mit nur einer Zutat mehr` : 'Tippe links ein paar Zutaten an.';
+  $('#nAlmost').textContent = have.size ? `und ${al.length} mit nur einer Zutat mehr` : 'Tippe ein paar Zutaten an.';
   const list = [...ok.slice(0, 5), ...al.slice(0, ok.length >= 5 ? 1 : 6 - Math.min(ok.length, 5))];
-  $('#dishes').innerHTML = list.length ? list.map((x, i) => `<button class="dish" data-id="${x.r.id}" style="animation-delay:${i * 45}ms"><span class="e">${x.r.e}</span><span><b>${esc(x.r.n)}</b><small>⏱ ${x.r.t} Min${x.miss.length ? ` · fehlt: <em>${esc(ING[x.miss[0]] ? ING[x.miss[0]][0] : x.miss[0])}</em>` : ' · alles da ✓'}</small></span><span class="go">›</span></button>`).join('')
-    : `<div class="empty">${have.size ? 'Hmm, damit wird es knapp. Tippe noch ein, zwei Sachen an.' : 'Noch leer – der Kühlschrank wartet. 🧊'}</div>`;
+  $('#dishes').innerHTML = list.length ? list.map((x, i) => `<button class="dish" data-id="${x.r.id}" style="animation-delay:${i * 50}ms"><span class="e">${x.r.e}</span><span><b>${esc(x.r.n)}</b><small>${x.r.t} Min${x.miss.length ? ` · fehlt: <em>${esc(ING[x.miss[0]] ? ING[x.miss[0]][0] : x.miss[0])}</em>` : ' · alles da'}</small></span><span class="go">›</span></button>`).join('')
+    : `<div class="empty">${have.size ? 'Damit wird es knapp. Tippe noch ein, zwei Sachen an.' : 'Noch leer – der Kühlschrank wartet.'}</div>`;
   if (mode === 'fridge') buildWheel();
 }
+const bump = () => { const n = mobile() ? $('#miniN') : $('#nOk'); n.classList.remove('bump'); void n.offsetWidth; n.classList.add('bump'); };
+// Zutat fliegt in die Ergebnisse
+function fly(btn){
+  if (reduce) return bump();
+  const a = btn.querySelector('.e').getBoundingClientRect(), tgt = (mobile() ? $('#miniN') : $('#nOk')).getBoundingClientRect();
+  const el = document.createElement('span'); el.className = 'fly'; el.textContent = btn.querySelector('.e').textContent; document.body.append(el);
+  const x0 = a.left, y0 = a.top, x1 = tgt.left + tgt.width / 2 - 11, y1 = tgt.top + tgt.height / 2 - 14, lift = Math.min(160, Math.abs(x1 - x0) * .35 + 60);
+  el.animate([
+    { transform:`translate(${x0}px,${y0}px) scale(1)`, opacity:1 },
+    { transform:`translate(${(x0 + x1) / 2}px,${Math.min(y0, y1) - lift}px) scale(1.5) rotate(-20deg)`, opacity:1, offset:.45 },
+    { transform:`translate(${x1}px,${y1}px) scale(.4) rotate(10deg)`, opacity:.2 }
+  ], { duration:700, easing:'cubic-bezier(.45,0,.3,1)' }).onfinish = () => { el.remove(); bump(); };
+}
 $('#shelves').addEventListener('click', e => { const b = e.target.closest('.ing'); if (!b) return; const k = b.dataset.k;
-  have.has(k) ? have.delete(k) : have.add(k); b.setAttribute('aria-pressed', have.has(k)); if (navigator.vibrate) navigator.vibrate(8); paint(); });
-$('#mini').addEventListener('click', () => document.querySelector('.res').scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block:'start' }));
-$('#clear').addEventListener('click', () => { have.clear(); $$('.ing').forEach(b => b.setAttribute('aria-pressed', false)); paint(); });
-$('#rand').addEventListener('click', () => { have.clear(); [...top].sort(() => Math.random() - .5).slice(0, 7).forEach(k => have.add(k)); $$('.ing').forEach(b => b.setAttribute('aria-pressed', have.has(b.dataset.k))); paint(); });
+  const add = !have.has(k); add ? have.add(k) : have.delete(k); b.setAttribute('aria-pressed', add);
+  if (navigator.vibrate) navigator.vibrate(8); paint(); if (add) fly(b); else bump(); });
+$('#mini').addEventListener('click', () => $('.res').scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block:'start' }));
+$('#clear').addEventListener('click', () => { have.clear(); $$('.ing').forEach(b => b.setAttribute('aria-pressed', false)); paint(); bump(); });
+$('#rand').addEventListener('click', () => { have.clear(); const sel = [...top].sort(() => Math.random() - .5).slice(0, 7); sel.forEach(k => have.add(k));
+  $$('.ing').forEach(b => b.setAttribute('aria-pressed', have.has(b.dataset.k))); paint();
+  sel.forEach((k, i) => setTimeout(() => fly($(`.ing[data-k="${k}"]`)), i * 70)); });
 
 /* Rezept ansehen */
 const dlg = $('#dlg');
@@ -463,69 +529,77 @@ function openRecipe(id){ const r = R.find(x => x.id === id); if (!r) return;
 document.addEventListener('click', e => { const d = e.target.closest('[data-id]'); if (d) openRecipe(d.dataset.id); });
 dlg.addEventListener('click', e => { if (e.target === dlg) dlg.close(); });
 
+/* Segment-Schalter mit gleitender Pille */
+function segPill(seg){ const on = seg.querySelector('[aria-pressed="true"]'), p = seg.querySelector('.pill'); if (!on || !p) return;
+  p.style.width = on.offsetWidth + 'px'; p.style.transform = `translateX(${on.offsetLeft}px)`; }
+const segs = () => $$('.seg').forEach(segPill);
+addEventListener('resize', segs); document.fonts?.ready.then(segs);
+
 /* ---------- Glücksrad ---------- */
 let mode = 'fridge', items = [], rot = 0, spinning = false;
-const COLS = ['#2F7A4C','#E2A010','#D9482F','#3E8C5C','#C98C06','#B93C26','#5A9E70','#F0B43A'];
+const COLS = ['#1F8A5B','#F2A91C','#EB5A3C','#3FA675','#E0951A','#D24A30','#5DBB8C','#F6BE45'];
+const wbox = $('#wbox');
+for (let i = 0; i < 24; i++){ const a = i / 24 * 2 * Math.PI, b = document.createElement('i'); b.className = 'bulb'; b.style.left = 50 + 51.5 * Math.cos(a) + '%'; b.style.top = 50 + 51.5 * Math.sin(a) + '%'; wbox.append(b); }
 function buildWheel(){
   if (spinning) return;
   const pool = mode === 'fridge' ? matches().map(x => x.r) : [...R].sort(() => Math.random() - .5);
-  const base = pool.length >= 8 ? pool.slice(0, 8) : [...pool, ...[...R].sort(() => Math.random() - .5)].filter((r, i, a) => a.indexOf(r) === i).slice(0, 8);
-  items = base;
-  const n = items.length, a = 2 * Math.PI / n, R0 = 190;
+  items = (pool.length >= 8 ? pool.slice(0, 8) : [...pool, ...[...R].sort(() => Math.random() - .5)].filter((r, i, a) => a.indexOf(r) === i).slice(0, 8));
+  const n = items.length, a = 2 * Math.PI / n, R0 = 196;
   $('#wheel').innerHTML = items.map((r, i) => { const a0 = i * a - Math.PI / 2 - a / 2, a1 = a0 + a;
     const p = `M0 0 L${R0 * Math.cos(a0)} ${R0 * Math.sin(a0)} A${R0} ${R0} 0 0 1 ${R0 * Math.cos(a1)} ${R0 * Math.sin(a1)} Z`;
-    const am = (a0 + a1) / 2, tx = 118 * Math.cos(am), ty = 118 * Math.sin(am), deg = am * 180 / Math.PI;
-    const name = r.n.length > 15 ? r.n.slice(0, 14) + '…' : r.n;
-    const flip = Math.cos(am) < -0.01;
+    const am = (a0 + a1) / 2, tx = 120 * Math.cos(am), ty = 120 * Math.sin(am), deg = am * 180 / Math.PI;
+    const name = r.n.length > 15 ? r.n.slice(0, 14) + '…' : r.n, flip = Math.cos(am) < -0.01;
     const lab = flip
-      ? `<g transform="translate(${tx} ${ty}) rotate(${deg + 180})"><text x="34" y="6" font-size="24">${r.e}</text><text x="28" y="5" text-anchor="end" fill="#fff" font-family="Figtree" font-weight="800" font-size="13">${esc(name)}</text></g>`
-      : `<g transform="translate(${tx} ${ty}) rotate(${deg})"><text x="-58" y="6" font-size="24">${r.e}</text><text x="-28" y="5" fill="#fff" font-family="Figtree" font-weight="800" font-size="13">${esc(name)}</text></g>`;
-    return `<path d="${p}" fill="${COLS[i % COLS.length]}" stroke="rgba(255,255,255,.6)" stroke-width="2"/>${lab}`; }).join('')
-    + `<circle r="196" fill="none" stroke="rgba(0,0,0,.12)" stroke-width="8"/>`;
+      ? `<g transform="translate(${tx} ${ty}) rotate(${deg + 180})"><text x="34" y="7" font-size="22">${r.e}</text><text x="28" y="5" text-anchor="end" fill="#fff" font-family="Figtree" font-weight="600" font-size="13">${esc(name)}</text></g>`
+      : `<g transform="translate(${tx} ${ty}) rotate(${deg})"><text x="-58" y="7" font-size="22">${r.e}</text><text x="-28" y="5" fill="#fff" font-family="Figtree" font-weight="600" font-size="13">${esc(name)}</text></g>`;
+    return `<path d="${p}" fill="${COLS[i % COLS.length]}"/>${lab}`; }).join('')
+    + items.map((_, i) => { const a0 = i * a - Math.PI / 2 - a / 2; return `<line x1="0" y1="0" x2="${R0 * Math.cos(a0)}" y2="${R0 * Math.sin(a0)}" stroke="rgba(255,255,255,.35)" stroke-width="1.5"/>`; }).join('');
 }
-$$('#win .seg button').forEach(b => b.addEventListener('click', () => { mode = b.dataset.mode; $$('#win .seg button').forEach(x => x.setAttribute('aria-pressed', x === b)); buildWheel(); }));
+$$('#wseg button').forEach(b => b.addEventListener('click', () => { mode = b.dataset.mode; $$('#wseg button').forEach(x => x.setAttribute('aria-pressed', x === b)); segPill($('#wseg')); buildWheel(); }));
 $('#spin').addEventListener('click', () => {
-  if (spinning || !items.length) return; spinning = true; $('#spin').disabled = true;
+  if (spinning || !items.length) return; spinning = true; $('#spin').disabled = true; wbox.classList.remove('won'); wbox.classList.add('spinning');
   const n = items.length, win = Math.floor(Math.random() * n), seg = 360 / n;
-  const target = 360 * (5 + Math.floor(Math.random() * 3)) + (360 - win * seg) + (Math.random() - .5) * seg * .6;
-  rot = rot - (rot % 360) + target;
+  rot = rot - (rot % 360) + 360 * (5 + Math.floor(Math.random() * 3)) + (360 - win * seg) + (Math.random() - .5) * seg * .6;
   const w = $('#wheel'); w.style.transitionDuration = reduce ? '0s' : '4.6s'; w.style.transform = `rotate(${rot}deg)`;
-  // Zeiger tickt beim Vorbeilaufen
-  let last = -1; const t0 = performance.now(); const pt = $('#pointer');
-  const tk = () => { const m = getComputedStyle(w).transform; if (m && m !== 'none'){ const [a, b] = m.slice(7, -1).split(',').map(Number); const deg = (Math.atan2(b, a) * 180 / Math.PI + 360) % 360; const s = Math.floor(deg / seg); if (s !== last){ last = s; pt.classList.remove('tick'); void pt.offsetWidth; pt.classList.add('tick'); } }
+  let last = -1; const t0 = performance.now(), pt = $('#pointer');
+  const tk = () => { const m = getComputedStyle(w).transform; if (m && m !== 'none'){ const [a, b] = m.slice(7, -1).split(',').map(Number); const s = Math.floor(((Math.atan2(b, a) * 180 / Math.PI + 360) % 360) / seg); if (s !== last){ last = s; pt.classList.remove('tick'); void pt.offsetWidth; pt.classList.add('tick'); if (navigator.vibrate) navigator.vibrate(3); } }
     if (performance.now() - t0 < 4700) requestAnimationFrame(tk); };
   if (!reduce) requestAnimationFrame(tk);
-  setTimeout(() => { spinning = false; $('#spin').disabled = false; $('#spin').textContent = 'Nochmal';
-    const r = items[win]; const box = $('#win');
+  setTimeout(() => { spinning = false; $('#spin').disabled = false; $('#spin').textContent = 'Nochmal'; wbox.classList.replace('spinning', 'won');
+    const r = items[win], box = $('#win');
     box.querySelector('.card')?.remove();
-    box.insertAdjacentHTML('afterbegin', `<div class="card"><div class="e">${r.e}</div><h3>${esc(r.n)}</h3><p>⏱ ${r.t} Min · ${r.i.length} Zutaten</p><button class="btn btn-main btn-sm" data-id="${r.id}">Rezept ansehen</button></div>`);
-    confetti(); }, reduce ? 50 : 4700);
+    box.insertAdjacentHTML('afterbegin', `<div class="card"><div class="e">${r.e}</div><h3 class="split hop-me in" data-split>${esc(r.n)}</h3><p>${r.t} Min · ${r.i.length} Zutaten</p><button class="btn btn-main btn-sm" data-id="${r.id}">Rezept ansehen</button></div>`);
+    const h = box.querySelector('.card h3'); let i = 0; h.innerHTML = h.textContent.split(' ').map(w2 => `<span class="w">${[...w2].map(ch => `<span class="c" style="--i:${i++}">${esc(ch)}</span>`).join('')}</span>`).join(' ');
+    h.classList.remove('in'); requestAnimationFrame(() => requestAnimationFrame(() => h.classList.add('in')));
+    confetti(r.e); }, reduce ? 50 : 4700);
 });
 
-/* Konfetti */
+/* Konfetti mit dem gewonnenen Gericht */
 const cv = $('#confetti'), cx = cv.getContext('2d');
-function confetti(){ if (reduce) return; cv.width = innerWidth; cv.height = innerHeight; const P = [];
-  for (let i = 0; i < 140; i++) P.push({ x:innerWidth / 2, y:innerHeight * .45, vx:(Math.random() - .5) * 16, vy:-Math.random() * 16 - 4, s:5 + Math.random() * 7, c:COLS[i % COLS.length], r:Math.random() * 6, vr:(Math.random() - .5) * .4 });
-  const t0 = performance.now(); const f = t => { const d = t - t0; cx.clearRect(0, 0, cv.width, cv.height);
-    P.forEach(p => { p.vy += .45; p.x += p.vx; p.y += p.vy; p.r += p.vr; cx.save(); cx.translate(p.x, p.y); cx.rotate(p.r); cx.globalAlpha = Math.max(0, 1 - d / 2200); cx.fillStyle = p.c; cx.fillRect(-p.s / 2, -p.s / 3, p.s, p.s * .66); cx.restore(); });
-    if (d < 2300) requestAnimationFrame(f); else cx.clearRect(0, 0, cv.width, cv.height); }; requestAnimationFrame(f); }
+function confetti(emoji){ if (reduce) return; const dpr = devicePixelRatio || 1; cv.width = innerWidth * dpr; cv.height = innerHeight * dpr; cx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const o = wbox.getBoundingClientRect(), ox = o.left + o.width / 2, oy = o.top + o.height / 2, P = [];
+  for (let i = 0; i < 120; i++){ const a = Math.random() * Math.PI * 2, sp = 6 + Math.random() * 12;
+    P.push({ x:ox, y:oy, vx:Math.cos(a) * sp, vy:Math.sin(a) * sp - 6, s:5 + Math.random() * 6, c:COLS[i % COLS.length], r:Math.random() * 6, vr:(Math.random() - .5) * .4, e:i % 9 === 0 ? emoji : null }); }
+  const t0 = performance.now(); const f = t => { const d = t - t0; cx.clearRect(0, 0, innerWidth, innerHeight);
+    P.forEach(p => { p.vy += .38; p.vx *= .985; p.x += p.vx; p.y += p.vy; p.r += p.vr; cx.save(); cx.translate(p.x, p.y); cx.rotate(p.r); cx.globalAlpha = Math.max(0, 1 - d / 2200);
+      if (p.e){ cx.font = '26px system-ui'; cx.fillText(p.e, -13, 9); } else { cx.fillStyle = p.c; cx.fillRect(-p.s / 2, -p.s / 3, p.s, p.s * .66); } cx.restore(); });
+    if (d < 2300) requestAnimationFrame(f); else cx.clearRect(0, 0, innerWidth, innerHeight); }; requestAnimationFrame(f); }
 
 /* Installieren */
 const STEPS = {
   ios: [['Öffnen', 'Tippe auf „App öffnen" – in Safari.'], ['Teilen', 'Tippe auf das Teilen-Symbol (Quadrat mit Pfeil nach oben).'], ['Zum Home-Bildschirm', 'Wähle „Zum Home-Bildschirm" – fertig. Die App liegt jetzt bei deinen anderen Apps.']],
   android: [['Öffnen', 'Tippe auf „App öffnen" – in Chrome.'], ['Menü', 'Tippe oben rechts auf die drei Punkte ⋮.'], ['Installieren', 'Wähle „App installieren" – fertig.']],
 };
-const paintSteps = os => { $('#steps').innerHTML = STEPS[os].map(([b, p]) => `<div class="step"><b>${b}</b><p>${p}</p></div>`).join(''); $$('#installieren .seg button').forEach(x => x.setAttribute('aria-pressed', x.dataset.os === os)); };
-$$('#installieren .seg button').forEach(x => x.addEventListener('click', () => paintSteps(x.dataset.os)));
+const paintSteps = os => { $('#steps').innerHTML = STEPS[os].map(([b, p]) => `<div class="step"><b>${b}</b><p>${p}</p></div>`).join(''); $$('#oseg button').forEach(x => x.setAttribute('aria-pressed', x.dataset.os === os)); segPill($('#oseg')); };
+$$('#oseg button').forEach(x => x.addEventListener('click', () => paintSteps(x.dataset.os)));
 paintSteps(/android/i.test(navigator.userAgent) ? 'android' : 'ios');
 
-/* Magnetischer Knopf */
-const mg = $('#magnet');
-if (!reduce && matchMedia('(pointer:fine)').matches){
-  mg.addEventListener('mousemove', e => { const r = mg.getBoundingClientRect(); mg.style.transform = `translate(${(e.clientX - r.left - r.width / 2) * .25}px,${(e.clientY - r.top - r.height / 2) * .35}px)`; });
-  mg.addEventListener('mouseleave', () => mg.style.transform = ''); }
+/* Knöpfe folgen der Maus ein kleines Stück */
+if (!reduce && fine) $$('.btn').forEach(b => {
+  b.addEventListener('mousemove', e => { const r = b.getBoundingClientRect(); b.style.transform = `translate(${(e.clientX - r.left - r.width / 2) * .18}px,${(e.clientY - r.top - r.height / 2) * .28}px)`; });
+  b.addEventListener('mouseleave', () => b.style.transform = ''); });
 
-paint(); buildWheel();
+paint(); buildWheel(); segs();
 </script>
 </body>
 </html>
