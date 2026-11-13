@@ -701,8 +701,9 @@ function viewFamily(){
 }
 
 /* ---------- Reiter „Mehr" ---------- */
-const VERSION = '5.0';
+const VERSION = '5.0.1';
 const CHANGELOG = [
+  { v:'5.0.1', d:'13. November 2026', items:['Behoben: Der Support (Anfragen, Live-Chat, Meldungen) funktionierte nicht, weil die Datenbank dafür fehlte – jetzt geht alles'] },
   { v:'5.0', d:'12. November 2026', items:['Aufgeräumt: Die Startseite ist jetzt ein kleines Dashboard – was bald abläuft, was auf der Liste steht, welche Wünsche offen sind, und ein Vorschlag für heute mit „Andere Idee"','Die Filter (wer isst mit, Zeit, Lust) stehen jetzt bei „Alle Rezepte", wo man wirklich sucht','Neue Icons überall statt Emojis – Essen bleibt bunt','Neuigkeiten in der Familie nach Tagen sortiert und zusammengefasst, nur die letzten 7 Tage'] },
   { v:'4.5', d:'12. November 2026', items:['Neues App-Icon: ein schlichter Kühlschrank','Neuer, cleaner Look: frischere Farben, Flächen statt Rahmen, runde Knöpfe und weichere Schrift','Knöpfe und Karten federn beim Antippen','Behoben: Falsche Adressen zeigten eine kaputte, weiße App-Seite – jetzt kommt eine richtige „Seite nicht gefunden"-Seite'] },
   { v:'4.4', d:'7. November 2026', items:['↩︎ Rückgängig: Wer aus Versehen etwas löscht (Einkaufsliste, Kühlschrank leeren, Wochenplan), tippt unten einfach auf „Rückgängig"','📳 Kurze Vibration beim Abhaken – jetzt auch am iPhone','🔎 Suche verzeiht Tippfehler jetzt auch im Kühlschrank und in der Einkaufsliste („Tomatn" findet Tomaten)','🛒 Selbst getippte Einträge wie „Klopapier" oder „Brötchen" landen im richtigen Bereich – neu: Getränke und Haushalt & Drogerie','Leere Seiten zeigen jetzt immer, was man als Nächstes tun kann','Verständlichere Fehlermeldungen: was passiert ist und was du tun kannst'] },
