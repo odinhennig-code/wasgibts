@@ -1639,3 +1639,13 @@ html:not(.framed) #sbcol{display:block;position:fixed;left:0;right:0;top:0;heigh
 .card.empty .g .ic{width:1em;height:1em;vertical-align:0;color:var(--muted)}
 .tab .ti{width:24px;height:24px}
 .icw{display:inline}
+
+/* ===================== 5.1 · Sprach-Schieberegler ===================== */
+.top-r{display:flex;align-items:center;gap:8px;flex:none}
+.lang-sw{position:relative;display:inline-grid;grid-template-columns:repeat(3,1fr);padding:3px;border-radius:999px;background:var(--surface-2);flex:none}
+.lang-sw button{position:relative;z-index:1;border:0;background:none;font:700 0.647rem/1 var(--f-body, inherit);letter-spacing:.04em;color:var(--muted);padding:7px 8px;border-radius:999px;cursor:pointer;min-width:30px;transition:color .25s}
+.lang-sw button[aria-checked="true"]{color:var(--fg)}
+.lang-pill{position:absolute;top:3px;bottom:3px;left:3px;width:calc((100% - 6px) / 3);border-radius:999px;background:var(--surface);box-shadow:0 2px 8px rgba(0,0,0,.12);transform:translateX(calc(var(--i) * 100%));transition:transform .45s cubic-bezier(.34,1.56,.64,1)}
+.lang-sw.moving .lang-pill{transition-duration:.35s}
+.lang-float{position:absolute;top:calc(env(safe-area-inset-top) + 12px);right:16px;z-index:5}
+html.lang-switch #views,html.lang-switch #tabbar{transition:opacity .25s,filter .25s;opacity:0;filter:blur(6px)}

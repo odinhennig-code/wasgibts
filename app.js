@@ -6,6 +6,7 @@
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/+esm';
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from './config.js';
 import { ING, ingName, ingEmoji, R, recipe, ALLERGENS, TRAITS, allergensOf, MEAT, FISH, CATS } from './data.js';
+import { LANG, LOCALE, tr, langSwitch, setLang } from './i18n.js';
 
 const configured = !!(SUPABASE_URL && SUPABASE_ANON_KEY);
 /* ---------- Angemeldet bleiben ----------
@@ -362,7 +363,7 @@ function viewAuth(){
   if (UI.auth === 'check') return `<div class="center"><div class="r-hero">📬</div><div class="h1" style="text-align:center">Fast geschafft!</div>
     <p class="muted" style="text-align:center">Wir haben dir eine E-Mail geschickt. Tippe auf den Link darin und melde dich dann hier an.</p>
     <button class="btn btn-herb btn-block" data-action="auth-mode" data-v="login">Zur Anmeldung</button></div>`;
-  return `<div class="center">
+  return `<div class="lang-float">${langSwitch()}</div><div class="center">
     ${installBanner()}
     <div class="logo-big">Was<br>gibt's<span>?</span></div>
     <p class="muted" style="text-align:center;margin:0 0 6px">Ein Essen, das allen schmeckt, aus dem, was da ist.</p>
@@ -380,13 +381,13 @@ function viewAuth(){
 }
 function viewNoFamily(){
   const p = D.profile;
-  if (D.membership && D.membership.status==='pending') return `<div class="center" style="text-align:center">
+  if (D.membership && D.membership.status==='pending') return `<div class="lang-float">${langSwitch()}</div><div class="center" style="text-align:center">
       <div class="r-hero">⏳</div><div class="h1">Warte auf Bestätigung</div>
       <p class="muted">Deine Anfrage an <b>${esc(D.family ? D.family.name : 'die Familie')}</b> ist raus. Sobald ein Admin dich annimmt, geht es automatisch weiter.</p>
       <button class="btn btn-line" data-action="leave">Anfrage zurückziehen</button>
       <button class="linkbtn" data-action="logout">Abmelden</button></div>`;
   const code = UI.joinCode || L.joinCode || '';
-  return `<div class="center">
+  return `<div class="lang-float">${langSwitch()}</div><div class="center">
     <div class="r-hero">${avIn(p)}</div>
     <div class="h1" style="text-align:center">Willkommen, ${esc(p.name)}!</div>
     <p class="muted" style="text-align:center;margin:0">Tritt deiner Familie bei oder gründe eine neue.</p>
@@ -403,8 +404,8 @@ function viewNoFamily(){
 
 /* ---------- Ansichten: App ---------- */
 function header(title, sub){
-  return `<div class="top"><div><div class="muted" style="font-weight:700">${sub}</div><div class="h1">${title}</div></div>
-    <button class="avatar" data-tab="family" aria-label="Familie und Profil">${avIn(D.profile)}</button></div>` + offlineBar() + (partyOn() && Date.now() < PARTY.at && UI.tab !== 'home' ? partyChip() : '');
+  return `<div class="top"><div style="min-width:0"><div class="muted" style="font-weight:700">${sub}</div><div class="h1">${title}</div></div>
+    <div class="top-r">${langSwitch()}<button class="avatar" data-tab="family" aria-label="Familie und Profil">${avIn(D.profile)}</button></div></div>` + offlineBar() + (partyOn() && Date.now() < PARTY.at && UI.tab !== 'home' ? partyChip() : '');
 }
 function suggestionCard(s){
   return `<button class="rc" data-action="open-recipe" data-id="${s.r.id}">
@@ -425,7 +426,7 @@ function viewHome(){
   const n = pool.length, idx = n ? ((UI.pickIdx || 0) % n + n) % n : 0, top = pool[idx];
   const rest = n > 1 ? [1,2,3].map(k => pool[(idx + k) % n]).filter((x, i, arr) => x !== top && arr.indexOf(x) === i) : [];
   const now = new Date(), h = now.getHours();
-  const greet = (h<11?'Guten Morgen':h<17?'Hallo':'Guten Abend') + ' · ' + now.toLocaleDateString('de-DE', { weekday:'long' }) + (hwOn() ? ' 🎃' : adOn() ? ' 🎄' : '');
+  const greet = tr(h<11?'Guten Morgen':h<17?'Hallo':'Guten Abend') + ' · ' + now.toLocaleDateString(LOCALE, { weekday:'long' }) + (hwOn() ? ' 🎃' : adOn() ? ' 🎄' : '');
   const p = isAdmin() ? pendingReq() : [];
   const exp = expiringSoon(), shopN = openShop().length, wishN = new Set(D.wishes.map(w => w.recipe_id).filter(id => rec(id) && wishersOf(id).length)).size;
   const tile = (act, em, big, small, hot) => `<button class="dash-t ${hot ? 'hot' : ''}" ${act}><span class="dash-e" aria-hidden="true">${em}</span><b>${big}</b><small>${small}</small></button>`;
@@ -806,7 +807,7 @@ function annBanner(){
 function viewBanned(){
   return `<div class="center" style="text-align:center;align-items:center;gap:10px"><div style="font-size:56px">🚫</div>
     <div class="h1" style="font-size:24px">Dein Account ist ${D.profile.banned_until ? 'vorübergehend ' : ''}gesperrt</div>
-    ${D.profile.banned_until ? `<p style="margin:0;font-weight:700">bis ${esc(new Date(D.profile.banned_until).toLocaleString('de-DE', { weekday:'long', day:'numeric', month:'long', hour:'2-digit', minute:'2-digit' }))} Uhr</p>` : ''}
+    ${D.profile.banned_until ? `<p style="margin:0;font-weight:700">bis ${esc(new Date(D.profile.banned_until).toLocaleString(LOCALE, { weekday:'long', day:'numeric', month:'long', hour:'2-digit', minute:'2-digit' }))} Uhr</p>` : ''}
     ${D.profile.ban_reason ? `<p style="margin:0;max-width:280px">Grund: ${esc(D.profile.ban_reason)}</p>` : ''}
     <p style="color:var(--muted);max-width:280px">Du glaubst, das ist ein Fehler? Schreib unserem Support – wir schauen es uns an.</p>
     <button class="btn btn-herb" data-action="sup-new" data-v="sperre">🛟 Support kontaktieren</button>
@@ -1232,7 +1233,7 @@ function pollBlock(all){
     const counts = {}; D.votes.forEach(v => counts[v.recipe_id] = (counts[v.recipe_id]||0) + 1);
     const mine = D.votes.find(v => v.user_id === D.user.id), canEnd = P.created_by === D.user.id || isAdmin();
     return `<div class="h2">Abstimmung läuft <span class="chip c-tomato">${D.votes.length} von ${active().length}</span></div>
-      <div class="card poll"><div style="font-weight:800;margin-bottom:10px">🗳️ Was essen wir heute?${P.ends_at ? ` <span class="chip c-muted" style="margin-left:6px">⏰ endet ${new Date(P.ends_at).toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'})} Uhr</span>` : ''}</div>
+      <div class="card poll"><div style="font-weight:800;margin-bottom:10px">🗳️ Was essen wir heute?${P.ends_at ? ` <span class="chip c-muted" style="margin-left:6px">⏰ endet ${new Date(P.ends_at).toLocaleTimeString(LOCALE,{hour:'2-digit',minute:'2-digit'})} Uhr</span>` : ''}</div>
       <div class="stack" style="gap:8px">${P.options.filter(rec).map(id => { const r = rec(id), who = D.votes.filter(v=>v.recipe_id===id).map(v=>prof(v.user_id)), pct = D.votes.length ? (counts[id]||0)/D.votes.length*100 : 0;
         return `<button class="opt ${mine&&mine.recipe_id===id?'mine':''}" data-action="vote" data-id="${id}"><i style="width:${pct}%"></i><span class="oe">${r.e}</span><span class="on">${esc(r.n)}</span><span class="avatar-stack">${who.map(p=>`<span class="avatar sm">${avIn(p)}</span>`).join('')}</span><b>${counts[id]||0}</b></button>`; }).join('')}</div>
       ${canEnd ? `<button class="btn btn-herb btn-block btn-sm" style="margin-top:12px" data-action="end-poll">Abstimmung beenden</button>` : `<p class="muted" style="font-size:13px;margin:10px 0 0">${mine?'Deine Stimme ist gezählt. Du kannst sie noch ändern.':'Tippe auf dein Lieblingsgericht.'}</p>`}</div>`;
@@ -1465,7 +1466,7 @@ const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
 let voiceRec = null;
 function speak(text){
   try { if (!('speechSynthesis' in window)) return; speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(text); u.lang = 'de-DE'; u.rate = 1;
+    const u = new SpeechSynthesisUtterance(text); u.lang = LOCALE; u.rate = 1;
     const v = speechSynthesis.getVoices().find(x => /^de/i.test(x.lang)); if (v) u.voice = v;
     speechSynthesis.speak(u); } catch(e){}
 }
@@ -1477,7 +1478,7 @@ function updVoice(){
 function startVoice(){
   if (!SR){ toast('Sprachsteuerung geht in diesem Browser leider nicht'); return; }
   try {
-    voiceRec = new SR(); voiceRec.lang = 'de-DE'; voiceRec.continuous = true; voiceRec.interimResults = false;
+    voiceRec = new SR(); voiceRec.lang = LOCALE; voiceRec.continuous = true; voiceRec.interimResults = false;
     voiceRec.onresult = e => { const res = e.results[e.results.length - 1]; if (res && res[0]) onVoice(res[0].transcript.toLowerCase().trim()); };
     voiceRec.onerror = e => { if (/not-allowed|service-not-allowed/.test(e.error)){ UI.voice = false; updVoice(); toast('Bitte erlaube das Mikrofon für die Sprachsteuerung'); } };
     voiceRec.onend = () => { if (UI.voice && UI.cook){ try { voiceRec.start(); } catch(err){} } };
@@ -1667,7 +1668,7 @@ function storageOf(k){
   if (NOT_COLD.includes(k)) return ['🧺', 'Kühl & dunkel', 'Nicht in den Kühlschrank – kühl und dunkel lagern'];
   return ['🧊⁠', 'Kühlschrank', 'Gehört in den Kühlschrank'];
 }
-const fmtDate = iso => { const d = new Date(iso + 'T12:00:00'); return d.toLocaleDateString('de-DE', { day:'numeric', month:'long', year:'numeric' }); };
+const fmtDate = iso => { const d = new Date(iso + 'T12:00:00'); return d.toLocaleDateString(LOCALE, { day:'numeric', month:'long', year:'numeric' }); };
 function guessKey(text){
   const q = String(text || '').toLowerCase(); if (!q) return null;
   return Object.keys(ING).find(k => q.includes(ING[k][0].toLowerCase())) || Object.keys(ING).find(k => ING[k][0].toLowerCase().includes(q.split(/\s+/)[0])) || null;
@@ -1902,6 +1903,7 @@ document.addEventListener('click', async e => {
     case 'plan-repeat': t.disabled = true; await planRepeat(); t.disabled = false; break;
     case 'plan-image': await planImage(); break;
     case 'next-pick': { UI.pickIdx = (UI.pickIdx || 0) + 1; buzz(6); const w = $('#pickWrap'); if (w && !reduceMotion){ w.classList.add('out'); setTimeout(() => { render(); const w2 = $('#pickWrap'); if (w2){ w2.classList.add('in'); setTimeout(() => w2.classList.remove('in'), 450); } }, 160); } else render(); break; }
+    case 'lang': setLang(t.dataset.v); break;
     case 'feed-all': UI.feedAll = !UI.feedAll; render(); break;
     case 'go-shop': UI.ftab = 'shop'; if (UI.tab === 'fridge') render(); else go('fridge'); break;
     case 'go-wishes': UI.rtab = 'wishes'; if (UI.tab === 'recipes') render(); else go('recipes'); break;
@@ -2026,7 +2028,7 @@ function offlineRetry(){ clearTimeout(offT); if (!D.user) return; offT = setTime
   try { await loadAll(true); subscribe(); UI.err = ''; render(); } catch(e){ offlineRetry(); } }, navigator.onLine === false ? 30000 : 12000); }
 window.addEventListener('online', () => { if (UI.offline || !D.profile){ clearTimeout(offT); offT = setTimeout(() => { offlineRetry(); }, 0); loadAll(true).then(() => { subscribe(); UI.err = ''; render(); }).catch(() => {}); } });
 function offlineBar(){ if (!UI.offline) return ''; const m = Math.round((Date.now() - UI.offline) / 60000);
-  return `<div class="offline-bar">📴 <b>Offline</b> – du siehst den Stand von ${m < 1 ? 'gerade eben' : m < 60 ? `vor ${m} Min.` : new Date(UI.offline).toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'}) + ' Uhr'}. Änderungen gehen wieder, sobald du Internet hast.</div>`; }
+  return `<div class="offline-bar">📴 <b>Offline</b> – du siehst den Stand von ${m < 1 ? 'gerade eben' : m < 60 ? `vor ${m} Min.` : new Date(UI.offline).toLocaleTimeString(LOCALE,{hour:'2-digit',minute:'2-digit'}) + ' Uhr'}. Änderungen gehen wieder, sobald du Internet hast.</div>`; }
 
 /* =========================================================================
    VERSION 4.0 – das große Update
@@ -2058,7 +2060,7 @@ let shopRec = null;
 function shopVoice(){
   if (!SPR){ toast('Spracheingabe geht auf diesem Gerät leider nicht'); return; }
   if (shopRec){ try { shopRec.stop(); } catch(e){} return; }
-  shopRec = new SPR(); shopRec.lang = 'de-DE'; shopRec.interimResults = false; shopRec.maxAlternatives = 1;
+  shopRec = new SPR(); shopRec.lang = LOCALE; shopRec.interimResults = false; shopRec.maxAlternatives = 1;
   UI.listening = true; render(); toast('🎤 Sag z. B. „Milch, Eier und Brot"');
   shopRec.onresult = async e => { const said = (e.results[0] && e.results[0][0].transcript) || ''; const parts = said.split(/,|\bund\b|\bsowie\b|\bauch\b/i).map(x => x.trim()).filter(Boolean);
     const keys = [], free = [];
@@ -2134,7 +2136,7 @@ function rankBlock(){
   const now = new Date(), m0 = new Date(now.getFullYear(), now.getMonth(), 1).getTime(), by = {};
   D.log.filter(l => l.user_id && Date.parse(l.cooked_at) >= m0).forEach(l => by[l.user_id] = (by[l.user_id] || 0) + 1);
   const top = Object.entries(by).sort((a, b) => b[1] - a[1]).slice(0, 5); if (!top.length) return '';
-  const mon = now.toLocaleDateString('de-DE', { month:'long' }), medal = ['🥇','🥈','🥉','4.','5.'];
+  const mon = now.toLocaleDateString(LOCALE, { month:'long' }), medal = ['🥇','🥈','🥉','4.','5.'];
   return `<div class="h2">🏆 Koch-Rangliste ${mon}</div><div class="list rank">${top.map(([id, n], i) => `<div class="row"><span class="rk">${medal[i]}</span><span class="avatar sm">${avIn(prof(id))}</span><span class="grow"><b>${esc(prof(id).name)}</b></span><b>${n}× gekocht</b></div>`).join('')}</div>`;
 }
 async function addPost(body){ body = body.trim().slice(0,200); if (!body) return;
@@ -2293,7 +2295,7 @@ function openProfile(id){
   const favs = (a.favs||[]).map(rec).filter(Boolean).slice(0,6);
   const st = kitchenStats ? (() => { try { return kitchenStats(); } catch(e){ return null; } })() : null;
   const isChef = st && st.topCook && st.topCook[0] === id && st.topCook[1] > 1;
-  const since = m && m.created_at ? new Date(m.created_at).toLocaleDateString('de-DE', { month:'long', year:'numeric' }) : '';
+  const since = m && m.created_at ? new Date(m.created_at).toLocaleDateString(LOCALE, { month:'long', year:'numeric' }) : '';
   const pc = okColor(a.color) ? a.color : 'var(--herb)';
   sheetFn = null;
   openSheet(`<div class="pf-card" style="--pcc:${pc}">
@@ -2317,7 +2319,7 @@ const SPONSOR = { name:'PiHILL', url:'https://www.etsy.com/de/shop/PiHILL', logo
 const AD_EVERY = 14*DAY, PLUS_DAY = DAY;
 const plusActive = () => (L.plusUntil||0) > Date.now();
 const adReady = () => Date.now() - (L.adLast||0) >= AD_EVERY;
-const fmtDay = ms => new Date(ms).toLocaleDateString('de-DE', { day:'numeric', month:'long' });
+const fmtDay = ms => new Date(ms).toLocaleDateString(LOCALE, { day:'numeric', month:'long' });
 const fmtLeft = ms => { const h = Math.max(1, Math.round((ms - Date.now())/36e5)); return h >= 2 ? `noch ${h} Stunden` : 'noch knapp 1 Stunde'; };
 function sponsorFoot(){
   return `<button class="sp-foot" data-action="sponsor" aria-label="Gesponsert von PiHILL – mehr erfahren"><span>Gesponsert von</span><img src="${SPONSOR.logo}" alt="PiHILL"></button>`;
@@ -2595,7 +2597,7 @@ function feedHtml(){
   let lastDay = '', html = '';
   shown.forEach(g => { const d = day(g.t), p = prof(g.who);
     if (d !== lastDay){ if (lastDay) html += '</div>'; html += `<div class="feed-day">${d}</div><div class="list feed">`; lastDay = d; }
-    const time = d === 'Heute' || d === 'Gestern' ? new Date(g.t).toLocaleTimeString('de-DE', { hour:'2-digit', minute:'2-digit' }) : new Date(g.t).toLocaleDateString('de-DE', { weekday:'short' });
+    const time = d === 'Heute' || d === 'Gestern' ? new Date(g.t).toLocaleTimeString(LOCALE, { hour:'2-digit', minute:'2-digit' }) : new Date(g.t).toLocaleDateString(LOCALE, { weekday:'short' });
     html += `<div class="row"><span class="avatar sm">${p.avatar || '🙂'}</span><span class="grow"><span><b>${esc(p.name || 'Jemand')}</b> ${feedText(g)}</span></span><span class="feed-t">${FEED_IC[g.k]} ${time}</span></div>`; });
   html += '</div>';
   return `<div class="h2">Neuigkeiten</div>${html}${groups.length > 5 ? `<button class="linkbtn feed-more" data-action="feed-all">${UI.feedAll ? 'Weniger anzeigen' : `${groups.length - 5} weitere anzeigen`}</button>` : ''}`;
@@ -3032,7 +3034,7 @@ async function openTicket(keep){
   const back = D.profile?.banned ? '' : `<button class="linkbtn sup-back" data-action="help">‹ Hilfe</button>`;
   openSheet(`${back}${sheetHead(esc(t.subject))}
     <div class="sup-meta"><span class="chip ${sc}">${sl}</span>${t.priority === 'notfall' ? '<span class="chip c-tomato">🚨 Notfall</span>' : t.priority === 'plus' ? '<span class="chip c-herb">✨ Plus</span>' : ''}<span class="muted">${SUP.online ? '🟢 Support online' : ''}</span></div>
-    <div class="sup-chat" id="sup-chat">${ms.map(m => `<div class="bub ${m.from_support ? 'them' : 'me'}">${m.from_support ? '<b>Support</b>' : ''}<span>${esc(m.body)}</span><small>${new Date(m.created_at).toLocaleString('de-DE', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' })}</small></div>`).join('') || '<div class="muted" style="text-align:center;padding:20px">Lädt …</div>'}
+    <div class="sup-chat" id="sup-chat">${ms.map(m => `<div class="bub ${m.from_support ? 'them' : 'me'}">${m.from_support ? '<b>Support</b>' : ''}<span>${esc(m.body)}</span><small>${new Date(m.created_at).toLocaleString(LOCALE, { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' })}</small></div>`).join('') || '<div class="muted" style="text-align:center;padding:20px">Lädt …</div>'}
       ${ms.length && t.last_from === 'user' && t.status !== 'geloest' ? `<div class="sup-wait">${SUP.online ? 'Der Support ist online und antwortet gleich.' : 'Wir haben deine Nachricht und melden uns hier.'}</div>` : ''}</div>
     ${t.status === 'geloest' ? `<div class="sup-rate">${t.rating ? (t.rating > 0 ? 'Danke! Schön, dass wir helfen konnten 💚' : 'Danke für deine ehrliche Bewertung – wir werden besser.') : `<span>Hat dir das geholfen?</span><div><button class="btn btn-line btn-sm" data-action="sup-rate" data-v="1">👍 Ja</button><button class="btn btn-line btn-sm" data-action="sup-rate" data-v="-1">👎 Nein</button></div>`}</div>` : ''}
     <form class="sup-input" id="sup-form" autocomplete="off"><textarea id="sup-reply" class="input" rows="1" maxlength="2000" placeholder="${t.status === 'geloest' ? 'Noch eine Frage? Schreib einfach weiter' : 'Nachricht schreiben …'}" aria-label="Nachricht"></textarea><button class="btn btn-herb" type="submit" aria-label="Senden">➤</button></form>
