@@ -65,7 +65,8 @@ export function tr(text){
   const trail = (rest.match(TRAIL) || [''])[0], core0 = rest.slice(0, rest.length - trail.length);
   const core = core0.replace(/\s+/g, ' ');
   if (!core || !/[A-Za-zÄÖÜäöüß]/.test(core)) return text;
-  const out = translateCore(core);
+  let out = translateCore(core);
+  if (out != null && LANG === 'ru') out = ruPlural(out);
   return out == null ? text : lead + out + trail;
 }
 function translateCore(core){
@@ -84,6 +85,14 @@ function translateCore(core){
   return null;
 }
 const MISS = (() => { try { return localStorage.getItem('wg.i18ndebug') ? (window.__i18nMiss = new Set()) : null; } catch(e){ return null; } })();
+/* Russische Mehrzahl: 1 вещь · 2 вещи · 5 вещей */
+const RU_FORMS = [['вещь','вещи','вещей'],['рецепт','рецепта','рецептов'],['желание','желания','желаний'],['ингредиент','ингредиента','ингредиентов'],['продукт','продукта','продуктов'],['блюдо','блюда','блюд'],['участник','участника','участников'],['запись','записи','записей'],['оценка','оценки','оценок'],['день','дня','дней'],['минута','минуты','минут'],['человек','человека','человек']];
+function ruPlural(t){
+  return t.replace(/(\d+)(\s+)([А-Яа-яЁё]+)/g, (m, n, sp, w) => {
+    const lw = w.toLowerCase(), f = RU_FORMS.find(x => x.includes(lw)); if (!f) return m;
+    const k = +n % 100, k1 = k % 10, idx = (k > 10 && k < 20) ? 2 : k1 === 1 ? 0 : (k1 >= 2 && k1 <= 4) ? 1 : 2;
+    return n + sp + f[idx]; });
+}
 const SKIP = 'script,style,textarea,input,svg,canvas,[data-noi18n],.sup-chat,.pin-msg,.note-body';
 function doText(node){
   const p = node.parentElement; if (!p || p.closest(SKIP)) return;
