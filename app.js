@@ -702,8 +702,9 @@ function viewFamily(){
 }
 
 /* ---------- Reiter „Mehr" ---------- */
-const VERSION = '5.0.1';
+const VERSION = '5.1';
 const CHANGELOG = [
+  { v:'5.1', d:'14. November 2026', items:['Neu: Die App spricht jetzt Deutsch, Englisch und Russisch – oben auf jeder Seite umschaltbar, alle 620 Rezepte mit Schritten inklusive','Neu: „Die App erklärt" unter „Mehr" – ein kleiner Animationsfilm zum Prinzip und danach eine Tour mit Lichtkegel durch die echte App'] },
   { v:'5.0.1', d:'13. November 2026', items:['Behoben: Der Support (Anfragen, Live-Chat, Meldungen) funktionierte nicht, weil die Datenbank dafür fehlte – jetzt geht alles'] },
   { v:'5.0', d:'12. November 2026', items:['Aufgeräumt: Die Startseite ist jetzt ein kleines Dashboard – was bald abläuft, was auf der Liste steht, welche Wünsche offen sind, und ein Vorschlag für heute mit „Andere Idee"','Die Filter (wer isst mit, Zeit, Lust) stehen jetzt bei „Alle Rezepte", wo man wirklich sucht','Neue Icons überall statt Emojis – Essen bleibt bunt','Neuigkeiten in der Familie nach Tagen sortiert und zusammengefasst, nur die letzten 7 Tage'] },
   { v:'4.5', d:'12. November 2026', items:['Neues App-Icon: ein schlichter Kühlschrank','Neuer, cleaner Look: frischere Farben, Flächen statt Rahmen, runde Knöpfe und weichere Schrift','Knöpfe und Karten federn beim Antippen','Behoben: Falsche Adressen zeigten eine kaputte, weiße App-Seite – jetzt kommt eine richtige „Seite nicht gefunden"-Seite'] },
@@ -770,7 +771,7 @@ function viewMore(){
     `<button class="plus-card" data-action="plus"><div class="pc-glow"></div><span class="plus-badge">✨ PLUS</span><b>Mehr für deine Familie</b><span>KI-Rezepte · unbegrenzt Fotos · Wochenplan-Assistent · sortierte Einkaufsliste</span><span class="pc-cta">${L.plusInterest ? '💚 Du bist vorgemerkt' : 'Ansehen und vormerken ›'}</span></button>` +
     sponsorRow() +
     `<div class="h2">Hilfe</div>
-    <div class="list" style="margin-bottom:10px"><button class="row" data-action="tour"><span style="font-size:22px">👋</span><span class="grow"><b>Kurze Tour durch die App</b><small>In 4 Schritten erklärt</small></span>${I.chev}</button></div>
+    <div class="list" style="margin-bottom:10px"><button class="row xp-row" data-action="explain"><span class="xp-row-ic"><i class="ic" style="--m:url(icons/p/idea.png)"></i></span><span class="grow"><b>Die App erklärt</b><small>Animationsfilm + Tour durch die echte App</small></span>${I.chev}</button><button class="row" data-action="tour"><span style="font-size:22px">👋</span><span class="grow"><b>Kurze Tour durch die App</b><small>In 4 Schritten erklärt</small></span>${I.chev}</button></div>
     ${FAQ.map(([q,a])=>`<details class="faq"><summary>${esc(q)}</summary><p>${esc(a)}</p></details>`).join('')}
     <div class="h2">Darstellung</div>
     <div class="seg" role="group" aria-label="Farbschema">${[['system','System'],['light','Hell'],['dark','Dunkel']].map(([k,l])=>`<button data-action="theme" data-v="${k}" aria-pressed="${(L.theme||'system')===k}">${l}</button>`).join('')}</div>
@@ -2880,6 +2881,7 @@ document.addEventListener('click', async e => {
       const st = c.steps && c.steps[c.step], tx = $('.ck-main.in .ck-text'); if (st && tx) tx.textContent = scaleQty(st.text, c.servings / 4); buzz(6); toast(`👥 Mengen für ${c.servings} ${c.servings === 1 ? 'Person' : 'Personen'}`); break; }
     case 'timer-x': UI.timers = UI.timers.filter(x => String(x.id) !== t.dataset.v); tickTimer(); toast('Timer gestoppt'); break;
     case 'tour': openTour(); break;
+    case 'explain': openExplain(); break;
     case 'tour-next': { const tr = $('#tour .tour-track'); if (!tr) break; const i = Math.round(tr.scrollLeft / tr.clientWidth); if (i >= TOUR.length - 1) endTour(); else tr.scrollTo({ left:(i + 1) * tr.clientWidth, behavior:'smooth' }); break; }
     case 'tour-end': endTour(); break;
     case 'wn-ok': closeSheet(); render(); break;
@@ -2893,7 +2895,7 @@ document.addEventListener('click', async e => {
       else openAdvent(true, n); break; }
   } } catch(err){ toast(errText(err)); }
 });
-window.addEventListener('keydown', e => { if (e.key === 'Escape'){ const s = $('#story'); if (s && s.__close) s.__close(); if ($('#tour')) endTour(); if (UI.shopMode) closeShopMode(); } });
+window.addEventListener('keydown', e => { if (e.key === 'Escape'){ const s = $('#story'); if (s && s.__close) s.__close(); if ($('#tour')) endTour(); if ($('#xt')) endXTour(false); if (UI.shopMode) closeShopMode(); } });
 window.addEventListener('wg:data', () => { if (UI.shopMode) renderShopMode(); });
 
 /* ---------- Start ---------- */
@@ -3231,3 +3233,133 @@ function iconize(root){
 new MutationObserver(ms => ms.forEach(m => { if (m.type === 'characterData') iconizeText(m.target); else m.addedNodes.forEach(iconize); }))
   .observe(document.body, { childList:true, subtree:true, characterData:true });
 iconize(document.body);
+
+/* ===================== 5.1 · Erklär-Modus =====================
+   Teil 1: ein kleiner Animationsfilm zum Prinzip (Kapitel wie Stories).
+   Teil 2: geführte Tour durch die echte App – ein Lichtkegel springt von Stelle zu Stelle. */
+const X3 = (de, en, ru) => ({ de, en, ru })[LANG] || de;
+const XFILM = () => {
+  const bolo = rec('bolo') || R[0];
+  return [
+  { t:X3('Jeden Abend dieselbe Frage','The same question every evening','Каждый вечер один вопрос'),
+    s:X3('Wer kocht? Was ist da? Worauf hat jeder Lust?','Who cooks? What\'s there? What does everyone feel like?','Кто готовит? Что есть? Чего всем хочется?'),
+    h:`<div class="xs1">${['👩','👨','👧','👦'].map((a, i) => `<div class="xs1-p" style="--i:${i}"><span class="xs1-a">${a}</span><span class="xs1-b">${X3('Was gibt\'s?','What\'s for dinner?','Что на ужин?')}</span></div>`).join('')}<div class="xs1-q">?</div></div>` },
+  { t:X3('Sag, was da ist','Say what\'s there','Скажи, что есть'),
+    s:X3('Antippen, sagen oder einfach ein Foto vom Kühlschrank.','Tap, say it or just take a photo of the fridge.','Отметь, скажи или просто сфотографируй холодильник.'),
+    h:`<div class="xs2"><div class="xs2-fr"><div class="xs2-in">${['🥚','🍅','🧀','🥦','🍝','🧅'].map((e, i) => `<span class="xs2-i" style="--i:${i}">${e}<i>✓</i></span>`).join('')}</div><div class="xs2-door"><i></i></div></div><div class="xs2-flash"></div><div class="xs2-cam"><i class="ic" style="--m:url(icons/p/camera.png)"></i></div></div>` },
+  { t:X3('Wir sagen, was passt','We say what fits','Мы скажем, что подходит'),
+    s:X3('Aus 620 Rezepten nur die, die ihr jetzt kochen könnt.','Out of 620 recipes, only the ones you can cook right now.','Из 620 рецептов – только те, что можно приготовить сейчас.'),
+    h:`<div class="xs3">${['🥚','🍅','🧀','🥦','🍝','🧅'].map((e, i) => `<span class="xs3-i" style="--i:${i}">${e}</span>`).join('')}<div class="xs3-plate">${bolo.e}</div>
+      <div class="xs3-card"><b>${esc(bolo.n)}</b><small>⏱ ${bolo.t} ${X3('Min','min','мин')} · ${X3('alles da','all there','всё есть')} ✓</small></div><div class="xs3-n"><b data-to="620">620</b><span>→</span><b class="g">12</b></div></div>` },
+  { t:X3('Passt für alle am Tisch','Fits everyone at the table','Подходит всем за столом'),
+    s:X3('Jeder hat ein Profil – vegetarisch, keine Pilze, Allergien.','Everyone has a profile – vegetarian, no mushrooms, allergies.','У каждого профиль – вегетарианец, без грибов, аллергии.'),
+    h:`<div class="xs4"><div class="xs4-ppl">${[['👧',X3('vegetarisch','vegetarian','вегетарианка')],['👨',X3('keine Pilze','no mushrooms','без грибов')],['👦',X3('isst alles','eats everything','ест всё')]].map(([a, l], i) => `<div class="xs4-p" style="--i:${i}"><span>${a}</span><small>${l}</small></div>`).join('')}</div>
+      <div class="xs4-cards"><div class="xs4-c bad1">🍄 ${X3('Pilzpfanne','Mushroom pan','Грибы на сковороде')}</div><div class="xs4-c bad2">🥩 ${X3('Steak','Steak','Стейк')}</div><div class="xs4-c good">🍝 ${esc(bolo.n.split(' ')[0])}… <i>✓</i></div></div></div>` },
+  { t:X3('Alle reden mit','Everyone has a say','Все участвуют'),
+    s:X3('Wünsche, Abstimmungen und eine Einkaufsliste – bei allen sofort aktuell.','Wishes, votes and a shopping list – instantly up to date for everyone.','Желания, голосования и список покупок – сразу у всех.'),
+    h:`<div class="xs5"><div class="xs5-vote"><div class="xs5-row"><span>🍛 Curry</span><div class="xs5-bar"><i style="--w:75%"></i></div><b>3</b></div><div class="xs5-row"><span>🍕 Pizza</span><div class="xs5-bar"><i style="--w:25%"></i></div><b>1</b></div></div>
+      <div class="xs5-list">${[X3('Milch','Milk','Молоко'),X3('Paprika','Bell pepper','Перец'),X3('Nudeln','Pasta','Макароны')].map((x, i) => `<div class="xs5-li" style="--i:${i}"><span class="xs5-cb"></span>${x}</div>`).join('')}</div>
+      ${[0,1,2,3,4].map(i => `<span class="xs5-h" style="--i:${i}">❤</span>`).join('')}</div>` },
+  { t:X3('Kochen wie ein Profi','Cook like a pro','Готовь как профи'),
+    s:X3('Große Schritte zum Wischen, Timer mit Ton und Mengen für eure Personenzahl.','Big swipeable steps, timers with sound and amounts for your number of people.','Большие шаги, таймеры со звуком и количество на вашу семью.'),
+    h:`<div class="xs6"><div class="xs6-pot">🍲<span class="st" style="--i:0"></span><span class="st" style="--i:1"></span><span class="st" style="--i:2"></span></div>
+      <svg class="xs6-ring" viewBox="0 0 100 100"><circle cx="50" cy="50" r="44"/><circle class="p" cx="50" cy="50" r="44"/></svg><div class="xs6-time">10:00</div>
+      <div class="xs6-step"><small>${X3('Schritt 2 von 5','Step 2 of 5','Шаг 2 из 5')}</small><b>${X3('Nudeln 10 Minuten kochen.','Cook the pasta for 10 minutes.','Варить макароны 10 минут.')}</b></div></div>` },
+  { t:X3('Jetzt zeig ich dir, wo alles ist','Now let me show you where everything is','А теперь покажу, где что','Now'),
+    s:X3('Eine kurze Tour durch die echte App – mit Lichtkegel.','A short tour through the real app – with a spotlight.','Короткая экскурсия по настоящему приложению – с подсветкой.'),
+    h:`<div class="xs7"><div class="xs7-ph"><div class="xs7-spot"></div>${[0,1,2,3,4].map(i => `<i style="--i:${i}"></i>`).join('')}</div></div>`, last:true },
+  ];
+};
+let xpTimer = null;
+function openExplain(){
+  if ($('#xp')) return;
+  closeSheet?.();
+  const F = XFILM(), el = document.createElement('div'); el.id = 'xp'; el.setAttribute('data-noi18n', ''); el.setAttribute('role', 'dialog'); el.setAttribute('aria-modal', 'true');
+  el.setAttribute('aria-label', X3('Die App erklärt','The app explained','Как устроено приложение'));
+  el.innerHTML = `<div class="xp-bars">${F.map(() => '<i><b></b></i>').join('')}</div>
+    <button class="xp-x" data-x="close" aria-label="${X3('Schließen','Close','Закрыть')}">✕</button>
+    ${F.map((f, i) => `<section class="xp-s" data-i="${i}"><div class="xp-stage">${f.h}</div><div class="xp-txt"><h2>${f.t}</h2><p>${f.s}</p>
+      ${f.last ? `<div class="xp-cta"><button class="btn btn-herb" data-x="tour">${X3('Tour starten','Start tour','Начать экскурсию')}</button><button class="btn btn-soft" data-x="close">${X3('Fertig','Done','Готово')}</button></div>` : ''}</div></section>`).join('')}
+    <button class="xp-nav l" data-x="prev" aria-label="${X3('Zurück','Back','Назад')}"></button><button class="xp-nav r" data-x="next" aria-label="${X3('Weiter','Next','Далее')}"></button>
+    <div class="xp-hint">${X3('Tippe rechts für weiter','Tap right to continue','Нажми справа, чтобы продолжить')}</div>`;
+  document.body.append(el);
+  let cur = -1;
+  const show = n => {
+    n = Math.max(0, Math.min(F.length - 1, n)); if (n === cur) return; const back = n < cur; cur = n;
+    el.querySelectorAll('.xp-s').forEach((s, i) => { s.classList.toggle('on', i === n); s.classList.toggle('past', i < n); s.classList.toggle('back', back && i === n); });
+    el.querySelectorAll('.xp-bars i').forEach((b, i) => { b.className = i < n ? 'done' : i === n ? 'run' : ''; });
+    el.querySelector('.xp-hint').classList.toggle('gone', n > 0);
+    clearTimeout(xpTimer); if (!F[n].last && !reduceMotion) xpTimer = setTimeout(() => show(cur + 1), 6500);
+    buzz(5);
+  };
+  el.addEventListener('click', e => { const x = e.target.closest('[data-x]')?.dataset.x; if (!x) return;
+    if (x === 'next') show(cur + 1); else if (x === 'prev') show(cur - 1); else if (x === 'close') closeExplain(); else if (x === 'tour'){ closeExplain(); setTimeout(startXTour, 380); } });
+  let sx = null; el.addEventListener('pointerdown', e => sx = e.clientX); el.addEventListener('pointerup', e => { if (sx == null) return; const d = e.clientX - sx; sx = null; if (Math.abs(d) > 50) show(cur + (d < 0 ? 1 : -1)); });
+  el.__key = e => { if (e.key === 'ArrowRight') show(cur + 1); if (e.key === 'ArrowLeft') show(cur - 1); if (e.key === 'Escape') closeExplain(); };
+  addEventListener('keydown', el.__key);
+  requestAnimationFrame(() => { el.classList.add('in'); show(0); });
+}
+function closeExplain(){ const el = $('#xp'); if (!el) return; clearTimeout(xpTimer); removeEventListener('keydown', el.__key); el.classList.remove('in'); el.classList.add('out'); setTimeout(() => el.remove(), 380); }
+
+/* ---- Teil 2: geführte Tour mit Lichtkegel ---- */
+const XTOUR = () => [
+  { tab:'home', sel:'#tabbar', t:X3('Unten wechselst du zwischen den fünf Bereichen der App.','At the bottom you switch between the five areas of the app.','Внизу переключаешься между пятью разделами приложения.') },
+  { tab:'home', sel:'.dash', t:X3('Dein Überblick: Was bald abläuft, was auf der Liste steht und welche Wünsche offen sind. Antippen bringt dich direkt hin.','Your overview: what expires soon, what\'s on the list and which wishes are open. Tap to jump right there.','Твой обзор: что скоро испортится, что в списке и какие желания открыты. Нажми – и сразу туда.') },
+  { tab:'home', sel:'#pickWrap', t:X3('Unser Vorschlag für heute – passend zu dem, was da ist, und zu allen, die mitessen.','Our suggestion for today – based on what\'s there and everyone who\'s eating.','Наше предложение на сегодня – по тому, что есть, и для всех, кто ест.') },
+  { tab:'home', sel:'.pick-actions', t:X3('„Jetzt kochen" startet den Kochmodus. „Andere Idee" zeigt dir den nächsten Vorschlag.','“Cook now” starts cooking mode. “Another idea” shows the next suggestion.','«Готовить» запускает режим готовки. «Другая идея» покажет следующее предложение.') },
+  { tab:'home', sel:'.top-r .lang-sw', t:X3('Hier oben stellst du jederzeit die Sprache um: Deutsch, Englisch oder Russisch.','Up here you can switch the language anytime: German, English or Russian.','Здесь наверху можно в любой момент сменить язык: немецкий, английский или русский.') },
+  { tab:'fridge', pre:() => { UI.ftab = 'fridge'; }, sel:'.photo-card', t:X3('Mach ein Foto vom Kühlschrank – die App erkennt die Zutaten von selbst.','Take a photo of your fridge – the app recognizes the ingredients by itself.','Сфотографируй холодильник – приложение само распознает продукты.') },
+  { tab:'fridge', sel:'#views .view .ing', grow:true, t:X3('Oder tippe einfach an, was da ist. Grün heißt: haben wir.','Or just tap what\'s there. Green means: we have it.','Или просто отметь, что есть. Зелёный – значит, есть.') },
+  { tab:'fridge', sel:'[data-action="ftab"][data-v="shop"]', t:X3('Die Einkaufsliste – gemeinsam für die ganze Familie und sofort bei allen aktuell.','The shopping list – shared by the whole family and instantly up to date.','Список покупок – общий для всей семьи и сразу у всех.') },
+  { tab:'recipes', pre:() => { UI.rtab = 'week'; }, sel:'#views .view .seg', t:X3('Hier planst du die Woche und findest Wünsche, Lieblinge und alle Rezepte.','Here you plan the week and find wishes, favorites and all recipes.','Здесь планируешь неделю и находишь желания, любимые и все рецепты.') },
+  { tab:'recipes', sel:'.week-row', t:X3('Tippe auf einen Tag und such dir ein Gericht aus.','Tap a day and pick a dish.','Нажми на день и выбери блюдо.') },
+  { tab:'family', sel:'[data-action="invite"]', t:X3('Lade deine Familie ein – einfach per QR-Code.','Invite your family – simply via QR code.','Пригласи семью – просто по QR-коду.') },
+  { tab:'family', sel:'.board', t:X3('Die Pinnwand für kurze Nachrichten an alle.','The pinboard for short messages to everyone.','Доска для коротких сообщений всем.') },
+  { tab:'more', sel:'.xp-row', t:X3('Unter „Mehr" findest du Einstellungen, Hilfe und den Support. Diese Erklärung kannst du hier jederzeit wieder starten.','Under “More” you\'ll find settings, help and support. You can restart this explanation here anytime.','В «Ещё» – настройки, помощь и поддержка. Это объяснение можно запустить здесь снова в любой момент.') },
+];
+function startXTour(){
+  if ($('#xt')) return;
+  const steps = XTOUR(), el = document.createElement('div'); el.id = 'xt'; el.setAttribute('data-noi18n', '');
+  el.innerHTML = `<div class="xt-hole"></div><div class="xt-ring"></div>
+    <div class="xt-card" role="dialog" aria-live="polite"><div class="xt-top"><span class="xt-ico"><i class="ic" style="--m:url(icons/p/chef-hat.png)"></i></span><span class="xt-n"></span><button class="xt-skip" data-x="end">${X3('Beenden','Exit','Выйти')}</button></div>
+      <p class="xt-t"></p><div class="xt-dots">${steps.map(() => '<i></i>').join('')}</div>
+      <div class="xt-btns"><button class="btn btn-soft btn-sm" data-x="prev">${X3('Zurück','Back','Назад')}</button><button class="btn btn-herb btn-sm" data-x="next">${X3('Weiter','Next','Далее')}</button></div></div>`;
+  document.body.append(el); document.documentElement.classList.add('xt-on');
+  let i = -1;
+  const place = (target, s) => {
+    const hole = el.querySelector('.xt-hole'), ring = el.querySelector('.xt-ring'), card = el.querySelector('.xt-card');
+    let r = target.getBoundingClientRect();
+    if (s.grow){ const p = target.parentElement.getBoundingClientRect(); r = p; }
+    const pad = 8, x = Math.max(6, r.left - pad), y = Math.max(6, r.top - pad), w = Math.min(innerWidth - 12, r.width + pad * 2), h = Math.min(innerHeight * .6, r.height + pad * 2);
+    const rad = Math.min(28, h / 2);
+    [hole, ring].forEach(b => { b.style.transform = `translate(${x}px,${y}px)`; b.style.width = w + 'px'; b.style.height = h + 'px'; b.style.borderRadius = rad + 'px'; });
+    const below = y + h + 16 + 200 < innerHeight;
+    card.style.top = (below ? y + h + 14 : Math.max(12, y - 14 - card.offsetHeight)) + 'px';
+    card.classList.remove('pop'); void card.offsetWidth; card.classList.add('pop');
+  };
+  const show = async n => {
+    if (n < 0) return; if (n >= steps.length) return endXTour(true);
+    const back = n < i; i = n; const s = steps[n];
+    if (s.pre) s.pre();
+    if (UI.tab !== s.tab){ go(s.tab); await new Promise(r => setTimeout(r, 420)); } else { render(); await new Promise(r => setTimeout(r, 60)); }
+    const target = $(s.sel);
+    if (!target){ return show(back ? n - 1 : n + 1); }
+    target.scrollIntoView({ block:'center', behavior: reduceMotion ? 'auto' : 'smooth' });
+    await new Promise(r => setTimeout(r, reduceMotion ? 30 : 380));
+    el.querySelector('.xt-t').textContent = s.t;
+    el.querySelector('.xt-n').textContent = `${n + 1} / ${steps.length}`;
+    el.querySelectorAll('.xt-dots i').forEach((d, k) => d.className = k < n ? 'done' : k === n ? 'on' : '');
+    el.querySelector('[data-x="prev"]').style.visibility = n ? 'visible' : 'hidden';
+    el.querySelector('[data-x="next"]').textContent = n === steps.length - 1 ? X3('Fertig 🎉','Done 🎉','Готово 🎉') : X3('Weiter','Next','Далее');
+    place(target, s); buzz(6);
+  };
+  el.__resize = () => { const s = steps[i]; const t = s && $(s.sel); if (t) place(t, s); };
+  addEventListener('resize', el.__resize);
+  el.addEventListener('click', e => { const x = e.target.closest('[data-x]')?.dataset.x; if (x === 'next') show(i + 1); else if (x === 'prev') show(i - 1); else if (x === 'end') endXTour(false); });
+  requestAnimationFrame(() => { el.classList.add('in'); show(0); });
+}
+function endXTour(done){
+  const el = $('#xt'); if (!el) return; removeEventListener('resize', el.__resize);
+  el.classList.add('out'); document.documentElement.classList.remove('xt-on'); setTimeout(() => el.remove(), 360);
+  if (done){ go('home'); setTimeout(() => { burst(innerWidth / 2, innerHeight / 2.6); toast(X3('Fertig! Viel Spaß beim Kochen 🎉','All done! Have fun cooking 🎉','Готово! Приятной готовки 🎉')); }, 420); }
+}

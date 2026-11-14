@@ -51,9 +51,9 @@ if (LANG !== 'de'){
       const lit = de.replace(/\{\d+\}/g, '').trim(); if (lit.length < 2) continue;   // nur Platzhalter – zu unsicher
       const order = [...de.matchAll(/\{(\d+)\}/g)].map(m => m[1]);
       const src = '^\\s*' + de.split(/\{\d+\}/).map(p => p.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('\\s*(.*?)\\s*') + '\\s*$';
-      try { PATTERNS.push({ re: new RegExp(src, 's'), order, tr, lit: lit.split(/\s+/).sort((a, b) => b.length - a.length)[0] }); } catch(e){}
+      try { PATTERNS.push({ re: new RegExp(src, 's'), order, tr, lit: lit.split(/\s+/).sort((a, b) => b.length - a.length)[0], len: lit.length }); } catch(e){}
     }
-    PATTERNS.sort((a, b) => b.lit.length - a.lit.length);
+    PATTERNS.sort((a, b) => b.len - a.len);
   } catch(e){ console.warn('Übersetzung konnte nicht geladen werden', e); }
 }
 
@@ -77,6 +77,7 @@ function translateCore(core){
     const vals = {}; p.order.forEach((n, i) => { const v = m[i + 1], vt = v.trim(); const t2 = vt && vt !== core ? (UI_MAP.get(vt) ?? translateCore(vt)) : null; vals[n] = t2 != null ? v.replace(vt, t2) : v; });
     return p.tr.replace(/\{(\d+)\}/g, (_, n) => vals[n] ?? '').replace(/\s{2,}/g, ' ').trim();
   }
+  if (core.includes(' · ')){ const parts = core.split(' · '); const outp = parts.map(x => UI_MAP.get(x) ?? (x === core ? null : translateCore(x)) ?? x); if (outp.some((x, i) => x !== parts[i])) return outp.join(' · '); }
   const num = core.match(/^(\d+(?:[.,]\d+)?)\s+(\S.*)$/);
   if (num){ const w = UI_MAP.get(num[2]); if (w != null) return num[1] + ' ' + w; }
   if (MISS) MISS.add(core);
