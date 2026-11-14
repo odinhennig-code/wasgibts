@@ -4,53 +4,69 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Was gibt's? – Die Koch-App für die ganze Familie</title>
-<meta name="description" content="Sag, was im Kühlschrank ist – „Was gibt's?" schlägt passende Gerichte vor. Probier es direkt hier aus. Kostenlos für die ganze Familie.">
+<meta name="description" content="Sagt, was im Kühlschrank liegt – „Was gibt's?“ schlägt vor, was heute daraus wird. 620 Rezepte, Wochenplan, Einkaufsliste und Abstimmung für die ganze Familie. Kostenlos, ohne Werbung, ohne Tracker.">
 <meta name="theme-color" content="#FAF9F6" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#101211" media="(prefers-color-scheme: dark)">
+<link rel="canonical" href="https://wasgibts.pages.dev/willkommen/">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="de_DE">
+<meta property="og:site_name" content="Was gibt's?">
 <meta property="og:title" content="Was gibt's? – Die Koch-App für die ganze Familie">
-<meta property="og:description" content="Sag, was da ist. Wir sagen, was passt. Probier's direkt aus.">
-<meta property="og:image" content="img/light_home.jpg">
+<meta property="og:description" content="Sagt, was da ist. Wir sagen, was passt. Direkt hier ausprobieren – ohne Anmeldung.">
+<meta property="og:image" content="https://wasgibts.pages.dev/willkommen/img/light_home.jpg">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="../icon.svg">
 <link rel="apple-touch-icon" href="../icon-192.png">
+<link rel="preload" href="../fonts/Bricolage.woff" as="font" type="font/woff" crossorigin>
+<link rel="preload" href="../fonts/Figtree.woff" as="font" type="font/woff" crossorigin>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"SoftwareApplication","name":"Was gibt's?","applicationCategory":"LifestyleApplication","operatingSystem":"iOS, Android, Web","description":"Familien-Koch-App: Zutaten eintragen, passende Rezepte bekommen, gemeinsam planen.","offers":{"@type":"Offer","price":"0","priceCurrency":"EUR"},"url":"https://wasgibts.pages.dev/"}
+</script>
 <style>
 @font-face{font-family:"Bricolage";src:url("../fonts/Bricolage.woff") format("woff");font-weight:200 800;font-display:swap}
 @font-face{font-family:"Figtree";src:url("../fonts/Figtree.woff") format("woff");font-weight:300 900;font-display:swap}
 :root{
-  --bg:#FAF9F6; --card:#FFFFFF; --soft:#F1EFEA; --hover:#E7E4DD; --fg:#191816; --muted:#6B665E; --faint:#A39D94;
-  --herb:#1F8A5B; --herb-ink:#fff; --herb-soft:rgba(31,138,91,.10); --tomato:#EB5A3C; --tomato-soft:rgba(235,90,60,.10); --yolk:#F2A91C;
-  --door:#ECE9E3; --lift:0 18px 50px -24px rgba(29,26,22,.28);
+  --bg:#FAF9F6; --card:#FFFFFF; --soft:#F1EFEA; --hover:#E7E4DD; --line:#E4E0D8;
+  --fg:#191816; --muted:#6B665E; --faint:#A39D94;
+  --herb:#1F8A5B; --herb-ink:#fff; --herb-soft:rgba(31,138,91,.10);
+  --tomato:#EB5A3C; --tomato-soft:rgba(235,90,60,.10); --yolk:#E0953A;
+  --lift:0 18px 50px -24px rgba(29,26,22,.28); --lift-s:0 4px 16px -8px rgba(29,26,22,.26);
   --ease:cubic-bezier(.2,.8,.2,1); --spring:cubic-bezier(.34,1.56,.64,1); --soft-spring:cubic-bezier(.45,1.35,.5,1);
   --f-d:"Bricolage",system-ui,sans-serif; --f-b:"Figtree",system-ui,-apple-system,"Segoe UI",sans-serif;
   color-scheme:light;
 }
 @media (prefers-color-scheme:dark){:root{
-  --bg:#101211; --card:#181B19; --soft:#1F2320; --hover:#292E2A; --fg:#ECEBE5; --muted:#A39C90; --faint:#6F6A61;
-  --herb:#4FD192; --herb-ink:#06150D; --herb-soft:rgba(79,209,146,.12); --tomato:#FF7B5C; --tomato-soft:rgba(255,122,96,.12);
-  --door:#232923; --lift:0 18px 50px -20px rgba(0,0,0,.8); color-scheme:dark}}
+  --bg:#101211; --card:#181B19; --soft:#1F2320; --hover:#292E2A; --line:#272C28;
+  --fg:#ECEBE5; --muted:#A39C90; --faint:#6F6A61;
+  --herb:#4FD192; --herb-ink:#06150D; --herb-soft:rgba(79,209,146,.12);
+  --tomato:#FF7B5C; --tomato-soft:rgba(255,122,96,.12); --yolk:#F0B65C;
+  --lift:0 18px 50px -20px rgba(0,0,0,.8); --lift-s:0 4px 16px -8px rgba(0,0,0,.7); color-scheme:dark}}
 *,*::before,*::after{box-sizing:border-box}
 html{scroll-behavior:smooth}
 body{margin:0;background:var(--bg);color:var(--fg);font:17px/1.6 var(--f-b);-webkit-font-smoothing:antialiased;overflow-x:hidden}
 main{overflow-x:clip}
 a{color:inherit}
 img{display:block;max-width:100%}
-h1,h2,h3{font-family:var(--f-d);font-weight:600;letter-spacing:-.03em;line-height:1.02;margin:0}
+h1,h2,h3{font-family:var(--f-d);font-weight:600;letter-spacing:-.03em;line-height:1.03;margin:0}
 button{font:inherit;color:inherit;-webkit-tap-highlight-color:transparent}
-:focus-visible{outline:2px solid var(--herb);outline-offset:3px}
+:focus-visible{outline:2px solid var(--herb);outline-offset:3px;border-radius:8px}
 .wrap{width:min(1160px,100% - 32px);margin:0 auto}
+.ic{width:1em;height:1em;flex:none;display:block}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
 
-/* Fortschritt */
-#prog{position:fixed;left:0;top:0;height:2px;width:100%;transform-origin:0 50%;transform:scaleX(0);background:var(--herb);z-index:50}
+#prog{position:fixed;left:0;top:0;height:2px;width:100%;transform-origin:0 50%;transform:scaleX(0);background:var(--herb);z-index:60}
 
 /* Kopfzeile */
-header{position:sticky;top:0;z-index:20;padding:10px 0}
+header{position:sticky;top:0;z-index:40;padding:10px 0}
 .bar{display:flex;align-items:center;gap:8px;padding:6px 6px 6px 12px;border-radius:999px;transition:background .35s,box-shadow .35s}
-header.scrolled .bar{background:color-mix(in srgb,var(--card) 78%,transparent);-webkit-backdrop-filter:blur(20px) saturate(170%);backdrop-filter:blur(20px) saturate(170%);box-shadow:0 6px 24px -14px rgba(0,0,0,.25)}
+header.scrolled .bar{background:color-mix(in srgb,var(--card) 80%,transparent);-webkit-backdrop-filter:blur(20px) saturate(170%);backdrop-filter:blur(20px) saturate(170%);box-shadow:0 6px 24px -14px rgba(0,0,0,.25)}
 .brand{display:flex;align-items:center;gap:10px;font-family:var(--f-d);font-weight:600;font-size:19px;letter-spacing:-.02em;text-decoration:none;margin-right:auto}
 .brand img{width:32px;height:32px;border-radius:10px}
 nav.links{display:flex;gap:2px}
 nav.links a{text-decoration:none;font-weight:500;font-size:15px;color:var(--muted);padding:9px 14px;border-radius:999px;transition:color .2s,background .2s}
 nav.links a:hover{color:var(--fg);background:var(--soft)}
-.btn{position:relative;display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:50px;padding:0 24px;border-radius:999px;font:600 16px var(--f-b);text-decoration:none;border:0;cursor:pointer;transition:transform .45s var(--soft-spring),background .2s,color .2s}
+.btn{position:relative;display:inline-flex;align-items:center;justify-content:center;gap:9px;min-height:50px;padding:0 24px;border-radius:999px;font:600 16px var(--f-b);text-decoration:none;border:0;cursor:pointer;transition:transform .45s var(--soft-spring),background .2s,color .2s}
+.btn .ic{font-size:19px}
 .btn:active{transform:scale(.95) !important;transition-duration:.12s}
 .btn-main{background:var(--fg);color:var(--bg)}
 .btn-herb{background:var(--herb);color:var(--herb-ink)}
@@ -58,478 +74,873 @@ nav.links a:hover{color:var(--fg);background:var(--soft)}
 .btn-soft:hover{background:var(--hover)}
 .btn-sm{min-height:42px;padding:0 18px;font-size:15px}
 
-/* Buchstaben: einblenden + federn bei Berührung */
+/* Buchstaben */
 .w{display:inline-block;white-space:nowrap}
 .c{display:inline-block;will-change:transform}
-.split .c{opacity:0;transform:translateY(.45em);filter:blur(8px);transition:opacity .6s var(--ease),transform .8s var(--soft-spring),filter .6s var(--ease);transition-delay:calc(var(--i) * 22ms)}
+.split .c{opacity:0;transform:translateY(.4em);filter:blur(7px);transition:opacity .55s var(--ease),transform .75s var(--soft-spring),filter .55s var(--ease);transition-delay:calc(var(--i) * 20ms)}
 .split.in .c{opacity:1;transform:none;filter:none}
 .c.hop{animation:hop .55s var(--spring)}
 @keyframes hop{35%{transform:translateY(-.16em) scale(1.06)}}
 
+/* Einblenden – läuft in beide Richtungen */
+.rv{opacity:0;transform:translateY(26px);filter:blur(5px);transition:opacity .8s var(--ease),transform .9s var(--ease),filter .8s var(--ease)}
+.rv.in{opacity:1;transform:none;filter:none}
+.rv[data-d="1"]{transition-delay:.07s}.rv[data-d="2"]{transition-delay:.14s}.rv[data-d="3"]{transition-delay:.21s}
+.rv[data-d="4"]{transition-delay:.28s}.rv[data-d="5"]{transition-delay:.35s}
+
 /* ---------- Startbereich ---------- */
-.hero{display:grid;grid-template-columns:1.1fr .9fr;gap:32px;align-items:center;padding:20px 0 10px;min-height:min(820px,calc(100vh - 70px))}
-.hero h1{font-size:clamp(54px,8vw,108px)}
-.cycle{display:inline-grid;vertical-align:bottom;overflow:hidden;height:1.05em}
+.hero{display:grid;grid-template-columns:1.04fr .96fr;gap:40px;align-items:center;padding:24px 0 8px;min-height:min(800px,calc(100vh - 80px))}
+.hero h1{font-size:clamp(52px,7.6vw,104px)}
+.cycle{display:inline-grid;vertical-align:bottom;overflow:hidden;height:1.06em}
 .cycle span{grid-area:1/1;color:var(--herb);transform:translateY(105%);opacity:0;filter:blur(6px);transition:transform .7s var(--ease),opacity .6s,filter .6s}
 .cycle span.on{transform:none;opacity:1;filter:none}
 .cycle span.out{transform:translateY(-105%);opacity:0}
 .cycle span:last-child{color:var(--tomato)}
-.lead{font-size:clamp(18px,1.6vw,21px);color:var(--muted);max-width:500px;margin:18px 0 24px}
+.lead{font-size:clamp(18px,1.55vw,20.5px);color:var(--muted);max-width:505px;margin:20px 0 26px}
 .cta{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-.meta{margin-top:20px;color:var(--faint);font-weight:500;font-size:14.5px;display:flex;gap:16px;flex-wrap:wrap}
-.meta b{color:var(--fg);font-weight:600}
-.stage{position:relative;display:grid;place-items:center;perspective:1400px}
-.phone{position:relative;width:min(320px,74vw);aspect-ratio:393/852;border-radius:52px;background:#0d0f0e;padding:10px;box-shadow:0 50px 90px -34px rgba(29,26,22,.5),0 0 0 1.5px #2a2d2b inset;transform:rotateY(-14deg) rotateX(6deg);will-change:transform}
-.scr{position:relative;width:100%;height:100%;border-radius:43px;overflow:hidden;background:#F4F5F0}
-.scr img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transform:scale(1.05);filter:blur(8px);transition:opacity .7s var(--ease),transform 1.2s var(--ease),filter .7s}
+.trust{margin-top:26px;display:flex;gap:18px;flex-wrap:wrap;color:var(--muted);font-weight:500;font-size:14.5px}
+.trust span{display:inline-flex;align-items:center;gap:7px}
+.trust .ic{font-size:17px;color:var(--herb)}
+
+/* Bühne */
+.stage{position:relative;border-radius:40px;overflow:hidden;isolation:isolate;display:grid;place-items:center;
+  padding:46px 18px 38px;min-height:520px;
+  background:
+    radial-gradient(118% 86% at 16% 6%, var(--herb-soft), transparent 58%),
+    radial-gradient(104% 80% at 92% 96%, var(--tomato-soft), transparent 60%),
+    linear-gradient(162deg, color-mix(in srgb,var(--card) 90%,var(--herb) 10%), var(--card) 62%);
+  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--fg) 7%,transparent)}
+.stage::before{content:"";position:absolute;inset:0;z-index:0;opacity:.5;
+  background-image:radial-gradient(currentColor 1px,transparent 1px);background-size:22px 22px;color:var(--faint);
+  -webkit-mask:radial-gradient(70% 60% at 50% 45%,#000,transparent 75%);mask:radial-gradient(70% 60% at 50% 45%,#000,transparent 75%)}
+.blob{position:absolute;border-radius:50%;filter:blur(46px);opacity:.5;z-index:0;will-change:transform}
+.blob.b1{width:260px;height:260px;left:-40px;top:-30px;background:var(--herb);opacity:.16}
+.blob.b2{width:220px;height:220px;right:-50px;bottom:-40px;background:var(--tomato);opacity:.14}
+.phone{position:relative;z-index:2;width:min(286px,66%);aspect-ratio:393/852;border-radius:46px;padding:9px;
+  background:linear-gradient(168deg,#434945,#171A18 42%,#0B0D0C);
+  box-shadow:0 34px 64px -26px rgba(12,16,13,.62),0 0 0 1px rgba(255,255,255,.1),0 1px 2px rgba(0,0,0,.4);
+  will-change:transform}
+.phone::after{content:"";position:absolute;left:50%;top:19px;transform:translateX(-50%);width:74px;height:21px;border-radius:12px;background:#070908;z-index:3}
+.phone .side{position:absolute;right:-2px;top:148px;width:3px;height:62px;border-radius:3px;background:linear-gradient(#4A514C,#23282500)}
+.phone .vol{position:absolute;left:-2px;top:130px;width:3px;height:34px;border-radius:3px;background:linear-gradient(#4A514C,#23282500)}
+.phone .vol2{position:absolute;left:-2px;top:172px;width:3px;height:34px;border-radius:3px;background:linear-gradient(#4A514C,#23282500)}
+.scr{position:relative;width:100%;height:100%;border-radius:38px;overflow:hidden;background:#F4F5F0}
+.scr img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transform:scale(1.04);filter:blur(7px);transition:opacity .7s var(--ease),transform 1.1s var(--ease),filter .7s}
 .scr img.on{opacity:1;transform:none;filter:none}
-.float{position:absolute;display:flex;align-items:center;gap:10px;padding:10px 16px 10px 10px;border-radius:999px;background:color-mix(in srgb,var(--card) 76%,transparent);-webkit-backdrop-filter:blur(20px) saturate(180%);backdrop-filter:blur(20px) saturate(180%);box-shadow:var(--lift);font-weight:600;font-size:14px;line-height:1.25;white-space:nowrap;animation:bob 6s ease-in-out infinite;cursor:grab;user-select:none;touch-action:none}
-.float:active{cursor:grabbing}
-.float small{display:block;font-weight:500;color:var(--muted);font-size:12.5px}
-.float .em{font-size:22px;width:38px;height:38px;border-radius:50%;display:grid;place-items:center;background:var(--soft)}
-.f1{left:-4%;top:18%}.f2{right:-6%;top:46%;animation-delay:-2s}.f3{left:2%;bottom:12%;animation-delay:-4s}
-.float.dragging{animation:none;z-index:5}
-@keyframes bob{50%{translate:0 -10px}}
-.dots{display:flex;gap:6px;justify-content:center;margin-top:24px}
-.dots button{width:8px;height:8px;border-radius:4px;border:0;padding:0;background:var(--hover);cursor:pointer;transition:width .45s var(--soft-spring),background .3s}
-.dots button.on{width:24px;background:var(--fg)}
-.hint{font-size:13px;color:var(--faint);font-weight:500;text-align:center;margin-top:10px}
+.chip{position:absolute;z-index:3;display:flex;align-items:center;gap:11px;padding:9px 16px 9px 9px;border-radius:18px;
+  background:color-mix(in srgb,var(--card) 80%,transparent);-webkit-backdrop-filter:blur(18px) saturate(180%);backdrop-filter:blur(18px) saturate(180%);
+  box-shadow:var(--lift),inset 0 0 0 1px color-mix(in srgb,var(--fg) 8%,transparent);
+  font-weight:600;font-size:14px;line-height:1.25;white-space:nowrap;animation:bob 7s ease-in-out infinite;cursor:grab;user-select:none;touch-action:none}
+.chip:active{cursor:grabbing}
+.chip small{display:block;font-weight:500;color:var(--muted);font-size:12.5px}
+.chip i{display:grid;place-items:center;width:36px;height:36px;border-radius:12px;background:var(--herb-soft);color:var(--herb);flex:none}
+.chip i .ic{font-size:20px}
+.chip.c2 i{background:var(--tomato-soft);color:var(--tomato)}
+.c1{left:12px;top:14%}.c2{right:12px;top:45%;animation-delay:-2.4s}.c3{left:16px;bottom:16%;animation-delay:-4.8s}
+.chip.dragging{animation:none;z-index:5}
+@keyframes bob{50%{translate:0 -9px}}
+.dots{position:absolute;left:0;right:0;bottom:16px;z-index:3;display:flex;gap:6px;justify-content:center}
+.dots button{width:7px;height:7px;border-radius:4px;border:0;padding:0;background:color-mix(in srgb,var(--fg) 22%,transparent);cursor:pointer;transition:width .45s var(--soft-spring),background .3s}
+.dots button.on{width:22px;background:var(--fg)}
 
-/* ---------- Laufband (reagiert aufs Scrollen) ---------- */
-.marquee{overflow:hidden;padding:14px 0;margin-top:0;-webkit-mask:linear-gradient(90deg,transparent,#000 10%,#000 90%,transparent);mask:linear-gradient(90deg,transparent,#000 10%,#000 90%,transparent)}
-.marquee div{display:flex;gap:44px;width:max-content;font-family:var(--f-d);font-weight:500;font-size:26px;letter-spacing:-.02em;white-space:nowrap;will-change:transform}
-.marquee span{display:flex;align-items:center;gap:10px;color:var(--faint);transition:color .3s}
-.marquee span:hover{color:var(--fg)}
+/* Laufband */
+.marquee{overflow:hidden;padding:18px 0;-webkit-mask:linear-gradient(90deg,transparent,#000 9%,#000 91%,transparent);mask:linear-gradient(90deg,transparent,#000 9%,#000 91%,transparent)}
+.marquee .row{display:flex;gap:14px;width:max-content;will-change:transform}
+.marquee a{display:flex;align-items:center;gap:9px;padding:9px 16px 9px 10px;border-radius:999px;background:var(--card);box-shadow:var(--lift-s);
+  font-weight:500;font-size:15px;white-space:nowrap;text-decoration:none;color:var(--muted);transition:color .25s,transform .4s var(--soft-spring)}
+.marquee a:hover{color:var(--fg);transform:translateY(-3px)}
+.marquee .ic{font-size:24px}
 
-/* ---------- Abschnitte ---------- */
-section{padding:72px 0}
-.kicker{font-weight:500;font-size:15px;color:var(--herb)}
-.big{font-size:clamp(40px,6vw,76px);margin-top:10px}
-.sub{color:var(--muted);font-size:19px;max-width:600px;margin:12px 0 0}
+/* Abschnitte */
+section{padding:92px 0}
+.kicker{display:inline-flex;align-items:center;gap:8px;font-weight:600;font-size:14px;color:var(--herb);letter-spacing:.01em;
+  padding:6px 13px 6px 10px;border-radius:999px;background:var(--herb-soft)}
+.kicker .ic{font-size:16px}
+.big{font-size:clamp(38px,5.4vw,70px);margin-top:16px}
+.sub{color:var(--muted);font-size:19px;max-width:620px;margin:14px 0 0}
+.center-m{text-align:center}.center-m .sub{margin-left:auto;margin-right:auto}
 
 /* Scroll-Geschichte */
-.story{display:grid;grid-template-columns:1fr 1fr;gap:48px;margin-top:10px}
-.ch{min-height:66vh;display:flex;flex-direction:column;justify-content:center;opacity:.22;filter:blur(2px);transition:opacity .6s,filter .6s}
+.story{display:grid;grid-template-columns:1fr 1fr;gap:52px;margin-top:4px}
+.ch{min-height:68vh;display:flex;flex-direction:column;justify-content:center;opacity:.2;filter:blur(2px);transition:opacity .6s,filter .6s}
 .ch.act{opacity:1;filter:none}
-.ch .no{font-weight:500;font-size:15px;color:var(--muted);margin-bottom:14px;display:flex;align-items:center;gap:10px}
-.ch .no i{display:block;width:60px;height:2px;border-radius:2px;background:var(--hover);overflow:hidden;position:relative}
+.ch .no{font-weight:600;font-size:14px;color:var(--muted);margin-bottom:16px;display:flex;align-items:center;gap:10px}
+.ch .no i{display:block;width:64px;height:2px;border-radius:2px;background:var(--line);overflow:hidden;position:relative}
 .ch .no i::after{content:"";position:absolute;inset:0;background:var(--herb);transform:scaleX(0);transform-origin:0 50%;transition:transform 1s var(--ease)}
 .ch.act .no i::after{transform:none}
-.ch h3{font-size:clamp(34px,4.2vw,56px)}
-.ch p{color:var(--muted);font-size:19px;max-width:440px;margin:16px 0 0}
-.tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:20px}
-.tags span{padding:7px 14px;border-radius:999px;background:var(--soft);font-weight:500;font-size:14px}
-.pin{position:sticky;top:12vh;height:76vh;display:grid;place-items:center;perspective:1200px}
-.pin .phone{transform:none;width:min(320px,80%)}
-.pin .bubble{position:absolute;left:0;bottom:18%;padding:10px 16px;border-radius:999px;background:color-mix(in srgb,var(--card) 80%,transparent);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);box-shadow:var(--lift);font-weight:600;font-size:14px;opacity:0;transform:translateY(12px) scale(.95);transition:all .55s var(--soft-spring)}
-.pin .bubble.on{opacity:1;transform:none}
+.ch h3{font-size:clamp(32px,3.9vw,52px)}
+.ch p{color:var(--muted);font-size:18.5px;max-width:450px;margin:16px 0 0}
+.tags{display:flex;gap:7px;flex-wrap:wrap;margin-top:22px}
+.tags span{display:inline-flex;align-items:center;gap:7px;padding:8px 15px 8px 12px;border-radius:999px;background:var(--soft);font-weight:500;font-size:14.5px}
+.tags .ic{font-size:17px;color:var(--herb)}
+.pin{position:sticky;top:11vh;height:78vh;display:grid;place-items:center}
+.pin .phone{width:min(282px,76%)}
+.bubble{position:absolute;left:0;bottom:15%;z-index:4;display:flex;align-items:center;gap:8px;padding:10px 17px 10px 13px;border-radius:999px;
+  background:color-mix(in srgb,var(--card) 84%,transparent);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);
+  box-shadow:var(--lift),inset 0 0 0 1px color-mix(in srgb,var(--fg) 8%,transparent);font-weight:600;font-size:14px;
+  opacity:0;transform:translateY(12px) scale(.96);transition:all .55s var(--soft-spring)}
+.bubble.on{opacity:1;transform:none}
+.bubble .ic{font-size:17px;color:var(--herb)}
 
-/* ---------- Kühlschrank ---------- */
-.try{display:grid;grid-template-columns:1.05fr .95fr;gap:16px;margin-top:28px;align-items:start}
-.fridge{position:relative;border-radius:32px;background:var(--card);padding:22px 18px 18px;perspective:1800px}
-.door{position:absolute;inset:0;z-index:3;border-radius:inherit;background:var(--door);transform-origin:0 50%;display:grid;place-items:center;cursor:pointer;border:0;width:100%;
-  transition:transform 1.3s var(--soft-spring) .35s,opacity .5s ease 1s,visibility 0s 1.5s;box-shadow:inset -14px 0 30px -20px rgba(0,0,0,.2)}
-.door::after{content:"";position:absolute;right:22px;top:50%;width:6px;height:110px;margin-top:-55px;border-radius:6px;background:var(--hover)}
-.door span{font-weight:500;color:var(--muted);font-size:15px}
-.fridge.in .door{transform:rotateY(-108deg);opacity:0;visibility:hidden}
-.fridge.in #shelves{animation:light 1.4s ease .6s both}
-@keyframes light{0%{filter:brightness(1.18) saturate(.7)}100%{filter:none}}
-.fridge-top{display:flex;align-items:center;gap:4px;margin:0 2px 8px}
-.fridge-top b{font-family:var(--f-d);font-weight:600;font-size:21px;letter-spacing:-.02em;margin-right:auto}
-.fridge-top button{border:0;background:none;color:var(--muted);font-weight:500;font-size:14px;cursor:pointer;padding:8px 12px;border-radius:999px;transition:background .2s,color .2s}
-.fridge-top button:hover{color:var(--fg);background:var(--soft)}
-.shelf{display:flex;flex-wrap:wrap;gap:6px;padding:12px 2px 14px}
-.shelf+.shelf{border-top:1px solid var(--soft)}
-.shelf-t{width:100%;font-size:13px;font-weight:500;color:var(--faint);margin:0 4px 2px}
-.ing{display:inline-flex;align-items:center;gap:6px;padding:8px 14px 8px 10px;border-radius:999px;border:0;background:var(--soft);font-weight:500;font-size:15px;cursor:pointer;transition:transform .45s var(--soft-spring),background .25s,color .25s}
-.ing:hover{background:var(--hover);transform:translateY(-2px)}
-.ing:active{transform:scale(.93);transition-duration:.1s}
-.ing .e{font-size:18px;transition:transform .5s var(--spring)}
-.ing[aria-pressed="true"]{background:var(--herb);color:var(--herb-ink)}
-.ing[aria-pressed="true"] .e{transform:scale(1.18) rotate(-8deg)}
-.res{border-radius:32px;background:var(--card);padding:24px 18px 14px;position:sticky;top:90px}
-.res-h{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;padding:0 6px}
-.res-h .n{font-family:var(--f-d);font-weight:600;font-size:60px;letter-spacing:-.04em;line-height:1;color:var(--herb);display:inline-block}
+/* Zeitstrahl */
+.tl{position:relative;margin-top:46px;padding-left:66px}
+.tl-line{position:absolute;left:21px;top:8px;bottom:8px;width:2px;overflow:visible}
+.tl-line i{position:absolute;inset:0;background:var(--line);border-radius:2px}
+.tl-line b{position:absolute;left:0;top:0;width:100%;height:100%;background:linear-gradient(var(--herb),var(--herb));border-radius:2px;
+  transform-origin:50% 0;transform:scaleY(var(--p,0))}
+.tl-i{position:relative;padding:0 0 46px}
+.tl-i:last-child{padding-bottom:0}
+.tl-i .dot{position:absolute;left:-55px;top:3px;width:30px;height:30px;border-radius:50%;background:var(--bg);display:grid;place-items:center;
+  box-shadow:inset 0 0 0 2px var(--line);transition:box-shadow .5s,background .5s,color .5s;color:var(--faint)}
+.tl-i .dot .ic{font-size:16px}
+.tl-i.in .dot{background:var(--herb);color:var(--herb-ink);box-shadow:inset 0 0 0 2px var(--herb),0 0 0 6px var(--herb-soft)}
+.tl-i time{font-family:var(--f-d);font-weight:600;font-size:15px;color:var(--herb);letter-spacing:.01em}
+.tl-i h3{font-size:clamp(23px,2.4vw,30px);margin-top:4px}
+.tl-i p{color:var(--muted);margin:8px 0 0;max-width:560px}
+
+/* Kühlschrank */
+.try{display:grid;grid-template-columns:1.08fr .92fr;gap:18px;margin-top:34px;align-items:start}
+.fridge{border-radius:30px;background:var(--card);box-shadow:var(--lift-s),inset 0 0 0 1px var(--line);overflow:hidden}
+.f-head{display:flex;align-items:center;gap:8px;padding:16px 18px;border-bottom:1px solid var(--line)}
+.f-head b{font-family:var(--f-d);font-weight:600;font-size:19px;letter-spacing:-.02em;display:flex;align-items:center;gap:9px;margin-right:auto}
+.f-head b .ic{font-size:21px;color:var(--herb)}
+.f-head .cnt{font-weight:600;font-size:13px;color:var(--herb);background:var(--herb-soft);padding:4px 10px;border-radius:999px}
+.f-head button{display:inline-flex;align-items:center;gap:6px;border:0;background:none;color:var(--muted);font-weight:500;font-size:14px;cursor:pointer;padding:8px 12px;border-radius:999px;transition:background .2s,color .2s}
+.f-head button:hover{color:var(--fg);background:var(--soft)}
+.f-head button .ic{font-size:16px}
+.shelf{padding:14px 16px 16px}
+.shelf+.shelf{border-top:1px solid var(--line);box-shadow:0 -3px 10px -8px rgba(0,0,0,.35)}
+.shelf-t{font-size:12.5px;font-weight:600;color:var(--faint);letter-spacing:.03em;text-transform:uppercase;margin:0 2px 10px}
+.grid-i{display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:8px}
+.ing{position:relative;display:grid;justify-items:center;gap:5px;padding:11px 4px 9px;border-radius:17px;border:0;background:var(--soft);
+  font-weight:500;font-size:12px;line-height:1.2;color:var(--fg);cursor:pointer;text-align:center;
+  transition:transform .45s var(--soft-spring),background .25s,color .25s,box-shadow .25s}
+.ing .ic{font-size:30px;transition:transform .5s var(--spring)}
+.ing:hover{background:var(--hover);transform:translateY(-3px)}
+.ing:active{transform:scale(.94);transition-duration:.1s}
+.ing[aria-pressed="true"]{background:var(--herb);color:var(--herb-ink);box-shadow:0 8px 20px -10px var(--herb)}
+.ing[aria-pressed="true"] .ic{transform:scale(1.1) rotate(-6deg)}
+.ing .bdg{position:absolute;right:6px;top:6px;width:17px;height:17px;border-radius:50%;background:var(--card);color:var(--herb);
+  display:grid;place-items:center;opacity:0;transform:scale(.4);transition:all .4s var(--spring)}
+.ing .bdg .ic{font-size:11px;transform:none}
+.ing[aria-pressed="true"] .bdg{opacity:1;transform:none}
+.res{border-radius:30px;background:var(--card);box-shadow:var(--lift-s),inset 0 0 0 1px var(--line);padding:22px 16px 16px;position:sticky;top:88px}
+.res-h{display:flex;align-items:baseline;gap:11px;flex-wrap:wrap;padding:0 8px}
+.res-h .n{font-family:var(--f-d);font-weight:600;font-size:58px;letter-spacing:-.04em;line-height:1;color:var(--herb);display:inline-block}
 .res-h .n.bump{animation:bump .5s var(--spring)}
-@keyframes bump{40%{transform:scale(1.18)}}
-.res-h span{font-weight:600;font-size:18px}
-.res-s{color:var(--muted);font-weight:500;font-size:15px;margin:4px 6px 14px}
-.dish{display:flex;align-items:center;gap:12px;width:100%;padding:10px;border:0;background:none;text-align:left;cursor:pointer;border-radius:18px;transition:background .2s;animation:pop .5s var(--soft-spring) both}
+@keyframes bump{40%{transform:scale(1.16)}}
+.res-h span{font-weight:600;font-size:17.5px}
+.res-s{color:var(--muted);font-weight:500;font-size:14.5px;margin:5px 8px 14px}
+.dish{display:flex;align-items:center;gap:12px;width:100%;padding:9px 10px;border:0;background:none;text-align:left;cursor:pointer;border-radius:16px;transition:background .2s;animation:pop .5s var(--soft-spring) both}
 .dish:hover{background:var(--soft)}
 .dish:hover .go{transform:translateX(3px);color:var(--fg)}
-.dish .e{font-size:26px;width:46px;height:46px;border-radius:50%;display:grid;place-items:center;background:var(--soft);flex:none}
-.dish b{display:block;font-size:16px;font-weight:600}
-.dish small{color:var(--muted);font-weight:500;font-size:13.5px}
+.dish>.ic{font-size:26px;width:44px;height:44px;border-radius:14px;padding:7px;background:var(--soft);flex:none}
+.dish b{display:block;font-size:15.5px;font-weight:600}
+.dish small{color:var(--muted);font-weight:500;font-size:13px;display:flex;align-items:center;gap:5px;margin-top:1px}
 .dish small em{font-style:normal;color:var(--tomato)}
-.dish .go{margin-left:auto;color:var(--faint);transition:transform .3s var(--ease),color .2s}
+.dish small .ic{font-size:14px}
+.dish .go{margin-left:auto;color:var(--faint);font-size:18px;transition:transform .3s var(--ease),color .2s}
 @keyframes pop{from{opacity:0;transform:translateY(10px) scale(.98);filter:blur(4px)}}
-.empty{color:var(--muted);padding:20px 6px}
-.fly{position:fixed;left:0;top:0;z-index:70;font-size:22px;pointer-events:none}
+.empty{color:var(--muted);padding:18px 8px;font-size:15.5px}
+.res-f{margin:10px 6px 2px;padding-top:12px;border-top:1px solid var(--line)}
+.fly{position:fixed;left:0;top:0;z-index:70;width:30px;height:30px;pointer-events:none}
 #mini{display:none}
 
-/* ---------- Glücksrad ---------- */
-.spin-wrap{display:grid;grid-template-columns:1fr 1fr;gap:44px;align-items:center;margin-top:24px}
-.wheel-box{position:relative;width:min(460px,86vw);aspect-ratio:1;justify-self:center}
-#wheel{width:100%;height:100%;transition:transform 4.6s cubic-bezier(.12,.75,.1,1)}
-.bulb{position:absolute;width:7px;height:7px;margin:-3.5px;border-radius:50%;background:var(--yolk);opacity:.25;transition:opacity .2s}
-.wheel-box.spinning .bulb{animation:blink .5s steps(1) infinite}
-.wheel-box.spinning .bulb:nth-child(2n){animation-delay:-.25s}
-.wheel-box.won .bulb{animation:blink .18s steps(1) 6}
-@keyframes blink{0%{opacity:1;box-shadow:0 0 10px var(--yolk)}50%{opacity:.25;box-shadow:none}}
-.pointer{position:absolute;left:50%;top:-12px;margin-left:-15px;width:0;height:0;border-left:15px solid transparent;border-right:15px solid transparent;border-top:28px solid var(--fg);z-index:2;transform-origin:50% 0}
+/* Glücksrad */
+.spin-wrap{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center;margin-top:34px}
+.wheel-box{position:relative;width:min(430px,84vw);aspect-ratio:1;justify-self:center}
+.wheel-box::before{content:"";position:absolute;inset:-6%;border-radius:50%;background:radial-gradient(closest-side,var(--herb-soft),transparent 72%);z-index:0}
+#wheel{position:relative;z-index:1;width:100%;height:100%;transition:transform 4.8s cubic-bezier(.12,.75,.1,1);filter:drop-shadow(0 20px 40px rgba(0,0,0,.22))}
+.pointer{position:absolute;left:50%;top:-19px;margin-left:-15px;width:30px;height:38px;z-index:4;transform-origin:50% 12%;color:var(--fg);filter:drop-shadow(0 4px 10px rgba(0,0,0,.3))}
 .pointer.tick{animation:tick .12s}
-@keyframes tick{50%{transform:rotate(-16deg)}}
-.hub{position:absolute;left:50%;top:50%;width:92px;height:92px;margin:-46px 0 0 -46px;border-radius:50%;background:var(--card);color:var(--fg);border:0;font:600 17px var(--f-b);cursor:pointer;box-shadow:0 10px 30px -8px rgba(0,0,0,.35);transition:transform .5s var(--soft-spring);z-index:2}
-.hub:hover{transform:scale(1.07)}
+@keyframes tick{50%{transform:rotate(-13deg)}}
+.hub{position:absolute;left:50%;top:50%;width:92px;height:92px;margin:-46px 0 0 -46px;border-radius:50%;background:var(--fg);color:var(--bg);border:0;
+  font:600 16px var(--f-b);cursor:pointer;box-shadow:0 12px 30px -8px rgba(0,0,0,.45),0 0 0 7px var(--bg);
+  transition:transform .5s var(--soft-spring);z-index:3;display:grid;place-items:center;gap:2px;line-height:1}
+.hub .ic{font-size:20px;margin:0 auto}
+.hub:hover{transform:scale(1.06)}
 .hub:active{transform:scale(.94)}
-.hub:disabled{cursor:default}
-.win .card{border-radius:28px;background:var(--card);padding:26px;animation:pop .7s var(--soft-spring) both;margin-bottom:24px}
-.win .card .e{font-size:56px;line-height:1;display:inline-block;animation:hop .8s var(--spring) .2s}
-.win .card h3{font-size:38px;margin-top:12px}
-.win .card p{color:var(--muted);margin:8px 0 18px}
+.hub:disabled{cursor:default;opacity:.75}
+.win .card{border-radius:26px;background:var(--card);box-shadow:var(--lift-s),inset 0 0 0 1px var(--line);padding:26px;animation:pop .7s var(--soft-spring) both;margin-bottom:24px}
+.win .card>.ic{font-size:54px;width:68px;height:68px;padding:8px;border-radius:20px;background:var(--soft);animation:hop .8s var(--spring) .2s}
+.win .card h3{font-size:clamp(28px,3vw,38px);margin-top:14px}
+.win .card p{color:var(--muted);margin:8px 0 18px;display:flex;align-items:center;gap:8px;font-weight:500}
+.win .card p .ic{font-size:17px}
 .seg{display:inline-flex;gap:2px;padding:4px;border-radius:999px;background:var(--soft);margin-top:22px;position:relative}
 .seg button{border:0;background:none;font-weight:500;font-size:15px;color:var(--muted);padding:9px 16px;border-radius:999px;cursor:pointer;position:relative;z-index:1;transition:color .25s}
 .seg button[aria-pressed="true"]{color:var(--fg)}
 .seg .pill{position:absolute;top:4px;bottom:4px;left:0;border-radius:999px;background:var(--card);box-shadow:0 2px 10px rgba(0,0,0,.08);transition:transform .5s var(--soft-spring),width .5s var(--soft-spring)}
-#confetti{position:fixed;inset:0;pointer-events:none;z-index:60}
+#confetti{position:fixed;inset:0;pointer-events:none;z-index:55}
 
-/* ---------- Rezept-Fenster ---------- */
-dialog{border:0;padding:0;border-radius:32px;width:min(520px,calc(100% - 24px));max-height:86vh;background:var(--card);color:var(--fg);box-shadow:0 40px 90px -20px rgba(0,0,0,.45)}
-dialog::backdrop{background:rgba(15,19,15,.35);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+/* Rezept-Fenster */
+dialog{border:0;padding:0;border-radius:30px;width:min(520px,calc(100% - 24px));max-height:86vh;background:var(--card);color:var(--fg);box-shadow:0 40px 90px -20px rgba(0,0,0,.45)}
+dialog::backdrop{background:rgba(15,19,15,.4);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
 dialog[open]{animation:dlg .55s var(--soft-spring)}
 @keyframes dlg{from{opacity:0;transform:translateY(40px) scale(.96)}}
 .dlg{padding:28px}
-.dlg .e{font-size:54px;line-height:1}
-.dlg h3{font-size:34px;margin-top:12px}
-.dlg .chips{display:flex;flex-wrap:wrap;gap:6px;margin:14px 0}
-.dlg .chips span{padding:6px 12px;border-radius:999px;background:var(--soft);font-weight:500;font-size:14px}
+.dlg>.ic{font-size:56px;width:72px;height:72px;padding:8px;border-radius:22px;background:var(--soft)}
+.dlg h3{font-size:clamp(26px,3vw,34px);margin-top:14px}
+.dlg .chips{display:flex;flex-wrap:wrap;gap:6px;margin:16px 0}
+.dlg .chips span{display:inline-flex;align-items:center;gap:6px;padding:6px 13px 6px 8px;border-radius:999px;background:var(--soft);font-weight:500;font-size:14px}
+.dlg .chips .ic{font-size:19px}
 .dlg .chips span.miss{background:var(--tomato-soft);color:var(--tomato)}
 .dlg ol{padding-left:22px;margin:16px 0 22px;display:grid;gap:10px;color:var(--muted)}
 .dlg ol li::marker{color:var(--herb);font-weight:600}
-.dlg .x{position:absolute;right:16px;top:16px;width:40px;height:40px;border-radius:50%;border:0;background:var(--soft);cursor:pointer;font-size:16px;transition:background .2s,transform .4s var(--soft-spring)}
+.dlg .x{position:absolute;right:16px;top:16px;width:40px;height:40px;border-radius:50%;border:0;background:var(--soft);cursor:pointer;display:grid;place-items:center;transition:background .2s,transform .4s var(--soft-spring)}
+.dlg .x .ic{font-size:17px}
 .dlg .x:hover{background:var(--hover);transform:rotate(90deg)}
 
-/* ---------- Zahlen ---------- */
-.nums{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:20px}
-.nums div{padding:28px;border-radius:28px;background:var(--card)}
-.nums b{display:block;font-family:var(--f-d);font-weight:600;font-size:clamp(54px,6.5vw,88px);letter-spacing:-.05em;line-height:1}
-.nums span{color:var(--muted);font-weight:500}
+/* Funktionen */
+.feat{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:36px}
+.fcard{padding:26px 24px 28px;border-radius:26px;background:var(--card);box-shadow:inset 0 0 0 1px var(--line);transition:transform .5s var(--ease),box-shadow .5s}
+.fcard:hover{transform:translateY(-4px);box-shadow:var(--lift),inset 0 0 0 1px var(--line)}
+.fcard i{display:grid;place-items:center;width:46px;height:46px;border-radius:15px;background:var(--herb-soft);color:var(--herb);margin-bottom:18px}
+.fcard i .ic{font-size:24px}
+.fcard:nth-child(3n+2) i{background:var(--tomato-soft);color:var(--tomato)}
+.fcard h3{font-size:20px}
+.fcard p{color:var(--muted);margin:7px 0 0;font-size:16px}
 
-/* ---------- Installieren ---------- */
-.install{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:24px;counter-reset:s}
-.step{padding:28px;border-radius:28px;background:var(--card);animation:pop .6s var(--soft-spring) both}
+/* Sprachen */
+.lang{display:grid;grid-template-columns:.95fr 1.05fr;gap:48px;align-items:center;margin-top:30px}
+.lang-demo{display:grid;gap:10px}
+.lang-row{display:flex;align-items:center;gap:14px;padding:16px 20px;border-radius:20px;background:var(--card);box-shadow:inset 0 0 0 1px var(--line);
+  transition:transform .6s var(--soft-spring),box-shadow .5s}
+.lang-row.on{transform:translateX(10px);box-shadow:var(--lift-s),inset 0 0 0 1.5px var(--herb)}
+.lang-row .fl{font-family:var(--f-d);font-weight:600;font-size:13px;letter-spacing:.06em;width:38px;height:38px;border-radius:12px;background:var(--soft);display:grid;place-items:center;flex:none}
+.lang-row.on .fl{background:var(--herb);color:var(--herb-ink)}
+.lang-row b{font-family:var(--f-d);font-weight:600;font-size:19px;letter-spacing:-.02em}
+.lang-row small{display:block;color:var(--muted);font-weight:500;font-size:13.5px}
+
+/* Zahlen */
+.nums{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:30px}
+.nums div{padding:28px 24px;border-radius:26px;background:var(--card);box-shadow:inset 0 0 0 1px var(--line)}
+.nums b{display:block;font-family:var(--f-d);font-weight:600;font-size:clamp(44px,4.6vw,62px);letter-spacing:-.05em;line-height:1}
+.nums span{color:var(--muted);font-weight:500;font-size:15.5px;display:block;margin-top:6px}
+
+/* Installieren */
+.install{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:28px;counter-reset:s}
+.step{padding:26px 24px 28px;border-radius:26px;background:var(--card);box-shadow:inset 0 0 0 1px var(--line);animation:pop .6s var(--soft-spring) both}
 .step:nth-child(2){animation-delay:.08s}.step:nth-child(3){animation-delay:.16s}
-.step::before{counter-increment:s;content:counter(s);display:grid;place-items:center;width:40px;height:40px;border-radius:50%;background:var(--herb-soft);color:var(--herb);font-weight:600;margin-bottom:18px}
+.step .top{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.step .top::before{counter-increment:s;content:counter(s);display:grid;place-items:center;width:34px;height:34px;border-radius:50%;background:var(--herb-soft);color:var(--herb);font-weight:600;font-size:15px;flex:none}
+.step .top .ic{font-size:22px;color:var(--muted)}
 .step b{font-size:19px;font-weight:600;display:block}
 .step p{color:var(--muted);margin:6px 0 0;font-size:16px}
 
-.final{text-align:center;padding:70px 0 80px}
-.final h2{font-size:clamp(56px,9vw,124px)}
-.final p{color:var(--muted);font-size:20px;margin:14px auto 26px;max-width:500px}
-.sponsor{display:flex;flex-direction:column;align-items:center;gap:8px;margin-top:56px;color:var(--faint);font-weight:500;font-size:13px;text-decoration:none}
-.sponsor img{height:60px;width:auto;transition:transform .5s var(--soft-spring)}
-.sponsor:hover img{transform:scale(1.06) rotate(-2deg)}
+/* Fragen */
+.faq{margin-top:30px;border-radius:26px;background:var(--card);box-shadow:inset 0 0 0 1px var(--line);overflow:hidden}
+.faq details{border-bottom:1px solid var(--line)}
+.faq details:last-child{border-bottom:0}
+.faq summary{display:flex;align-items:center;gap:14px;padding:20px 24px;cursor:pointer;font-weight:600;font-size:17.5px;list-style:none;transition:background .2s}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary:hover{background:var(--soft)}
+.faq summary .ic{margin-left:auto;font-size:19px;color:var(--faint);transform:rotate(90deg);transition:transform .4s var(--soft-spring)}
+.faq details[open] summary .ic{transform:rotate(-90deg)}
+.faq .a{padding:0 24px 22px;color:var(--muted);max-width:760px;animation:fade .4s var(--ease)}
+@keyframes fade{from{opacity:0;transform:translateY(-6px)}}
+
+.final{text-align:center;padding:84px 0 70px;position:relative}
+.final h2{font-size:clamp(50px,8vw,112px)}
+.final p{color:var(--muted);font-size:20px;margin:16px auto 28px;max-width:520px}
+.sponsor{display:inline-flex;flex-direction:column;align-items:center;gap:8px;margin-top:62px;color:var(--faint);font-weight:500;font-size:13px;text-decoration:none}
+.sponsor img{height:58px;width:auto;transition:transform .5s var(--soft-spring)}
+.sponsor:hover img{transform:scale(1.05) rotate(-2deg)}
 @media (prefers-color-scheme:dark){.sponsor img{filter:invert(1) brightness(1.5)}}
-footer{padding:30px 0 50px;color:var(--faint);font-size:14.5px}
-footer .wrap{display:flex;gap:18px;flex-wrap:wrap;justify-content:space-between}
+
+footer{padding:40px 0 56px;color:var(--muted);font-size:14.5px;border-top:1px solid var(--line)}
+.f-grid{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:28px}
+footer h4{font-family:var(--f-d);font-weight:600;font-size:15px;letter-spacing:-.01em;color:var(--fg);margin:0 0 12px}
+footer nav{display:grid;gap:9px}
 footer a{text-decoration:none;font-weight:500;transition:color .2s}
 footer a:hover{color:var(--fg)}
+.f-note{margin-top:30px;padding-top:22px;border-top:1px solid var(--line);display:flex;gap:16px;flex-wrap:wrap;justify-content:space-between;color:var(--faint);font-size:13.5px}
 
-/* Einblenden */
-.rv{opacity:0;transform:translateY(28px);filter:blur(6px);transition:opacity .9s var(--ease),transform 1s var(--ease),filter .9s var(--ease)}
-.rv.in{opacity:1;transform:none;filter:none}
-.fridge.rv{filter:none}
+/* Hinweis zur Speicherung */
+.cookie{position:fixed;left:16px;right:16px;bottom:16px;z-index:70;max-width:470px;margin:0 auto;padding:20px 22px;border-radius:24px;
+  background:color-mix(in srgb,var(--card) 92%,transparent);-webkit-backdrop-filter:blur(20px) saturate(170%);backdrop-filter:blur(20px) saturate(170%);
+  box-shadow:0 24px 60px -18px rgba(0,0,0,.42),inset 0 0 0 1px var(--line);
+  transform:translateY(140%);transition:transform .7s var(--soft-spring)}
+.cookie.on{transform:none}
+.cookie h4{display:flex;align-items:center;gap:9px;font-family:var(--f-d);font-weight:600;font-size:17px;letter-spacing:-.02em;margin:0 0 8px}
+.cookie h4 .ic{font-size:19px;color:var(--herb)}
+.cookie p{margin:0 0 16px;color:var(--muted);font-size:14.5px;line-height:1.55}
+.cookie .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.cookie a{font-weight:600;font-size:14.5px;color:var(--muted);text-decoration:none;padding:8px 6px}
+.cookie a:hover{color:var(--fg)}
 
-@media (max-width:900px){
+@media (max-width:980px){
   nav.links{display:none}
-  .hero{grid-template-columns:1fr;min-height:auto;padding:20px 0 0;text-align:center}
+  .hero{grid-template-columns:1fr;min-height:auto;padding:16px 0 0;text-align:center;gap:30px}
   .lead{margin-left:auto;margin-right:auto}
-  .cta,.meta{justify-content:center}
-  .phone{transform:none}
-  .f1{left:-2%;top:10%}.f2{right:-2%;top:44%}.f3{left:0;bottom:8%}
-  .float{font-size:13px}
-  section{padding:52px 0}
-  .story{grid-template-columns:1fr;gap:0;margin-top:20px}
-  .pin{order:-1;top:68px;height:44vh;z-index:1;background:linear-gradient(var(--bg) 85%,transparent);padding-bottom:10px}
+  .cta,.trust{justify-content:center}
+  .stage{min-height:0;padding:34px 12px 30px;border-radius:32px}
+  .phone{width:min(258px,62%)}
+  .c1{left:4px;top:8%}.c2{right:4px;top:46%}.c3{left:8px;bottom:14%}
+  .chip{font-size:13px;padding:8px 13px 8px 8px}
+  .chip i{width:32px;height:32px}
+  section{padding:64px 0}
+  .story{grid-template-columns:1fr;gap:0;margin-top:16px}
+  .pin{order:-1;top:66px;height:46vh;z-index:5;background:linear-gradient(var(--bg) 86%,transparent);padding-bottom:12px}
   .pin .phone{width:auto;height:94%}
-  .pin .bubble{display:none}
-  .ch{min-height:52vh;justify-content:flex-start;padding-top:4vh;text-align:center;align-items:center}
+  .bubble{display:none}
+  .ch{min-height:54vh;justify-content:flex-start;padding-top:4vh;text-align:center;align-items:center}
   .tags{justify-content:center}
-  .try,.spin-wrap{grid-template-columns:1fr}
+  .try,.spin-wrap,.lang{grid-template-columns:1fr}
+  .f-head{flex-wrap:wrap;padding:14px 14px 10px}
+  .f-head b{width:100%;margin-bottom:6px}
+  .f-head .cnt{margin-right:auto}
   .res{position:static}
-  .fridge-top{flex-wrap:wrap}.fridge-top b{width:100%;margin-bottom:4px}
-  #mini{display:flex;position:sticky;bottom:14px;margin-top:12px;align-items:center;justify-content:space-between;gap:10px;padding:10px 10px 10px 18px;border-radius:999px;border:0;background:var(--fg);color:var(--bg);font-weight:600;font-size:15px;width:100%;cursor:pointer;box-shadow:0 14px 30px -12px rgba(0,0,0,.5);z-index:2}
-  #mini b{font:600 22px var(--f-d);color:var(--herb)}
+  .feat,.install{grid-template-columns:1fr 1fr}
+  .nums{grid-template-columns:1fr 1fr}
+  .f-grid{grid-template-columns:1fr 1fr}
+  #mini{display:flex;position:sticky;bottom:14px;margin:12px 16px 16px;align-items:center;justify-content:space-between;gap:10px;padding:10px 10px 10px 18px;
+    border-radius:999px;border:0;background:var(--fg);color:var(--bg);font-weight:600;font-size:15px;width:calc(100% - 32px);cursor:pointer;
+    box-shadow:0 14px 30px -12px rgba(0,0,0,.5);z-index:6}
+  #mini b{font:600 21px var(--f-d);color:var(--herb)}
   #mini .go{padding:8px 14px;border-radius:999px;background:color-mix(in srgb,var(--bg) 14%,transparent)}
-  .install,.nums{grid-template-columns:1fr}
-  .center-m{text-align:center}
-  .center-m .sub{margin-left:auto;margin-right:auto}
 }
-@media (max-width:420px){ .f2{display:none} .ing{font-size:14px} }
+@media (max-width:640px){
+  .feat,.install,.nums,.f-grid{grid-template-columns:1fr}
+  .tl{padding-left:52px}.tl-line{left:14px}.tl-i .dot{left:-52px;width:28px;height:28px}
+  .grid-i{grid-template-columns:repeat(auto-fill,minmax(74px,1fr))}
+  .c2{display:none}
+}
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation:none !important;transition:none !important}
-  .rv,.split .c{opacity:1;transform:none;filter:none}
-  .door{display:none}
+  .rv,.split .c{opacity:1 !important;transform:none !important;filter:none !important}
+  .ch{opacity:1;filter:none}
 }
 </style>
 </head>
 <body>
 <div id="prog"></div>
-<canvas id="confetti"></canvas>
+<canvas id="confetti" aria-hidden="true"></canvas>
+<svg id="sprite" width="0" height="0" aria-hidden="true" focusable="false" style="position:absolute;left:-9999px"><defs>
+<!-- Lebensmittel: flach, zwei Töne, 32er Raster -->
+<symbol id="f-zwiebeln" viewBox="0 0 32 32"><path d="M16 8.4c.9 1.1 1.2 2.1 1 3.1 4.3 1 7.5 4.9 7.5 9.5 0 4.5-3.8 8-8.5 8s-8.5-3.5-8.5-8c0-4.6 3.2-8.5 7.5-9.5-.2-1 .1-2 1-3.1Z" fill="#E8C3CE"/><path d="M12.9 12.3c-1.2 2.5-1.8 5.3-1.8 8.2 0 2.9.6 5.6 1.7 7.9-1.4-.6-2.6-1.6-3.4-2.9-1-1.4-1.5-3-1.5-4.6 0-4 2.4-7.4 5.8-8.6h-.8Zm6.2 0c3.4 1.2 5.8 4.6 5.8 8.6 0 1.6-.5 3.2-1.5 4.6-.8 1.3-2 2.3-3.4 2.9 1.1-2.3 1.7-5 1.7-7.9 0-2.9-.6-5.7-1.8-8.2h-.8Z" fill="#D7A6B6"/><path d="M15.4 11.9c-1-1.9-2.9-3.1-5.1-3.3 1.6-1.4 4-1.1 5.3.6Zm1.2 0c1-1.9 2.9-3.1 5.1-3.3-1.6-1.4-4-1.1-5.3.6Z" fill="#6FB457"/><path d="M16 11.5c-.5-1.7-.3-3.5.6-5 .9 1.5 1.1 3.3.6 5h-1.2Z" fill="#59A84E"/></symbol>
+<symbol id="f-eier" viewBox="0 0 32 32"><path d="M12.6 10.6c3.5 0 5.9 3.9 5.9 8.1 0 3.9-2.6 6.9-5.9 6.9S6.7 22.6 6.7 18.7c0-4.2 2.4-8.1 5.9-8.1Z" fill="#FBF8F0"/><path d="M12.6 10.6c-3.5 0-5.9 3.9-5.9 8.1 0 2.9 1.4 5.3 3.6 6.4-1.1-1.3-1.8-3.2-1.8-5.4 0-3.8 2-7.2 4.7-8.4l-.6-.7Z" fill="#E9E1CD"/><path d="M21.2 15.4c2.8 0 4.8 3.2 4.8 6.6 0 3.1-2.1 5.6-4.8 5.6s-4.8-2.5-4.8-5.6c0-3.4 2-6.6 4.8-6.6Z" fill="#F5F0E1"/><path d="M21.2 15.4c-2.8 0-4.8 3.2-4.8 6.6 0 2.3 1.1 4.3 2.9 5.2-.9-1.1-1.4-2.6-1.4-4.4 0-3.1 1.6-5.8 3.8-6.9l-.5-.5Z" fill="#E3DAC3"/></symbol>
+<symbol id="f-kartoffeln" viewBox="0 0 32 32"><path d="M8.3 12.2c2.4-3.5 7.3-5.3 11.7-4.5 4.5.8 7.3 4.1 6.9 8.3-.4 4.2-3.6 7.9-7.9 9.2-4.3 1.3-8.7-.1-10.8-3.1-2.2-3-2.3-6.4.1-9.9Z" fill="#C78A53"/><path d="M11.1 9.9c-1 .6-1.9 1.4-2.8 2.3-2.4 3.5-2.3 6.9-.1 9.9 1.3 1.8 3.4 3 5.8 3.3-2.2-1-3.9-2.6-4.8-4.6-1.5-3.3-.7-7.3 1.9-10.9Z" fill="#AC7140"/><circle cx="13" cy="13.6" r="1.25" fill="#8E5A30"/><circle cx="19.6" cy="12.4" r="1.05" fill="#8E5A30"/><circle cx="17.4" cy="18.6" r="1.25" fill="#8E5A30"/><circle cx="22.6" cy="17.8" r="1.05" fill="#8E5A30"/><circle cx="13.6" cy="20.8" r="1" fill="#8E5A30"/></symbol>
+<symbol id="f-kaese" viewBox="0 0 32 32"><path d="M4 20.3 25.5 7.9c1.6-.9 3.5.2 3.5 2v9.1L4 20.3Z" fill="#F7C64B"/><path d="M4 20.3 29 19v3.6c0 1.2-1 2.2-2.2 2.2H6.2C4.9 24.8 4 23.8 4 22.6v-2.3Z" fill="#E3A82C"/><circle cx="11.3" cy="21.9" r="1.7" fill="#C98D1C"/><circle cx="19.4" cy="22.1" r="1.3" fill="#C98D1C"/><circle cx="24.8" cy="21.6" r="1" fill="#C98D1C"/><circle cx="16.6" cy="15.1" r="1.6" fill="#E3A82C"/><circle cx="23" cy="12.1" r="1.2" fill="#E3A82C"/></symbol>
+<symbol id="f-passierte" viewBox="0 0 32 32"><path d="M9 9.6h14v16.6c0 1.5-1.2 2.8-2.8 2.8h-8.4c-1.5 0-2.8-1.2-2.8-2.8V9.6Z" fill="#CBD2D7"/><path d="M9 9.6h4.1v19.4h-1.3c-1.5 0-2.8-1.2-2.8-2.8V9.6Z" fill="#AAB4BB"/><rect x="9" y="13.4" width="14" height="9.6" fill="#E04A33"/><path d="M9 13.4h4.1V23H9v-9.6Z" fill="#C13A26"/><circle cx="16" cy="18.2" r="2.7" fill="#F2755C"/><path d="M8.2 7.1c0-1 .8-1.9 1.9-1.9h11.8c1 0 1.9.8 1.9 1.9 0 1-.8 1.9-1.9 1.9H10.1C9 9 8.2 8.2 8.2 7.1Z" fill="#8F9AA2"/></symbol>
+<symbol id="f-nudeln" viewBox="0 0 32 32"><path d="M7.4 14.6c0-4.8 3.9-8.6 8.6-8.6s8.6 3.9 8.6 8.6H7.4Z" fill="#F0C96E"/><path d="M7.4 14.6c0-4.8 3.9-8.6 8.6-8.6.6 0 1.3.1 1.9.2-3.7.9-6.4 4.2-6.4 8.1v.3H7.4Z" fill="#E0A83C"/><path d="M10.9 14.4c.2-3 1.6-5.2 4-6.6m2.8 6.6c-.1-2.8 1-4.9 3.1-6.2" stroke="#D59122" stroke-width="1.3" fill="none" stroke-linecap="round"/><path d="M4 16.6h24c.6 0 1.1.5 1 1.1-.8 6.3-5.9 10.4-13 10.4S4.8 24 4 17.7c-.1-.6.4-1.1 1-1.1Z" fill="#E6E1D2"/><path d="M4 16.6h6.2c-.6 5.3 1.1 9.1 5.1 11.4-6.1-.3-10.6-4.3-11.3-10.3-.1-.6.4-1.1 1-1.1Z" fill="#CFC8B6"/><rect x="2" y="14.4" width="28" height="2.6" rx="1.3" fill="#BCB39B"/></symbol>
+<symbol id="f-paprika" viewBox="0 0 32 32"><path d="M16 10.4c1.9-1.6 4.6-1.9 6.5-.5 2.5 1.8 3.2 5.6 2.5 9.4-.8 4.2-3.4 8.1-6.4 8.1-.9 0-1.8-.4-2.6-1-.8.6-1.6 1-2.6 1-3 0-5.6-3.9-6.4-8.1-.7-3.8 0-7.6 2.5-9.4 1.9-1.4 4.6-1.1 6.5.5Z" fill="#E0452F"/><path d="M12.1 9.8c-.8 0-1.6.2-2.3.6-2.5 1.8-3.2 5.6-2.5 9.4.8 4.2 3.4 8.1 6.4 8.1.5 0 .9-.1 1.4-.3-2.3-1.5-4.1-5-4.7-8.7-.6-3.5 0-6.9 1.9-9l-.2-.1Z" fill="#C0351F"/><path d="M13.4 27.3c-1.3-1.4-2.1-3.8-2.1-6.6 0-1 .1-1.9.3-2.8.5 1.4 1.2 2.5 2.1 3.2-.5 2.2-.6 4.3-.3 6.2Zm5.2 0c.3-1.9.2-4-.3-6.2.9-.7 1.6-1.8 2.1-3.2.2.9.3 1.8.3 2.8 0 2.8-.8 5.2-2.1 6.6Z" fill="#C0351F"/><path d="M17.3 21.2c1.5-1 2.7-3.2 3.1-5.8.2-1.3.2-2.6 0-3.7 1 1.1 1.5 3.2 1.1 5.5-.5 2.6-2 4.5-3.6 4.6l-.6-.6Z" fill="#F2755C"/><path d="M15.2 10.4V7.4c0-1 .8-1.9 1.8-1.9h2.3c.4 0 .7.3.7.7 0 .4-.3.7-.7.7h-2.3c-.2 0-.4.2-.4.5v3.1l-1.4-.1Z" fill="#4E9E4E"/></symbol>
+<symbol id="f-haehnchen" viewBox="0 0 32 32"><path d="M25.2 6.8c2.7 2.7 2.4 7.4-.6 10.4-2.4 2.4-5.6 3.2-8.3 2.1l-2 2c.9 1.6.7 3.6-.6 4.9l-1.4 1.4c-1.6 1.6-4.2 1.6-5.8 0-1.6-1.6-1.6-4.2 0-5.8l1.4-1.4c1.3-1.3 3.3-1.5 4.9-.6l2-2c-1.1-2.7-.3-5.9 2.1-8.3 3-3 7.7-3.3 10.4-.6Z" fill="#D59055"/><path d="M14.8 11.5c-2.4 2.4-3.2 5.6-2.1 8.3l-2 2c-1.6-.9-3.6-.7-4.9.6l-1.4 1.4c-.6.6-1 1.4-1.2 2.2-.4-1.6 0-3.4 1.2-4.6l1.4-1.4c1.3-1.3 3.3-1.5 4.9-.6l2-2c-1.1-2.7-.3-5.9 2.1-8.3 1.5-1.5 3.4-2.4 5.3-2.6-1.9.5-3.7 1.5-5.3 3Z" fill="#B87440"/><path d="M14.4 17.4 8.2 23.6" stroke="#F6F1E4" stroke-width="4" stroke-linecap="round"/><circle cx="7.1" cy="22.3" r="2.7" fill="#F6F1E4"/><circle cx="9.3" cy="24.5" r="2.7" fill="#F6F1E4"/><circle cx="7.1" cy="22.3" r="2.7" fill="none" stroke="#DDD6C2" stroke-width=".9"/><circle cx="9.3" cy="24.5" r="2.7" fill="none" stroke="#DDD6C2" stroke-width=".9"/></symbol>
+<symbol id="f-mehl" viewBox="0 0 32 32"><path d="M7.4 12.6h17.2v13.6c0 1.6-1.3 2.8-2.8 2.8H10.2c-1.6 0-2.8-1.3-2.8-2.8V12.6Z" fill="#EFE9DA"/><path d="M7.4 12.6h4.2V29h-1.4c-1.6 0-2.8-1.3-2.8-2.8V12.6Z" fill="#D8D0BA"/><path d="M6.6 8.9c0-.3.2-.6.4-.8l2.6-1.8c.3-.2.6-.3.9-.3h11c.3 0 .6.1.9.3l2.6 1.8c.3.2.4.5.4.8v3.7H6.6V8.9Z" fill="#DFD7C2"/><path d="M6.6 8.9c0-.3.2-.6.4-.8l2.6-1.8c.3-.2.6-.3.9-.3h1.1v6.6H6.6V8.9Z" fill="#C7BDA4"/><path d="M8.1 11.1c1.9-1.2 3.4-1.2 4.6 0 1.2-1.2 2.7-1.2 4.6 0 1.9-1.2 3.4-1.2 4.6 0" stroke="#B5AA8E" stroke-width="1.1" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M16 16.4v10.2" stroke="#C98D1C" stroke-width="1.4" stroke-linecap="round"/><path d="M16 16.4c2.1.5 3.3 2 3.4 4.1-2.1-.3-3.3-1.7-3.4-4.1Zm0 0c-2.1.5-3.3 2-3.4 4.1 2.1-.3 3.3-1.7 3.4-4.1Zm0 4.5c2.1.5 3.3 2 3.4 4.1-2.1-.3-3.3-1.7-3.4-4.1Zm0 0c-2.1.5-3.3 2-3.4 4.1 2.1-.3 3.3-1.7 3.4-4.1Z" fill="#E9BC63"/></symbol>
+<symbol id="f-reis" viewBox="0 0 32 32"><path d="M7.6 16.1c-.5-.9.1-2 1.1-2.2 2.2-.5 4.7-.7 7.3-.7s5.1.2 7.3.7c1 .2 1.6 1.3 1.1 2.2H7.6Z" fill="#FBFAF6"/><path d="M11.2 13.5c-1 .8-1.8 1.7-2.3 2.6H7.6c-.5-.9.1-2 1.1-2.2.8-.2 1.6-.3 2.5-.4Zm5.4-.3c-1.4.8-2.5 1.7-3.3 2.9h-2c.9-1.5 2.5-2.6 4.5-2.9h.8Z" fill="#E3DDC9"/><circle cx="12.4" cy="15.1" r=".8" fill="#DDD6C2"/><circle cx="17.6" cy="14.6" r=".8" fill="#DDD6C2"/><circle cx="21.4" cy="15.3" r=".7" fill="#DDD6C2"/><path d="M4 16.1h24c.6 0 1.1.5 1 1.1-.8 6.2-5.9 10.3-13 10.3S4.8 23.4 4 17.2c-.1-.6.4-1.1 1-1.1Z" fill="#E6E1D2"/><path d="M4 16.1h6.2c-.6 5.3 1.1 9.1 5.1 11.4-6.1-.3-10.6-4.3-11.3-10.3-.1-.6.4-1.1 1-1.1Z" fill="#CFC8B6"/><path d="M3 16.1h26c.6 0 1 .4 1 1s-.4 1-1 1H3c-.6 0-1-.4-1-1s.4-1 1-1Z" fill="#BCB39B"/></symbol>
+<symbol id="f-sahne" viewBox="0 0 32 32"><path d="M9.8 12.3h12.4v13.9c0 1.5-1.3 2.8-2.8 2.8h-6.8c-1.5 0-2.8-1.3-2.8-2.8V12.3Z" fill="#F4F1E9"/><path d="M9.8 12.3h3.8V29h-1c-1.5 0-2.8-1.3-2.8-2.8V12.3Z" fill="#DFDACA"/><path d="M9.8 12.3h12.4V9.5c0-.6-.3-1.2-.8-1.6l-2.9-2.1c-.3-.2-.6-.3-1-.3h-3c-.4 0-.7.1-1 .3l-2.9 2.1c-.5.4-.8 1-.8 1.6v2.8Z" fill="#CFE3F2"/><path d="M12.6 5.8 9.8 7.9c-.5.4-.8 1-.8 1.6v2.8h3.8V5.8h-.2Z" fill="#B3CEE3"/><rect x="9.8" y="17.2" width="12.4" height="5.5" fill="#2F7FBF"/><path d="M9.8 17.2h3.8v5.5H9.8v-5.5Z" fill="#256A9F"/><path d="M16 18.3c1 1 1.5 1.8 1.5 2.4 0 .8-.7 1.5-1.5 1.5s-1.5-.7-1.5-1.5c0-.6.5-1.4 1.5-2.4Z" fill="#F4F1E9"/></symbol>
+<symbol id="f-milch" viewBox="0 0 32 32"><path d="M11 12.9c0-.9.3-1.7.9-2.4l1.4-1.6V6.4h5.4v2.5l1.4 1.6c.6.7.9 1.5.9 2.4v12.8c0 1.8-1.5 3.3-3.3 3.3h-3.4c-1.8 0-3.3-1.5-3.3-3.3V12.9Z" fill="#F4F1E9"/><path d="M11 12.9c0-.9.3-1.7.9-2.4l1.4-1.6V6.4h2.1v2.9L14 11c-.6.7-.9 1.5-.9 2.4V29h-1.1c-.6-.6-1-1.5-1-2.4V12.9Z" fill="#DFDACA"/><rect x="11" y="16.5" width="10" height="8.3" fill="#3F86C4"/><path d="M11 16.5h2.1v8.3H11v-8.3Z" fill="#2F6FA6"/><path d="M12.9 5.6c0-.6.5-1.1 1.1-1.1h4c.6 0 1.1.5 1.1 1.1 0 .6-.5 1.1-1.1 1.1h-4c-.6 0-1.1-.5-1.1-1.1Z" fill="#C7C1AF"/><path d="M16 18.6c1.1 1.1 1.6 2 1.6 2.6 0 .9-.7 1.6-1.6 1.6s-1.6-.7-1.6-1.6c0-.7.5-1.5 1.6-2.6Z" fill="#F4F1E9"/></symbol>
+<symbol id="f-tomaten" viewBox="0 0 32 32"><circle cx="16" cy="19" r="9.4" fill="#E0452F"/><path d="M13 10.2c-2.6 1.9-4.2 5-4.2 8.5 0 3.2 1.4 6.1 3.6 8-2.9-1.5-4.8-4.6-4.8-8.1 0-3.8 2.3-7.1 5.4-8.4Z" fill="#C0351F"/><ellipse cx="19.8" cy="15.4" rx="2.4" ry="1.7" transform="rotate(-38 19.8 15.4)" fill="#F2755C"/><path d="M16 11.1c-.5-1.6-1.9-2.7-3.6-2.9 1.1-.9 2.7-.9 3.6.1.9-1 2.5-1 3.6-.1-1.7.2-3.1 1.3-3.6 2.9Z" fill="#4E9E4E"/><path d="M16.8 10.4c1.3-1.4 3.2-1.9 5-1.4-1.3 1.4-3.2 1.9-5 1.4Zm-1.6 0c-1.8.5-3.7 0-5-1.4 1.8-.5 3.7 0 5 1.4Zm.8-1.1c0-1.3.6-2.5 1.6-3.3.2 1.3-.1 2.6-.9 3.6l-.7-.3Z" fill="#4E9E4E"/><path d="M15.5 5.6c.8.9 1.1 2.1.9 3.3-.9-.8-1.3-2-1.1-3.2l.2-.1Z" fill="#3E8440"/></symbol>
+<symbol id="f-karotten" viewBox="0 0 32 32"><path d="M19.7 12.2c.6.6.7 1.6.2 2.3l-8.4 11.9c-1 1.4-3 1.6-4.2.4-1.2-1.2-1-3.2.4-4.2l11.9-8.4c.7-.5 1.6-.4 2.1.2l-2 -2.2Z" fill="#EE8A33"/><path d="M19.9 14.5c.5-.7.4-1.7-.2-2.3l-.2-.2-11.9 8.4c-1.4 1-1.6 3-.4 4.2.3.3.7.6 1.1.7-.4-1-.2-2.2.7-2.9l10.9-7.9Z" fill="#D06F21"/><path d="M14.2 17.8l2.2 2.2-1.4 2-2.8-2.8 2-1.4Zm-4.4 3.1 2.8 2.8-1.2 1.7-3.3-3.3 1.7-1.2Z" fill="#D06F21"/><path d="M19.4 11.9c-.7-2.3.1-4.8 2-6.3.7 2.3-.1 4.8-2 6.3Z" fill="#59A84E"/><path d="M20 12.5c2.3-.7 4.8.1 6.3 2-2.3.7-4.8-.1-6.3-2Zm-.4-.4c-1-2.2-.6-4.8 1-6.5.6 2.4-.1 4.8-1 6.5Z" fill="#4A9342"/><path d="M19.8 12.4c2.2-1 4.8-.6 6.5 1-2.4.6-4.8-.1-6.5-1Z" fill="#59A84E"/></symbol>
+<symbol id="f-butter" viewBox="0 0 32 32"><path d="M4.6 17.6 12.4 11c.4-.3.9-.5 1.4-.5h11.9c1.1 0 2 .9 2 2v8.1c0 1.1-.9 2-2 2H6c-1.1 0-2-.9-2-2v-1.5c0-.6.3-1.1.6-1.5Z" fill="#F5D264"/><path d="M4.6 17.6 12.4 11c.4-.3.9-.5 1.4-.5h4.1l-7.9 6.6c-.4.3-.6.9-.6 1.5v4.9H6c-1.1 0-2-.9-2-2v-1.5c0-.6.3-1.1.6-1.5Z" fill="#E0B93F"/><path d="M13.8 10.5h11.9c1.1 0 2 .9 2 2v1.9H9.9l2.5-2.9c.4-.3.9-1 1.4-1Z" fill="#F7F4EC"/><path d="M13.8 10.5h4.1l-3.4 3.9H9.9l2.5-2.9c.4-.3.9-1 1.4-1Z" fill="#E3DECD"/></symbol>
+<symbol id="f-hackfleisch" viewBox="0 0 32 32"><path d="M6.3 18.4c0-4.9 4.3-8.5 9.7-8.5s9.7 3.6 9.7 8.5c0 1.1-.2 2.1-.6 3H6.9c-.4-.9-.6-1.9-.6-3Z" fill="#E08478"/><path d="M11.5 10.9c-3.2 1.4-5.2 4.2-5.2 7.5 0 1.1.2 2.1.6 3h4c-1.1-1.4-1.7-3-1.7-4.8 0-2.2.9-4.2 2.3-5.7Z" fill="#C86659"/><path d="M5.6 21.4h20.8c.8 0 1.4.6 1.4 1.4v.7c0 1.9-1.6 3.5-3.5 3.5H7.7c-1.9 0-3.5-1.6-3.5-3.5v-.7c0-.8.6-1.4 1.4-1.4Z" fill="#B9BFC4"/><path d="M5.6 21.4h4.1V27H7.7c-1.9 0-3.5-1.6-3.5-3.5v-.7c0-.8.6-1.4 1.4-1.4Z" fill="#9AA3A9"/><circle cx="12.6" cy="15.6" r="1.3" fill="#C86659"/><circle cx="18.4" cy="14.5" r="1.1" fill="#C86659"/><circle cx="21.6" cy="18.1" r="1.1" fill="#C86659"/><circle cx="15.4" cy="18.9" r="1.3" fill="#C86659"/></symbol>
+<symbol id="f-brot" viewBox="0 0 32 32"><path d="M5.2 15.3c0-3.6 3.1-6.1 7-6.1h7.6c3.9 0 7 2.5 7 6.1 0 1.8-1.1 3.2-2.6 3.8v4.1c0 2.1-1.7 3.8-3.8 3.8H11.6c-2.1 0-3.8-1.7-3.8-3.8v-4.1c-1.5-.6-2.6-2-2.6-3.8Z" fill="#D59C57"/><path d="M12.2 9.2c-3.9 0-7 2.5-7 6.1 0 1.8 1.1 3.2 2.6 3.8v4.1c0 2.1 1.7 3.8 3.8 3.8h1.5c-1.4-.7-2.4-2.1-2.4-3.8V19c-1.5-.6-2.6-2-2.6-3.8 0-2.7 1.8-4.8 4.3-5.7l-.2-.3Z" fill="#B87D3B"/><path d="M11.2 12.9c0-1 .8-1.8 1.8-1.8h5.9c1 0 1.8.8 1.8 1.8s-.8 1.8-1.8 1.8H13c-1 0-1.8-.8-1.8-1.8Z" fill="#EFC586"/><path d="M22.6 11.6c1 0 1.8.8 1.8 1.8s-.8 1.8-1.8 1.8-1.8-.8-1.8-1.8.8-1.8 1.8-1.8Zm-13.2 0c1 0 1.8.8 1.8 1.8s-.8 1.8-1.8 1.8-1.8-.8-1.8-1.8.8-1.8 1.8-1.8Z" fill="#EFC586"/></symbol>
+<symbol id="f-knoblauch" viewBox="0 0 32 32"><path d="M16 9.4c1.3 0 2.4 1.1 2.4 2.4 3.3.9 5.7 3.9 5.7 7.5 0 4.3-3.5 7.8-7.8 7.8h-.6c-4.3 0-7.8-3.5-7.8-7.8 0-3.6 2.4-6.6 5.7-7.5 0-1.3 1.1-2.4 2.4-2.4Z" fill="#F2EDE2"/><path d="M12.6 13.5c-1.2 1.9-1.9 4-1.9 6.3 0 2.9 1.1 5.5 2.8 7.2-2.9-.9-5-3.6-5-6.8 0-2.8 1.6-5.2 4.1-6.7Zm6.8 0c2.5 1.5 4.1 3.9 4.1 6.7 0 3.2-2.1 5.9-5 6.8 1.7-1.7 2.8-4.3 2.8-7.2 0-2.3-.7-4.4-1.9-6.3Z" fill="#DCD5C5"/><path d="M14.4 11.6c0-1.9.7-3.6 1.6-4.7.9 1.1 1.6 2.8 1.6 4.7 0 .3 0 .6-.1.8-.5-.1-1-.2-1.5-.2s-1 .1-1.5.2c-.1-.2-.1-.5-.1-.8Z" fill="#C4BBA6"/><path d="M16 6.9c.9 1.1 1.6 2.8 1.6 4.7 0 .3 0 .6-.1.8-.3-.1-.6-.1-.9-.2v-5.2l-.6-.1Z" fill="#AEA48D"/></symbol>
+<symbol id="f-joghurt" viewBox="0 0 32 32"><path d="M8.9 13.6h14.2l-1.3 12.1c-.2 1.7-1.6 3-3.3 3h-5c-1.7 0-3.1-1.3-3.3-3L8.9 13.6Z" fill="#F4F1E9"/><path d="M8.9 13.6h4.2l1.1 15.1h-.7c-1.7 0-3.1-1.3-3.3-3L8.9 13.6Z" fill="#DFDACA"/><path d="M8.9 17.2h13.8l-.9 8.5c-.2 1.7-1.6 3-3.3 3h-5c-1.7 0-3.1-1.3-3.3-3l-.9-8.5h.6Z" fill="#E3759A"/><path d="M8.3 17.2h4.8l.9 11.5h-.5c-1.7 0-3.1-1.3-3.3-3l-.9-8.5h-1Z" fill="#C85B80"/><path d="M7.4 11.9c0-.9.7-1.6 1.6-1.6h14c.9 0 1.6.7 1.6 1.6v.3c0 .9-.7 1.6-1.6 1.6H9c-.9 0-1.6-.7-1.6-1.6v-.3Z" fill="#C7C1AF"/><path d="M7.4 11.9c0-.9.7-1.6 1.6-1.6h3.5v3.5H9c-.9 0-1.6-.7-1.6-1.6v-.3Z" fill="#AEA795"/></symbol>
+<symbol id="f-gurke" viewBox="0 0 32 32"><path d="M7.9 24.1c-2.4-2.4-2.4-6.3 0-8.7L15.4 7.9c2.4-2.4 6.3-2.4 8.7 0 2.4 2.4 2.4 6.3 0 8.7l-7.5 7.5c-2.4 2.4-6.3 2.4-8.7 0Z" fill="#4E9E4E"/><path d="M7.9 24.1c-2.4-2.4-2.4-6.3 0-8.7L15.4 7.9c1.3-1.3 3.1-1.9 4.8-1.7-.9.3-1.8.8-2.5 1.5l-7.5 7.5c-2.4 2.4-2.4 6.3 0 8.7.7.7 1.6 1.2 2.5 1.5-1.8.2-3.6-.4-4.8-1.3Z" fill="#3E8440"/><path d="M12.4 19.6c-.6-.6-.6-1.6 0-2.2l5.1-5.1c.6-.6 1.6-.6 2.2 0 .6.6.6 1.6 0 2.2l-5.1 5.1c-.6.6-1.6.6-2.2 0Z" fill="#7FBF66"/><circle cx="12.3" cy="21.4" r="1.1" fill="#7FBF66"/><circle cx="19.9" cy="10.9" r="1.1" fill="#7FBF66"/><circle cx="9.8" cy="18.3" r="1" fill="#7FBF66"/></symbol>
+<symbol id="f-zucchini" viewBox="0 0 32 32"><path d="M8.3 23.7c-2.2-2.2-2.2-5.8 0-8l8.4-8.4c2.2-2.2 5.8-2.2 8 0 2.2 2.2 2.2 5.8 0 8l-8.4 8.4c-2.2 2.2-5.8 2.2-8 0Z" fill="#2F7A3F"/><path d="M8.3 23.7c-2.2-2.2-2.2-5.8 0-8l8.4-8.4c1.2-1.2 2.8-1.7 4.4-1.6-.9.3-1.7.8-2.4 1.5l-8.4 8.4c-2.2 2.2-2.2 5.8 0 8 .7.7 1.5 1.2 2.4 1.5-1.6.1-3.2-.4-4.4-1.4Z" fill="#245F32"/><path d="M13.6 20.1c-.6-.6-.6-1.5 0-2.1l5.3-5.3c.6-.6 1.5-.6 2.1 0 .6.6.6 1.5 0 2.1l-5.3 5.3c-.6.6-1.5.6-2.1 0Z" fill="#52A55F"/><path d="M23.3 9.6 25.9 7c.5-.5 1.2-.5 1.6 0 .5.5.5 1.2 0 1.6l-2.6 2.6-1.6-1.6Z" fill="#6FB457"/></symbol>
+<symbol id="f-spinat" viewBox="0 0 32 32"><path d="M16 27.4c-.6 0-1-.4-1-1V18l-4.6-4.6c-.4-.4-.4-1 0-1.4.4-.4 1-.4 1.4 0L16 16.2l4.2-4.2c.4-.4 1-.4 1.4 0 .4.4.4 1 0 1.4L17 18v8.4c0 .6-.4 1-1 1Z" fill="#2F7A3F"/><path d="M14.9 15.3C13 11.4 8.7 9.4 4.5 10.5c1 4.3 4.9 7.2 9.2 7l1.2-2.2Z" fill="#4E9E4E"/><path d="M17.1 15.3c1.9-3.9 6.2-5.9 10.4-4.8-1 4.3-4.9 7.2-9.2 7l-1.2-2.2Z" fill="#59A84E"/><path d="M16 12.8c-2.3-3.1-2.3-7.4 0-10.5 2.3 3.1 2.3 7.4 0 10.5Z" fill="#6FB457"/><path d="M13.7 17.5c-4.1-1.6-6.6-5.7-6.1-10 4.1 1.6 6.6 5.7 6.1 10Z" fill="#3E8440"/><path d="M18.3 17.5c-.5-4.3 2-8.4 6.1-10 .5 4.3-2 8.4-6.1 10Z" fill="#4E9E4E"/></symbol>
+<symbol id="f-sojasosse" viewBox="0 0 32 32"><path d="M11.5 13.1c0-1 .4-1.9 1.1-2.6l1.2-1.2V7.1h4.4v2.2l1.2 1.2c.7.7 1.1 1.6 1.1 2.6v12.5c0 1.8-1.5 3.3-3.3 3.3h-2.4c-1.8 0-3.3-1.5-3.3-3.3V13.1Z" fill="#5E4535"/><path d="M11.5 13.1c0-1 .4-1.9 1.1-2.6l1.2-1.2V7.1h1.8v2.6l-1.4 1.4c-.7.7-1.1 1.6-1.1 2.6V29h-.3c-.8-.6-1.3-1.6-1.3-2.7V13.1Z" fill="#453226"/><path d="M11.5 15.4h9v8.9h-9v-8.9Z" fill="#3B2A1F"/><path d="M13.4 6.1c0-.6.5-1.1 1.1-1.1h3c.6 0 1.1.5 1.1 1.1v1.4h-5.2V6.1Z" fill="#E0B93F"/><path d="M12.9 17.1h6.2c.4 0 .7.3.7.7v4.6c0 .4-.3.7-.7.7h-6.2c-.4 0-.7-.3-.7-.7v-4.6c0-.4.3-.7.7-.7Z" fill="#E7E0CF"/><path d="M14.2 19.1h3.6c.3 0 .5.2.5.5s-.2.5-.5.5h-3.6c-.3 0-.5-.2-.5-.5s.2-.5.5-.5Zm0 1.9h2.3c.3 0 .5.2.5.5s-.2.5-.5.5h-2.3c-.3 0-.5-.2-.5-.5s.2-.5.5-.5Z" fill="#8F7A61"/></symbol>
+<symbol id="f-kokosmilch" viewBox="0 0 32 32"><path d="M16 6.9c5.6 0 10.1 4.5 10.1 10.1S21.6 27.1 16 27.1 5.9 22.6 5.9 17 10.4 6.9 16 6.9Z" fill="#8A5E3C"/><path d="M12.4 7.6c-3.8 1.5-6.5 5.2-6.5 9.4 0 4.3 2.7 7.9 6.5 9.4-2.3-2.4-3.7-5.7-3.7-9.4 0-3.7 1.4-7 3.7-9.4Z" fill="#6B452A"/><path d="M16 10.2c3.8 0 6.8 3 6.8 6.8s-3 6.8-6.8 6.8-6.8-3-6.8-6.8 3-6.8 6.8-6.8Z" fill="#F7F4EC"/><path d="M13.6 10.7c-2.6 1-4.4 3.4-4.4 6.3s1.8 5.4 4.4 6.3c-1.4-1.6-2.3-3.8-2.3-6.3s.9-4.7 2.3-6.3Z" fill="#E3DECD"/><circle cx="14.1" cy="15.2" r="1.3" fill="#8A5E3C"/><circle cx="18.3" cy="16.6" r="1.1" fill="#8A5E3C"/><circle cx="15.3" cy="19.6" r="1.1" fill="#8A5E3C"/></symbol>
+<symbol id="f-paniermehl" viewBox="0 0 32 32"><path d="M8.2 14.6h15.6v9.8c0 2.3-1.9 4.2-4.2 4.2h-7.2c-2.3 0-4.2-1.9-4.2-4.2v-9.8Z" fill="#EFE9DA"/><path d="M8.2 14.6h3.9V28.6h-.2c-2.1-.3-3.7-2.1-3.7-4.2v-9.8Z" fill="#D8D0BA"/><path d="M6.9 12.5c0-.9.7-1.6 1.6-1.6h15c.9 0 1.6.7 1.6 1.6v.6c0 .9-.7 1.6-1.6 1.6h-15c-.9 0-1.6-.7-1.6-1.6v-.6Z" fill="#C7BDA4"/><circle cx="12.6" cy="18.6" r="1.7" fill="#D59C57"/><circle cx="18.2" cy="17.6" r="1.4" fill="#D59C57"/><circle cx="16.4" cy="22.4" r="1.7" fill="#D59C57"/><circle cx="11.8" cy="23.4" r="1.3" fill="#D59C57"/><circle cx="20.6" cy="21.8" r="1.2" fill="#D59C57"/><circle cx="21.4" cy="9.1" r="1.5" fill="#D59C57"/><circle cx="17.6" cy="7.4" r="1.2" fill="#E0B07A"/></symbol>
+<symbol id="f-lachs" viewBox="0 0 32 32"><path d="M4.2 16c3-4.5 7.6-7 12.6-7 4.7 0 8.9 2.2 11.6 5.6.5.6.5 1.4 0 2C25.7 20 21.5 23 16.8 23c-5 0-9.6-2.5-12.6-7Z" fill="#F08C62"/><path d="M9.8 11.6c-2.2 1.1-4.1 2.6-5.6 4.4 1.5 2.3 3.4 4.1 5.6 5.3-1-1.6-1.6-3.4-1.6-5.3 0-1.5.4-3 1.1-4.3l.5-.1Z" fill="#D97048"/><path d="M12.4 10.9c1.1 1.5 1.8 3.2 1.8 5.1s-.7 3.6-1.8 5.1c-.8-1.5-1.3-3.2-1.3-5.1s.5-3.6 1.3-5.1Zm6.2-1.5c1.3 1.8 2.1 3.9 2.1 6.3s-.8 4.8-2.1 6.6c-.9-1.9-1.5-4.1-1.5-6.4s.6-4.6 1.5-6.5Zm5.6 1.9c1.4 1.4 2.3 3.1 2.6 4.9-.3 1.9-1.2 3.6-2.6 5.1-.6-1.6-1-3.3-1-5.1s.4-3.4 1-5Z" fill="#FBC6A6"/><path d="M26.3 10.5c1.1 1.1 1.7 2.6 1.7 4.1v2.8c0 1.5-.6 3-1.7 4.1-.5-1.8-.8-3.7-.8-5.5s.3-3.7.8-5.5Z" fill="#D97048"/></symbol>
+<symbol id="f-broetchen" viewBox="0 0 32 32"><path d="M4.4 19.6c0-5.3 5.2-9.1 11.6-9.1s11.6 3.8 11.6 9.1c0 .7-.1 1.4-.3 2H4.7c-.2-.6-.3-1.3-.3-2Z" fill="#D59C57"/><path d="M11.1 11.6c-4 1.7-6.7 5-6.7 8.9 0 .7.1 1.4.3 2h4.2c-.8-1.4-1.3-2.9-1.3-4.6 0-2.5 1-4.7 2.7-6.4l.8.1Z" fill="#B87D3B"/><path d="M3.6 21.6h24.8c.6 0 1 .5 1 1 0 2.4-2 4.4-4.4 4.4H7c-2.4 0-4.4-2-4.4-4.4 0-.6.5-1 1-1Z" fill="#EFC586"/><path d="M3.6 21.6h4.2c-.3 2 .2 3.8 1.4 5.4H7c-2.4 0-4.4-2-4.4-4.4 0-.6.5-1 1-1Z" fill="#D9AC6B"/><path d="M11.6 15.3c.5-.3 1.2-.1 1.4.4l3.9 7.2c.3.5.1 1.2-.4 1.4-.5.3-1.2.1-1.4-.4l-3.9-7.2c-.3-.5-.1-1.1.4-1.4Z" fill="#EFC586"/></symbol>
+<symbol id="f-tortillas" viewBox="0 0 32 32"><path d="M9.8 27.6c-1.4-.6-2-2.2-1.5-3.6l5.4-13.6c.4-1.1 1.5-1.8 2.7-1.8h6.1c2 0 3.4 2 2.7 3.9l-4.9 13c-.6 1.6-2.3 2.4-3.9 1.9l-6.6-1.8Z" fill="#E7C98D"/><path d="M13.7 10.4 8.3 24c-.5 1.4.1 3 1.5 3.6l2.3.6c-1-.8-1.4-2.2-.9-3.5l5.4-13.6c.3-.7.8-1.3 1.5-1.6h-1.7c-1.2 0-2.3.7-2.7 1.9Z" fill="#CFAE6D"/><path d="M14.1 14.4c3.1-1.1 6.5-.8 9.4.8l-.8 2.2c-2.7-1.6-5.9-2-8.9-1.1l.3-1.9Z" fill="#E0452F"/><path d="M12.6 19.2c2.9-1 6.1-.8 8.9.6l-.8 2.1c-2.6-1.3-5.6-1.5-8.3-.6l.2-2.1Z" fill="#4E9E4E"/><path d="M11.2 23.5c2.6-.9 5.5-.7 8 .5l-.6 1.6c-.4 1.1-1.5 1.8-2.7 1.8l-5-1.4c-.6-.2-1-.7-1.1-1.3l1.4-1.2Z" fill="#F0C96E"/></symbol>
+<symbol id="f-champignons" viewBox="0 0 32 32"><path d="M5.7 16.2C5.7 10.5 10.3 6 16 6s10.3 4.6 10.3 10.2c0 1.5-1.2 2.7-2.7 2.7H8.4c-1.5 0-2.7-1.2-2.7-2.7Z" fill="#C9A882"/><path d="M11.6 7.2c-3.5 1.7-5.9 5-5.9 9 0 1.5 1.2 2.7 2.7 2.7h3.2c-1.3-1.5-2.1-3.5-2.1-5.7 0-2.3.8-4.4 2.1-6Z" fill="#AC8A64"/><path d="M12.4 18.9h7.2v4.7c0 2.4-1.6 4.4-3.6 4.4s-3.6-2-3.6-4.4v-4.7Z" fill="#F2EDE2"/><path d="M12.4 18.9h2.4v9c-1.4-.6-2.4-2.3-2.4-4.3v-4.7Z" fill="#DCD5C5"/><circle cx="13.1" cy="12.1" r="1.5" fill="#AC8A64"/><circle cx="19.2" cy="13.4" r="1.2" fill="#AC8A64"/><circle cx="16.4" cy="9.6" r="1.1" fill="#AC8A64"/><circle cx="22.4" cy="16.1" r="1" fill="#AC8A64"/></symbol>
+<symbol id="f-erbsen" viewBox="0 0 32 32"><path d="M26.4 7.3c1.3 4.6-.2 9.6-4 12.9-3.8 3.3-9 4.1-13.4 2.3l-.9.9c-.6.6-1.6.6-2.2 0-.6-.6-.6-1.6 0-2.2l1-1C5 15.7 6 10.6 9.8 7.3c3.8-3.3 9-4.1 13.4-2.3l.9-.9c.6-.6 1.6-.6 2.2 0 .6.6.6 1.6 0 2.2l-.9 1Z" fill="#4E9E4E"/><path d="M9.8 7.3C6 10.6 5 15.7 6.9 20.2l-1 1c-.6.6-.6 1.6 0 2.2.2.2.4.3.7.4-.2-.5-.1-1.1.3-1.6l1-1C6 16.7 7 11.6 10.8 8.3c1.9-1.6 4.1-2.6 6.5-2.8-2.7-.2-5.4.6-7.5 1.8Z" fill="#3E8440"/><circle cx="12.4" cy="17.6" r="2.9" fill="#8FCB6F"/><circle cx="17.3" cy="13.9" r="2.9" fill="#8FCB6F"/><circle cx="21.4" cy="9.6" r="2.6" fill="#8FCB6F"/><circle cx="11.5" cy="17.1" r="1" fill="#C3E5AA"/><circle cx="16.4" cy="13.4" r="1" fill="#C3E5AA"/></symbol>
+<symbol id="f-topf" viewBox="0 0 32 32"><path d="M4.6 13.4h22.8v6.5c0 3.9-3.2 7.1-7.1 7.1h-8.6c-3.9 0-7.1-3.2-7.1-7.1v-6.5Z" fill="#B9BFC4"/><path d="M4.6 13.4h5v13.2C6.9 25.5 4.6 23 4.6 19.9v-6.5Z" fill="#9AA3A9"/><path d="M3 11.6c0-.9.7-1.6 1.6-1.6h22.8c.9 0 1.6.7 1.6 1.6s-.7 1.6-1.6 1.6H4.6c-.9 0-1.6-.7-1.6-1.6Z" fill="#8F9AA2"/><path d="M12.6 6.6c0-.6.4-1 1-1s1 .4 1 1v2.3c0 .6-.4 1-1 1s-1-.4-1-1V6.6Zm4.8-1.1c.6 0 1 .4 1 1v3.4c0 .6-.4 1-1 1s-1-.4-1-1V6.5c0-.6.4-1 1-1Z" fill="#DCD5C5"/></symbol>
+<!-- Gericht-Arten -->
+<symbol id="d-suppe" viewBox="0 0 32 32"><path d="M3.4 14.5h25.2c.6 0 1.1.6 1 1.2-.9 6.8-6.3 11.3-13.6 11.3S3.3 22.5 2.4 15.7c-.1-.6.4-1.2 1-1.2Z" fill="#E6E1D2"/><path d="M3.4 14.5h6.4c-.6 5.8 1.2 10 5.5 12.6C8.5 26.8 3.3 22.3 2.4 15.7c-.1-.6.4-1.2 1-1.2Z" fill="#CFC8B6"/><path d="M7.6 18.2h16.8c-1.6 3.6-4.7 5.5-8.4 5.5s-6.8-1.9-8.4-5.5Z" fill="#E09B3C"/><path d="M12.4 10.8c-1.6-1.4-1.6-3.6 0-5 .8.9.9 2.1.4 3.1.6.7.6 1.6-.4 1.9Zm6.8 0c-1.6-1.4-1.6-3.6 0-5 .8.9.9 2.1.4 3.1.6.7.6 1.6-.4 1.9Zm-3.4-1.3c-1.6-1.4-1.6-3.6 0-5 1.6 1.4 1.6 3.6 0 5Z" fill="#C7C1AF"/></symbol>
+<symbol id="d-salat" viewBox="0 0 32 32"><path d="M3.4 15.3h25.2c.6 0 1.1.6 1 1.2-.9 6.6-6.3 11-13.6 11S3.3 23.1 2.4 16.5c-.1-.6.4-1.2 1-1.2Z" fill="#E6E1D2"/><path d="M3.4 15.3h6.4c-.6 5.6 1.2 9.7 5.5 12.2C8.5 26.9 3.3 22.6 2.4 16.5c-.1-.6.4-1.2 1-1.2Z" fill="#CFC8B6"/><path d="M8.3 9.2c3-1.6 6.6-1.1 9 1.2 1.9-2.1 4.9-2.8 7.6-1.7-1.1 2.1-3.1 3.5-5.3 3.9 1.4 1 2.4 2.5 2.8 4.1h-14c.3-1.9 1.4-3.5 3-4.5-2-.6-3.5-1.8-3.1-3Z" fill="#4E9E4E"/><path d="M13.8 13c1.3-1.4 3.2-2 5.1-1.6-.8 1.8-2.5 3-4.4 3.2l-.7-1.6Z" fill="#7FBF66"/><circle cx="20.6" cy="15.3" r="1.6" fill="#E0452F"/><circle cx="11.4" cy="15.9" r="1.3" fill="#E0452F"/><circle cx="16" cy="16.2" r="1.1" fill="#F0C96E"/></symbol>
+<symbol id="d-pfanne" viewBox="0 0 32 32"><path d="M2.6 14.2c0-.7.6-1.3 1.3-1.3h17.4c.7 0 1.3.6 1.3 1.3v1.6c0 5.3-4.3 9.6-9.6 9.6h-.8C7 25.4 2.6 21.1 2.6 15.8v-1.6Z" fill="#6B6F73"/><path d="M2.6 14.2c0-.7.6-1.3 1.3-1.3h4.3v12c-3.4-1.6-5.6-5-5.6-9v-1.7Z" fill="#4E5255"/><path d="M22.3 13.9h4.9c1.2 0 2.2 1 2.2 2.2s-1 2.2-2.2 2.2h-4.9v-4.4Z" fill="#8F9AA2"/><path d="M8.7 16.4c0-2.1 1.7-3.8 3.8-3.8s3.8 1.7 3.8 3.8-1.7 3.8-3.8 3.8-3.8-1.7-3.8-3.8Z" fill="#F7F4EC"/><circle cx="12.5" cy="16.4" r="1.9" fill="#F3C145"/><path d="M12.2 8.8c-1.4-1.3-1.4-3.4 0-4.7.8.9.9 2 .4 2.9.6.7.6 1.6-.4 1.8Zm6 0c-1.4-1.3-1.4-3.4 0-4.7.8.9.9 2 .4 2.9.6.7.6 1.6-.4 1.8Z" fill="#C7C1AF"/></symbol>
+<symbol id="d-backen" viewBox="0 0 32 32"><path d="M8.4 16.4h15.2l-1.5 9.4c-.2 1.3-1.3 2.2-2.6 2.2h-7c-1.3 0-2.4-.9-2.6-2.2l-1.5-9.4Z" fill="#D59C57"/><path d="M8.4 16.4h4.2l1.3 11.6h-1.4c-1.3 0-2.4-.9-2.6-2.2l-1.5-9.4Z" fill="#B87D3B"/><path d="M16 5.8c1.7 0 3.1 1.1 3.6 2.6.4-.2.9-.3 1.4-.3 2 0 3.6 1.6 3.6 3.6 0 .4-.1.8-.2 1.2 1 .6 1.7 1.7 1.7 3 0 .6-.6 1.1-1.2 1.1H7.1c-.6 0-1.2-.5-1.2-1.1 0-1.3.7-2.4 1.7-3-.1-.4-.2-.8-.2-1.2 0-2 1.6-3.6 3.6-3.6.5 0 1 .1 1.4.3.5-1.5 1.9-2.6 3.6-2.6Z" fill="#F2EDE2"/><path d="M12.4 8.4c-.4-.2-.9-.3-1.4-.3-2 0-3.6 1.6-3.6 3.6 0 .4.1.8.2 1.2-1 .6-1.7 1.7-1.7 3 0 .6.6 1.1 1.2 1.1h3.8c-.6 0-1.2-.5-1.2-1.1 0-1.3.7-2.4 1.7-3-.1-.4-.2-.8-.2-1.2 0-1.4.8-2.6 1.9-3.2l-.7-.1Z" fill="#DCD5C5"/><circle cx="12.6" cy="20.4" r="1.3" fill="#8E5A30"/><circle cx="18.6" cy="22.4" r="1.1" fill="#8E5A30"/><circle cx="15" cy="24.4" r="1.1" fill="#8E5A30"/></symbol>
+<symbol id="d-suess" viewBox="0 0 32 32"><path d="M9.6 17.4h12.8l-1.2 8.2c-.2 1.4-1.4 2.4-2.8 2.4h-4.8c-1.4 0-2.6-1-2.8-2.4l-1.2-8.2Z" fill="#E3759A"/><path d="M9.6 17.4h3.8l1.1 10.6h-.9c-1.4 0-2.6-1-2.8-2.4l-1.2-8.2Z" fill="#C85B80"/><path d="M8 15.6c0-.9.7-1.6 1.6-1.6h12.8c.9 0 1.6.7 1.6 1.6v.2c0 .9-.7 1.6-1.6 1.6H9.6c-.9 0-1.6-.7-1.6-1.6v-.2Z" fill="#F2EDE2"/><path d="M11.8 14c-.6-1.1-.4-2.5.5-3.4.9.9 1.1 2.3.5 3.4h-1Zm7.9 0c-.6-1.1-.4-2.5.5-3.4.9.9 1.1 2.3.5 3.4h-1Z" fill="#F3C145"/><circle cx="16" cy="9.4" r="2.4" fill="#E0452F"/><path d="M16 7c-.4-.9-.2-2 .6-2.6.5.9.4 2-.3 2.7l-.3-.1Z" fill="#4E9E4E"/></symbol>
+<symbol id="d-gemuese" viewBox="0 0 32 32"><path d="M3.4 15.3h25.2c.6 0 1.1.6 1 1.2-.9 6.6-6.3 11-13.6 11S3.3 23.1 2.4 16.5c-.1-.6.4-1.2 1-1.2Z" fill="#E6E1D2"/><path d="M3.4 15.3h6.4c-.6 5.6 1.2 9.7 5.5 12.2C8.5 26.9 3.3 22.6 2.4 16.5c-.1-.6.4-1.2 1-1.2Z" fill="#CFC8B6"/><circle cx="11.2" cy="12.6" r="3.4" fill="#E0452F"/><circle cx="19.8" cy="11.4" r="2.9" fill="#F3C145"/><path d="M17.4 15.9c-1.4-2.4-.9-5.4 1.2-7.2 1.4 2.4.9 5.4-1.2 7.2Z" fill="#4E9E4E"/><path d="M6.6 16.1c1.1-2.2 3.4-3.5 5.8-3.2-1.1 2.2-3.4 3.5-5.8 3.2Z" fill="#59A84E"/><path d="M22.6 16.1c-1.6-1.6-2-4-1-6 1.6 1.6 2 4 1 6Z" fill="#4E9E4E"/></symbol>
+<symbol id="d-teller" viewBox="0 0 32 32"><circle cx="16" cy="16" r="8.4" fill="#F4F1E9"/><path d="M12.6 7.9A8.4 8.4 0 0 0 12.6 24.1 8.4 8.4 0 0 1 12.6 7.9Z" fill="#DDD6C2"/><circle cx="16" cy="16" r="5.4" fill="none" stroke="#D1C9B5" stroke-width="1.2"/><path d="M3.4 4.6v4.6a2.4 2.4 0 0 0 4.8 0V4.6M5.8 4.6v6.6M5.8 11.2v16.2" stroke="#9A907A" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M26.4 4.6c-1.4 0-2.5 1.9-2.5 4.3s1.1 3.6 2.5 3.6v15" stroke="#9A907A" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+<!-- Bedien-Icons: Linien, currentColor -->
+<symbol id="u-camera" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5A2.5 2.5 0 0 1 5.5 7h1.2a2 2 0 0 0 1.7-1l.5-.9A1.5 1.5 0 0 1 10.1 4h3.8a1.5 1.5 0 0 1 1.2.7l.5.9a2 2 0 0 0 1.7 1h1.2A2.5 2.5 0 0 1 21 9.5v7A2.5 2.5 0 0 1 18.5 19h-13A2.5 2.5 0 0 1 3 16.5v-7Z"/><circle cx="12" cy="13" r="3.4"/></symbol>
+<symbol id="u-mic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2.8" width="6" height="11" rx="3"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v3.2M9 21.2h6"/></symbol>
+<symbol id="u-clock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12.6" r="8.6"/><path d="M12 7.8v4.8l3.2 2"/></symbol>
+<symbol id="u-timer" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9.4 2.6h5.2"/><circle cx="12" cy="13.6" r="8"/><path d="M12 9.6v4h3"/><path d="M18.4 6.2l1.6-1.6"/></symbol>
+<symbol id="u-leaf" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 19.5c-1.6-6 2.2-12.4 8.4-14.2 2-.6 4.2-.7 6.4-.3.5 2.3.4 4.6-.3 6.7-2 6-8.4 9.5-14.5 7.8Z"/><path d="M4.8 19.2 15.6 8.4"/></symbol>
+<symbol id="u-chef" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6.4 13.2a4.2 4.2 0 0 1-.9-8.1 4 4 0 0 1 7.4-1.4 4 4 0 0 1 5.6 1.4 4.2 4.2 0 0 1-.9 8.1"/><path d="M6.4 13.2h11.2v4.6a2.6 2.6 0 0 1-2.6 2.6H9a2.6 2.6 0 0 1-2.6-2.6v-4.6Z"/><path d="M6.6 16.6h10.8"/></symbol>
+<symbol id="u-hand" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11.4V4.8a1.6 1.6 0 0 1 3.2 0v5.8"/><path d="M12.2 10.6V9.2a1.6 1.6 0 0 1 3.2 0v2.4"/><path d="M15.4 11.6v-.8a1.6 1.6 0 0 1 3.2 0v5a7 7 0 0 1-7 7h-.6a6 6 0 0 1-4.6-2.2L4 17.6a1.7 1.7 0 0 1 2.6-2.2L9 18"/></symbol>
+<symbol id="u-chart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 20h15"/><rect x="6.2" y="11.4" width="3.6" height="6" rx="1.2"/><rect x="14.2" y="7.4" width="3.6" height="10" rx="1.2"/></symbol>
+<symbol id="u-cart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M2.8 4h2.1a1.4 1.4 0 0 1 1.4 1.2L7 8m0 0 1.3 6.5a2 2 0 0 0 2 1.6h7a2 2 0 0 0 1.9-1.5L20.6 8H7Z"/><circle cx="10.2" cy="20" r="1.5"/><circle cx="17.8" cy="20" r="1.5"/></symbol>
+<symbol id="u-calendar" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3.4" y="5.4" width="17.2" height="15.2" rx="3"/><path d="M3.4 10.4h17.2M8.4 3.4v3.6M15.6 3.4v3.6"/><circle cx="8.6" cy="14.6" r="1.1" fill="currentColor" stroke="none"/><circle cx="12" cy="14.6" r="1.1" fill="currentColor" stroke="none"/><circle cx="15.4" cy="14.6" r="1.1" fill="currentColor" stroke="none"/></symbol>
+<symbol id="u-dice" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3.6" y="3.6" width="16.8" height="16.8" rx="4.2"/><circle cx="8.4" cy="8.4" r="1.2" fill="currentColor" stroke="none"/><circle cx="15.6" cy="8.4" r="1.2" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.2" fill="currentColor" stroke="none"/><circle cx="8.4" cy="15.6" r="1.2" fill="currentColor" stroke="none"/><circle cx="15.6" cy="15.6" r="1.2" fill="currentColor" stroke="none"/></symbol>
+<symbol id="u-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M6.4 6.4l11.2 11.2M17.6 6.4 6.4 17.6"/></symbol>
+<symbol id="u-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.8 12h14.4M13.6 6.4 19.2 12l-5.6 5.6"/></symbol>
+<symbol id="u-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M8.8 5.6 15.2 12l-6.4 6.4"/></symbol>
+<symbol id="u-sparkle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.2c.7 3.5 1.9 5.6 5.4 6.3-3.5.7-4.7 2.8-5.4 6.3-.7-3.5-1.9-5.6-5.4-6.3 3.5-.7 4.7-2.8 5.4-6.3Z"/><path d="M18.4 15.2c.4 1.8 1 2.9 2.8 3.3-1.8.4-2.4 1.5-2.8 3.3-.4-1.8-1-2.9-2.8-3.3 1.8-.4 2.4-1.5 2.8-3.3Z"/></symbol>
+<symbol id="u-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.8 9.8 17.6 19 7.2"/></symbol>
+<symbol id="u-users" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="9.4" cy="8.2" r="3.6"/><path d="M2.8 20.2a6.6 6.6 0 0 1 13.2 0"/><path d="M16 5.2a3.6 3.6 0 0 1 0 6.9M18 14.4a6.6 6.6 0 0 1 3.2 5"/></symbol>
+<symbol id="u-globe" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.6"/><path d="M3.4 12h17.2M12 3.4c2.3 2.4 3.4 5.3 3.4 8.6s-1.1 6.2-3.4 8.6c-2.3-2.4-3.4-5.3-3.4-8.6S9.7 5.8 12 3.4Z"/></symbol>
+<symbol id="u-bell" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6.2 10.4a5.8 5.8 0 0 1 11.6 0c0 3.2.7 4.9 1.6 6H4.6c.9-1.1 1.6-2.8 1.6-6Z"/><path d="M9.8 19.6a2.4 2.4 0 0 0 4.4 0"/></symbol>
+<symbol id="u-share" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.6v11M8.4 7.2 12 3.6l3.6 3.6"/><path d="M6.4 11.4H5.6A2 2 0 0 0 3.6 13.4v5.6a2 2 0 0 0 2 2h12.8a2 2 0 0 0 2-2v-5.6a2 2 0 0 0-2-2h-.8"/></symbol>
+<symbol id="u-plusbox" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3.6" y="3.6" width="16.8" height="16.8" rx="4.4"/><path d="M12 8.2v7.6M8.2 12h7.6"/></symbol>
+<symbol id="u-dots" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5.4" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="12" cy="18.6" r="1.7"/></symbol>
+<symbol id="u-lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="4.4" y="10.2" width="15.2" height="10.4" rx="3"/><path d="M8.2 10.2V7.6a3.8 3.8 0 0 1 7.6 0v2.6"/><circle cx="12" cy="15.4" r="1.3" fill="currentColor" stroke="none"/></symbol>
+<symbol id="u-scan" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3.4 8.6V6a2.6 2.6 0 0 1 2.6-2.6h2.6M15.4 3.4H18A2.6 2.6 0 0 1 20.6 6v2.6M20.6 15.4V18A2.6 2.6 0 0 1 18 20.6h-2.6M8.6 20.6H6A2.6 2.6 0 0 1 3.4 18v-2.6"/><path d="M3.4 12h17.2"/></symbol>
+<symbol id="u-list" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6.4h11M9 12h11M9 17.6h11"/><path d="M4 6.4h.01M4 12h.01M4 17.6h.01" stroke-width="2.4"/></symbol>
+<symbol id="u-flame" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.8c3.6 3.4 6.8 6.4 6.8 11a6.8 6.8 0 0 1-13.6 0c0-2.4 1-4.2 2.4-5.8.4 1.2 1.2 2 2.2 2.2-.6-3 .4-5.2 2.2-7.4Z"/><path d="M12 21.2a3.2 3.2 0 0 1-1.4-6.1c.2.8.7 1.3 1.4 1.5-.2-1.4.4-2.3 1.2-3 .9 1 2 1.9 2 3.4a3.2 3.2 0 0 1-3.2 4.2Z"/></symbol>
+<symbol id="u-phone" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2.4" width="12" height="19.2" rx="3.4"/><path d="M10.4 5.2h3.2"/></symbol>
+<symbol id="u-heart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20.4S3.6 15.6 3.6 9.8a4.8 4.8 0 0 1 8.4-3.2 4.8 4.8 0 0 1 8.4 3.2c0 5.8-8.4 10.6-8.4 10.6Z"/></symbol>
+<symbol id="u-shield" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.8 20 5.6v6.2c0 4.6-3.2 8.2-8 9.4-4.8-1.2-8-4.8-8-9.4V5.6L12 2.8Z"/><path d="M8.8 12.2 11.2 14.6 15.6 10"/></symbol>
+<symbol id="u-euro" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M17.6 6.4a6.8 6.8 0 1 0 0 11.2"/><path d="M4.8 10.2h8.4M4.8 13.8h8.4"/></symbol>
+<symbol id="u-fridge" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="5.2" y="2.6" width="13.6" height="18.8" rx="3.2"/><path d="M5.2 9.6h13.6M8.6 5.6v1.6M8.6 12.6v2.8"/></symbol>
+<symbol id="u-wand" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4.4 19.6 15.2 8.8M13.4 7 17 10.6"/><path d="M18.4 2.8v3M20.8 5.6h-3M18.4 14.4v2.4M20.2 15.6h-2.4M8.2 3.4v2.2M9.4 4.5H7.2"/></symbol>
+</defs></svg>
+
 
 <header id="top"><div class="wrap"><div class="bar">
-  <a class="brand" href="#"><img src="../icon-192.png" alt="">Was gibt's?</a>
-  <nav class="links" aria-label="Seitenbereiche"><a href="#so">So geht's</a><a href="#probieren">Ausprobieren</a><a href="#rad">Glücksrad</a><a href="#installieren">Installieren</a></nav>
+  <a class="brand" href="#top"><img src="../icon-192.png" alt="" width="32" height="32">Was gibt's?</a>
+  <nav class="links" aria-label="Seitenbereiche">
+    <a href="#so">So geht's</a><a href="#abend">Ein Abend</a><a href="#probieren">Ausprobieren</a><a href="#funktionen">Funktionen</a><a href="#installieren">Installieren</a>
+  </nav>
   <a class="btn btn-main btn-sm" href="../">App öffnen</a>
 </div></div></header>
 
 <main>
-  <!-- Startbereich -->
+  <!-- Start -->
   <div class="wrap hero">
     <div>
       <h1><span class="split hop-me" data-split>Was gibt's</span><br><span class="cycle" aria-label="heute?"><span class="on">Pasta?</span><span>Curry?</span><span>Suppe?</span><span>heute?</span></span></h1>
-      <p class="lead rv">Die Frage, die jede Familie jeden Abend stellt. Sag, was im Kühlschrank ist – wir schlagen vor, was passt. Und alle reden mit.</p>
-      <div class="cta rv"><a class="btn btn-herb" href="../">Kostenlos starten</a><a class="btn btn-soft" href="#probieren">Gleich hier ausprobieren</a></div>
-      <div class="meta rv"><span><b id="cntR">620</b> Rezepte</span><span><b>0 €</b> für die Familie</span><span>iPhone &amp; Android</span></div>
+      <p class="lead rv">Die Frage, die bei euch jeden Abend fällt. Sagt, was im Kühlschrank liegt – und „Was gibt's?“ schlägt vor, was heute daraus wird. Die ganze Familie redet mit.</p>
+      <div class="cta rv" data-d="1">
+        <a class="btn btn-herb" href="../">Kostenlos starten<svg class="ic"><use href="#u-arrow"/></svg></a>
+        <a class="btn btn-soft" href="#probieren">Hier ausprobieren</a>
+      </div>
+      <div class="trust rv" data-d="2">
+        <span><svg class="ic"><use href="#u-euro"/></svg>Dauerhaft kostenlos</span>
+        <span><svg class="ic"><use href="#u-shield"/></svg>Keine Werbung</span>
+        <span><svg class="ic"><use href="#u-lock"/></svg>Keine Tracker</span>
+      </div>
     </div>
-    <div class="stage rv">
-      <div class="phone" id="phone"><div class="scr" id="scr">
-        <img class="on" src="img/light_home.jpg" alt="Startseite der App mit dem Essensvorschlag für heute">
-        <img src="img/light_fridge.jpg" alt="Kühlschrank mit vorhandenen Zutaten" loading="lazy">
-        <img src="img/light_recipes.jpg" alt="Wochenplan der Familie" loading="lazy">
-        <img src="img/u_shop.jpg" alt="Gemeinsame Einkaufsliste" loading="lazy">
-      </div></div>
-      <div class="float f1"><span class="em">🙋</span><span>Mia wünscht sich<small>Pfannkuchen</small></span></div>
-      <div class="float f2"><span class="em">📊</span><span>Abstimmung<small>3 : 1 für Curry</small></span></div>
-      <div class="float f3"><span class="em">🛒</span><span>Ben hat Milch<small>abgehakt</small></span></div>
-      <div>
-        <div class="dots" id="dots" role="tablist" aria-label="App-Bilder"><button class="on" aria-label="Bild 1"></button><button aria-label="Bild 2"></button><button aria-label="Bild 3"></button><button aria-label="Bild 4"></button></div>
-        <div class="hint">Die Kärtchen kannst du verschieben</div>
+    <div class="stage rv" data-d="1">
+      <div class="blob b1" data-par="-.05"></div><div class="blob b2" data-par=".07"></div>
+      <div class="phone" id="phone">
+        <span class="vol"></span><span class="vol2"></span><span class="side"></span>
+        <div class="scr" id="scr">
+          <img class="on" src="img/light_home.jpg" alt="Startseite der App mit dem Vorschlag für heute" width="393" height="852">
+          <img src="img/light_fridge.jpg" alt="Der Kühlschrank mit allen vorhandenen Zutaten" loading="lazy" width="393" height="852">
+          <img src="img/light_recipes.jpg" alt="Der Wochenplan der Familie" loading="lazy" width="393" height="852">
+          <img src="img/u_shop.jpg" alt="Die gemeinsame Einkaufsliste" loading="lazy" width="393" height="852">
+        </div>
+      </div>
+      <div class="chip c1" data-par="-.09"><i><svg class="ic"><use href="#u-hand"/></svg></i><span>Mia wünscht sich<small>Pfannkuchen</small></span></div>
+      <div class="chip c2" data-par=".1"><i><svg class="ic"><use href="#u-chart"/></svg></i><span>Abstimmung<small>3 : 1 für Curry</small></span></div>
+      <div class="chip c3" data-par="-.06"><i><svg class="ic"><use href="#u-cart"/></svg></i><span>Ben hat Milch<small>abgehakt</small></span></div>
+      <div class="dots" id="dots" role="tablist" aria-label="App-Bilder">
+        <button class="on" aria-label="Bild 1"></button><button aria-label="Bild 2"></button><button aria-label="Bild 3"></button><button aria-label="Bild 4"></button>
       </div>
     </div>
   </div>
 
-  <div class="marquee" aria-hidden="true"><div id="mq"></div></div>
+  <div class="marquee" aria-label="Eine Auswahl aus den Rezepten"><div class="row" id="mq"></div></div>
 
-  <!-- Scroll-Geschichte -->
+  <!-- So geht's -->
   <section id="so"><div class="wrap">
-    <div class="kicker rv">So geht's</div>
+    <div class="kicker rv"><svg class="ic"><use href="#u-wand"/></svg>So geht's</div>
     <h2 class="big split hop-me" data-split>Vom vollen Kühlschrank zum vollen Teller.</h2>
     <div class="story">
       <div class="chapters">
-        <div class="ch act" data-shot="1" data-b="Erkannt: 19 Zutaten"><div class="no">1 von 3 <i></i></div><h3>Sag, was da ist.</h3><p>Antippen, per Mikrofon sagen – oder einfach ein Foto vom Kühlschrank machen. Die App merkt sich auch, was bald abläuft.</p><div class="tags"><span>📷 Foto</span><span>🎤 Sprache</span><span>⏰ Ablaufdatum</span></div></div>
-        <div class="ch" data-shot="0" data-b="Gnocchi in Tomatensoße · 20 Min"><div class="no">2 von 3 <i></i></div><h3>Wir sagen, was passt.</h3><p>Aus 620 Rezepten das, was ihr jetzt kochen könnt – nach Zeit, Lust und wer heute mitisst. Fehlt nur eine Kleinigkeit? Steht auch dabei.</p><div class="tags"><span>⏱ 15 / 30 Min</span><span>🥗 gesund</span><span>👨‍🍳 Kochmodus</span></div></div>
-        <div class="ch" data-shot="2" data-b="Wochenplan: 4 Tage gefüllt"><div class="no">3 von 3 <i></i></div><h3>Alle reden mit.</h3><p>Wünsche, Abstimmungen, ein gemeinsamer Wochenplan und eine Einkaufsliste, die bei allen sofort aktuell ist.</p><div class="tags"><span>🙋 Wünsche</span><span>📊 Abstimmung</span><span>🛒 Liste live</span></div></div>
+        <div class="ch act" data-shot="1" data-b="Erkannt: 19 Zutaten">
+          <div class="no">Schritt 1 von 4 <i></i></div><h3>Sagt, was da ist.</h3>
+          <p>Antippen, per Mikrofon diktieren – oder einfach ein Foto vom offenen Kühlschrank machen. Die App erkennt die Zutaten und merkt sich, was bald abläuft.</p>
+          <div class="tags"><span><svg class="ic"><use href="#u-camera"/></svg>Foto</span><span><svg class="ic"><use href="#u-mic"/></svg>Sprache</span><span><svg class="ic"><use href="#u-clock"/></svg>Ablaufdatum</span></div>
+        </div>
+        <div class="ch" data-shot="0" data-b="Gnocchi in Tomatensoße · 20 Min">
+          <div class="no">Schritt 2 von 4 <i></i></div><h3>Wir sagen, was passt.</h3>
+          <p>Aus 620 Rezepten genau das, was ihr jetzt gerade kochen könnt – nach Zeit, Lust und danach, wer heute mitisst. Fehlt nur eine Kleinigkeit? Steht direkt dabei.</p>
+          <div class="tags"><span><svg class="ic"><use href="#u-timer"/></svg>15 / 30 Minuten</span><span><svg class="ic"><use href="#u-leaf"/></svg>Vegetarisch</span><span><svg class="ic"><use href="#u-chef"/></svg>Kochmodus</span></div>
+        </div>
+        <div class="ch" data-shot="2" data-b="Wochenplan: 4 Tage gefüllt">
+          <div class="no">Schritt 3 von 4 <i></i></div><h3>Alle reden mit.</h3>
+          <p>Wünsche eintragen, abstimmen, gemeinsam planen. Jeder in der Familie sieht sofort dasselbe – auf dem eigenen Handy, ohne Nachfragen im Flur.</p>
+          <div class="tags"><span><svg class="ic"><use href="#u-hand"/></svg>Wünsche</span><span><svg class="ic"><use href="#u-chart"/></svg>Abstimmung</span><span><svg class="ic"><use href="#u-users"/></svg>Familie</span></div>
+        </div>
+        <div class="ch" data-shot="3" data-b="Einkaufsliste: 6 Sachen offen">
+          <div class="no">Schritt 4 von 4 <i></i></div><h3>Der Rest läuft von allein.</h3>
+          <p>Was für den Wochenplan fehlt, steht automatisch auf der Einkaufsliste. Hakt einer im Laden etwas ab, verschwindet es bei allen anderen im selben Moment.</p>
+          <div class="tags"><span><svg class="ic"><use href="#u-cart"/></svg>Liste live</span><span><svg class="ic"><use href="#u-calendar"/></svg>Wochenplan</span><span><svg class="ic"><use href="#u-bell"/></svg>Erinnerung</span></div>
+        </div>
       </div>
       <div class="pin">
-        <div class="phone" id="pinPhone"><div class="scr" id="scr2">
-          <img src="img/light_home.jpg" alt="" loading="lazy"><img class="on" src="img/light_fridge.jpg" alt="" loading="lazy"><img src="img/light_recipes.jpg" alt="" loading="lazy">
-        </div></div>
-        <div class="bubble" id="bub"></div>
+        <div class="phone" id="pinPhone">
+          <span class="vol"></span><span class="vol2"></span><span class="side"></span>
+          <div class="scr" id="scr2">
+            <img src="img/light_home.jpg" alt="" loading="lazy"><img class="on" src="img/light_fridge.jpg" alt="" loading="lazy"><img src="img/light_recipes.jpg" alt="" loading="lazy"><img src="img/u_shop.jpg" alt="" loading="lazy">
+          </div>
+        </div>
+        <div class="bubble" id="bub"><svg class="ic"><use href="#u-sparkle"/></svg><span id="bubT"></span></div>
       </div>
+    </div>
+  </div></section>
+
+  <!-- Ein Abend -->
+  <section id="abend"><div class="wrap">
+    <div class="kicker rv"><svg class="ic"><use href="#u-clock"/></svg>Ein ganz normaler Dienstag</div>
+    <h2 class="big split hop-me" data-split>So sieht ein Abend damit aus.</h2>
+    <p class="sub rv">Keine Theorie – das ist der Ablauf, für den die App gebaut wurde.</p>
+    <div class="tl" id="tl">
+      <div class="tl-line"><i></i><b></b></div>
+      <div class="tl-i rv"><span class="dot"><svg class="ic"><use href="#u-fridge"/></svg></span><time>17:02</time><h3>Kühlschrank auf, vier Sachen angetippt.</h3><p>Hackfleisch, Zwiebeln, Nudeln, eine halbe Packung Sahne. Mehr muss niemand eingeben – was ihr regelmäßig habt, merkt sich die App von selbst.</p></div>
+      <div class="tl-i rv"><span class="dot"><svg class="ic"><use href="#u-sparkle"/></svg></span><time>17:03</time><h3>Elf Gerichte gehen sofort.</h3><p>Dazu sieben weitere, bei denen genau eine Zutat fehlt. Alles sortiert nach Kochzeit, damit um Viertel nach sechs wirklich etwas auf dem Tisch steht.</p></div>
+      <div class="tl-i rv"><span class="dot"><svg class="ic"><use href="#u-chart"/></svg></span><time>17:05</time><h3>Mia stimmt vom Sofa aus ab.</h3><p>Zwei Vorschläge, drei Stimmen, eine Entscheidung. Kein „ist mir egal“, keine Diskussion am Herd – und der Wunsch von letzter Woche steht gleich daneben.</p></div>
+      <div class="tl-i rv"><span class="dot"><svg class="ic"><use href="#u-chef"/></svg></span><time>17:18</time><h3>Kochmodus an, Handy weg.</h3><p>Große Schrift, Schritt für Schritt, Timer schon eingestellt. Der Bildschirm bleibt an, bis das Essen fertig ist.</p></div>
+      <div class="tl-i rv"><span class="dot"><svg class="ic"><use href="#u-check"/></svg></span><time>17:46</time><h3>Gegessen.</h3><p>Und auf der Einkaufsliste steht schon, was für morgen fehlt.</p></div>
     </div>
   </div></section>
 
   <!-- Ausprobieren -->
   <section id="probieren"><div class="wrap">
-    <div class="center-m"><div class="kicker rv">Probier's aus – ohne Anmeldung</div>
-    <h2 class="big split hop-me" data-split>Was hast du gerade da?</h2>
-    <p class="sub rv">Tippe an, was in deinem Kühlschrank ist. Die Vorschläge kommen live aus den echten Rezepten der App.</p></div>
+    <div class="center-m">
+      <div class="kicker rv"><svg class="ic"><use href="#u-fridge"/></svg>Ohne Anmeldung, direkt hier</div>
+      <h2 class="big split hop-me" data-split>Was habt ihr gerade da?</h2>
+      <p class="sub rv">Tippt an, was bei euch im Kühlschrank liegt. Die Vorschläge rechts kommen live aus denselben 620 Rezepten, mit denen auch die App arbeitet.</p>
+    </div>
     <div class="try">
-      <div class="fridge rv" id="fridge" aria-label="Kühlschrank zum Ausprobieren">
-        <button class="door" type="button" tabindex="-1" aria-hidden="true"><span>Kühlschrank öffnen</span></button>
-        <div class="fridge-top"><b>Dein Kühlschrank</b><button id="rand" type="button">🎲 Zufällig</button><button id="clear" type="button">Leeren</button></div>
+      <div class="fridge rv">
+        <div class="f-head">
+          <b><svg class="ic"><use href="#u-fridge"/></svg>Euer Kühlschrank</b>
+          <span class="cnt" id="cntSel">5 drin</span>
+          <button id="rand" type="button"><svg class="ic"><use href="#u-dice"/></svg>Zufällig</button>
+          <button id="clear" type="button">Leeren</button>
+        </div>
         <div id="shelves"></div>
         <button id="mini" type="button"><span><b id="miniN">0</b> Gerichte gehen sofort</span><span class="go">Ansehen</span></button>
       </div>
-      <div class="res rv" aria-live="polite">
+      <div class="res rv" data-d="1" aria-live="polite">
         <div class="res-h"><span class="n" id="nOk">0</span><span id="nOkL">Gerichte gehen sofort</span></div>
         <div class="res-s" id="nAlmost"></div>
         <div id="dishes"></div>
+        <div class="res-f"><a class="btn btn-herb btn-sm" href="../" style="width:100%">Alle 620 Rezepte in der App<svg class="ic"><use href="#u-arrow"/></svg></a></div>
       </div>
     </div>
   </div></section>
 
   <!-- Glücksrad -->
   <section id="rad"><div class="wrap">
-    <div class="center-m"><div class="kicker rv">Keine Idee?</div>
-    <h2 class="big split hop-me" data-split>Dann entscheidet das Rad.</h2></div>
+    <div class="center-m">
+      <div class="kicker rv"><svg class="ic"><use href="#u-dice"/></svg>Wenn gar keiner weiß, worauf er Lust hat</div>
+      <h2 class="big split hop-me" data-split>Dann entscheidet das Rad.</h2>
+    </div>
     <div class="spin-wrap">
-      <div class="wheel-box rv" id="wbox"><div class="pointer" id="pointer"></div><svg id="wheel" viewBox="-200 -200 400 400" role="img" aria-label="Glücksrad mit Gerichten"></svg><button class="hub" id="spin" type="button">Drehen</button></div>
+      <div class="wheel-box rv" id="wbox">
+        <svg class="pointer" id="pointer" viewBox="0 0 28 36" aria-hidden="true"><path d="M14 36 3.4 15.2A11.8 11.8 0 1 1 24.6 15.2L14 36Z" fill="currentColor"/><circle cx="14" cy="12" r="4.2" fill="var(--bg)"/></svg>
+        <svg id="wheel" viewBox="-200 -200 400 400" role="img" aria-label="Glücksrad mit acht Gerichten"></svg>
+        <button class="hub" id="spin" type="button"><svg class="ic"><use href="#u-sparkle"/></svg><span id="spinT">Drehen</span></button>
+      </div>
       <div class="win" id="win">
-        <div class="rv"><p class="sub" style="margin:0">Acht Gerichte, ein Dreh. In der App gibt es das Ganze in schlau: als Vorschlag, der wirklich zu euch passt.</p>
-        <div class="seg" id="wseg" role="group" aria-label="Was soll aufs Rad?"><span class="pill"></span><button data-mode="fridge" aria-pressed="true">Aus meinem Kühlschrank</button><button data-mode="all" aria-pressed="false">Alles</button></div></div>
+        <div class="rv" data-d="1">
+          <p class="sub" style="margin:0">Acht Gerichte, ein Dreh, fertig ist die Entscheidung. In der App gibt es dasselbe in schlau: einen Vorschlag, der zu euren Vorräten, eurer Zeit und euren Wünschen passt.</p>
+          <div class="seg" id="wseg" role="group" aria-label="Was soll aufs Rad?"><span class="pill"></span><button data-mode="fridge" aria-pressed="true">Aus eurem Kühlschrank</button><button data-mode="all" aria-pressed="false">Alle Rezepte</button></div>
+        </div>
+      </div>
+    </div>
+  </div></section>
+
+  <!-- Funktionen -->
+  <section id="funktionen"><div class="wrap">
+    <div class="kicker rv"><svg class="ic"><use href="#u-list"/></svg>Alles drin</div>
+    <h2 class="big split hop-me" data-split>Was die App sonst noch kann.</h2>
+    <p class="sub rv">Keine lange Liste um der Liste willen – jede Funktion löst etwas, das in einer Familienküche wirklich nervt.</p>
+    <div class="feat">
+      <div class="fcard rv"><i><svg class="ic"><use href="#u-camera"/></svg></i><h3>Kühlschrank scannen</h3><p>Ein Foto, und die erkannten Zutaten landen in eurem Vorrat. Falsches einfach wieder abwählen.</p></div>
+      <div class="fcard rv" data-d="1"><i><svg class="ic"><use href="#u-chef"/></svg></i><h3>Kochmodus</h3><p>Große Schrift, ein Schritt pro Seite, Timer direkt im Rezept. Der Bildschirm bleibt an.</p></div>
+      <div class="fcard rv" data-d="2"><i><svg class="ic"><use href="#u-calendar"/></svg></i><h3>Wochenplan</h3><p>Frühstück, Mittag, Abendessen für sieben Tage. Was fehlt, wandert automatisch auf die Einkaufsliste.</p></div>
+      <div class="fcard rv"><i><svg class="ic"><use href="#u-cart"/></svg></i><h3>Einkaufsliste in Echtzeit</h3><p>Einer hakt im Laden ab, bei allen anderen verschwindet es sofort. Auch zu zweit im selben Supermarkt.</p></div>
+      <div class="fcard rv" data-d="1"><i><svg class="ic"><use href="#u-hand"/></svg></i><h3>Wünsche &amp; Abstimmung</h3><p>Jeder trägt ein, worauf er Lust hat. Bei Uneinigkeit entscheidet eine kurze Abstimmung.</p></div>
+      <div class="fcard rv" data-d="2"><i><svg class="ic"><use href="#u-clock"/></svg></i><h3>Ablaufdatum im Blick</h3><p>Die App sagt Bescheid, bevor etwas schlecht wird – und schlägt Rezepte genau dafür vor.</p></div>
+      <div class="fcard rv"><i><svg class="ic"><use href="#u-leaf"/></svg></i><h3>Allergien &amp; Vorlieben</h3><p>Laktose, Gluten, Nüsse, kein Fleisch, kein Fisch: Was nicht passt, taucht gar nicht erst auf.</p></div>
+      <div class="fcard rv" data-d="1"><i><svg class="ic"><use href="#u-bell"/></svg></i><h3>Benachrichtigungen</h3><p>Nur wenn es etwas zu sagen gibt: neue Abstimmung, Wunsch eingetragen, Essen geplant.</p></div>
+      <div class="fcard rv" data-d="2"><i><svg class="ic"><use href="#u-phone"/></svg></i><h3>Als App auf dem Handy</h3><p>Ohne Store, ohne Konto-Zwang: einmal zum Startbildschirm hinzufügen, dann liegt sie bei den anderen Apps.</p></div>
+    </div>
+  </div></section>
+
+  <!-- Sprachen -->
+  <section style="padding-top:0"><div class="wrap">
+    <div class="lang">
+      <div>
+        <div class="kicker rv"><svg class="ic"><use href="#u-globe"/></svg>Neu</div>
+        <h2 class="big split hop-me" data-split>In drei Sprachen.</h2>
+        <p class="sub rv">Deutsch, Englisch, Russisch – ein Schieberegler oben, und die ganze App wechselt mit. Nicht nur die Knöpfe: auch alle 620 Rezepte, jede Zutat und jeder Kochschritt.</p>
+        <div class="cta rv" data-d="1" style="margin-top:26px"><a class="btn btn-soft" href="../">Selbst umschalten<svg class="ic"><use href="#u-arrow"/></svg></a></div>
+      </div>
+      <div class="lang-demo rv" data-d="1" id="langDemo">
+        <div class="lang-row on"><span class="fl">DE</span><span><b>Gnocchi in Tomatensoße</b><small>Zwiebeln anschwitzen, Tomaten dazu, 20 Minuten</small></span></div>
+        <div class="lang-row"><span class="fl">EN</span><span><b>Gnocchi in tomato sauce</b><small>Sweat the onions, add tomatoes, 20 minutes</small></span></div>
+        <div class="lang-row"><span class="fl">RU</span><span><b>Ньокки в томатном соусе</b><small>Обжарить лук, добавить помидоры, 20 минут</small></span></div>
       </div>
     </div>
   </div></section>
 
   <!-- Zahlen -->
   <section style="padding-top:0"><div class="wrap">
-    <div class="kicker rv">In Zahlen</div>
     <div class="nums">
-      <div class="rv"><b data-count="620">0</b><span>Rezepte – von Pfannkuchen bis Curry</span></div>
-      <div class="rv"><b data-count="0" data-suffix=" €">0 €</b><span>kostet die App für eure Familie</span></div>
-      <div class="rv"><b data-count="3">0</b><span>Mahlzeiten am Tag im Wochenplan</span></div>
+      <div class="rv"><b data-count="620">0</b><span>Rezepte, von Pfannkuchen bis Curry</span></div>
+      <div class="rv" data-d="1"><b data-count="91">0</b><span>Zutaten, die ihr antippen könnt</span></div>
+      <div class="rv" data-d="2"><b data-count="3">0</b><span>Sprachen: Deutsch, Englisch, Russisch</span></div>
+      <div class="rv" data-d="3"><b data-count="0" data-suffix=" €">0 €</b><span>kostet das Ganze für eure Familie</span></div>
     </div>
   </div></section>
 
   <!-- Installieren -->
   <section id="installieren"><div class="wrap">
-    <div class="center-m"><div class="kicker rv">Installieren</div>
-    <h2 class="big split hop-me" data-split>In 20 Sekunden auf dem Handy.</h2>
-    <div class="seg rv" id="oseg" role="group" aria-label="Handy auswählen"><span class="pill"></span><button data-os="ios" aria-pressed="true">iPhone</button><button data-os="android" aria-pressed="false">Android</button></div></div>
+    <div class="center-m">
+      <div class="kicker rv"><svg class="ic"><use href="#u-phone"/></svg>Installieren</div>
+      <h2 class="big split hop-me" data-split>In 20 Sekunden auf dem Handy.</h2>
+      <p class="sub rv">Kein App Store, kein Download, keine Anmeldung nötig, um sie anzusehen.</p>
+      <div class="seg rv" data-d="1" id="oseg" role="group" aria-label="Handy auswählen"><span class="pill"></span><button data-os="ios" aria-pressed="true">iPhone</button><button data-os="android" aria-pressed="false">Android</button></div>
+    </div>
     <div class="install" id="steps"></div>
+  </div></section>
+
+  <!-- Fragen -->
+  <section style="padding-top:0"><div class="wrap">
+    <div class="kicker rv"><svg class="ic"><use href="#u-list"/></svg>Häufige Fragen</div>
+    <h2 class="big split hop-me" data-split>Gut zu wissen.</h2>
+    <div class="faq rv" data-d="1">
+      <details open><summary>Was kostet „Was gibt's?“ wirklich?<svg class="ic"><use href="#u-chev"/></svg></summary><div class="a">Nichts. Es gibt keine kostenpflichtige Version, keine Abos, keine Werbung und keine Funktionen, die später Geld kosten. Das Projekt ist privat entstanden und läuft ohne kommerzielle Absicht.</div></details>
+      <details><summary>Brauche ich einen Account?<svg class="ic"><use href="#u-chev"/></svg></summary><div class="a">Zum Stöbern nicht. Für alles, was gemeinsam funktioniert – Wochenplan, Einkaufsliste, Wünsche und Abstimmungen – braucht es ein Konto, weil diese Daten zwischen den Handys der Familie abgeglichen werden müssen.</div></details>
+      <details><summary>Wie kommt meine Familie dazu?<svg class="ic"><use href="#u-chev"/></svg></summary><div class="a">Über einen QR-Code oder einen Einladungslink aus der App. Wer beitritt, sieht denselben Vorrat, denselben Plan und dieselbe Liste. Ihr könnt jederzeit jemanden wieder entfernen.</div></details>
+      <details><summary>Funktioniert die App auch ohne Internet?<svg class="ic"><use href="#u-chev"/></svg></summary><div class="a">Rezepte, Kochmodus und der zuletzt geladene Stand funktionieren offline. Sobald ihr wieder online seid, gleicht sich alles automatisch ab.</div></details>
+      <details><summary>Was passiert mit meinen Daten?<svg class="ic"><use href="#u-chev"/></svg></summary><div class="a">Diese Seite setzt keine Werbe- oder Analyse-Cookies und bindet keine externen Dienste ein. Was die App selbst speichert und warum, steht ausführlich in der <a href="datenschutz.html">Datenschutzerklärung</a>.</div></details>
+      <details><summary>Wer steckt dahinter?<svg class="ic"><use href="#u-chev"/></svg></summary><div class="a">„Was gibt's?“ ist ein privates Projekt und wird in der Freizeit weiterentwickelt. Kontakt und Verantwortlichkeit stehen im <a href="impressum.html">Impressum</a>.</div></details>
+    </div>
   </div></section>
 
   <div class="wrap final">
     <h2 class="split hop-me" data-split>Was gibt's heute?</h2>
-    <p class="rv">Probiert's heute Abend aus. Die ganze Familie, ein Gericht, keine Diskussion.</p>
-    <a class="btn btn-herb rv" href="../" style="min-height:58px;padding:0 34px;font-size:18px">Jetzt kostenlos starten</a>
-    <a class="sponsor rv" href="https://www.etsy.com/de/shop/PiHILL" target="_blank" rel="noopener sponsored">Präsentiert von<img src="../sponsor/pihill.png" alt="PiHILL – Handgemachtes"></a>
+    <p class="rv">Probiert es heute Abend aus. Die ganze Familie, ein Gericht, keine Diskussion.</p>
+    <a class="btn btn-herb rv" data-d="1" href="../" style="min-height:58px;padding:0 34px;font-size:18px">Jetzt kostenlos starten<svg class="ic"><use href="#u-arrow"/></svg></a>
+    <div><a class="sponsor rv" data-d="2" href="https://www.etsy.com/de/shop/PiHILL" target="_blank" rel="noopener sponsored">Präsentiert von<img src="../sponsor/pihill.png" alt="PiHILL – Handgemachtes" loading="lazy"></a></div>
   </div>
 </main>
 
-<dialog id="dlg"><div class="dlg" id="dlgBody"></div></dialog>
+<dialog id="dlg" aria-label="Rezept"><div class="dlg" id="dlgBody"></div></dialog>
 
 <footer><div class="wrap">
-  <span>© 2026 „Was gibt's?"</span>
-  <span><a href="../">App öffnen</a> &nbsp;·&nbsp; <a href="../">Datenschutz &amp; Impressum (in der App unter „Mehr")</a></span>
-  <span>Icons von <a href="https://icons8.com" target="_blank" rel="noopener">Icons8</a></span>
+  <div class="f-grid">
+    <div>
+      <h4>Was gibt's?</h4>
+      <p style="margin:0;max-width:330px">Die Koch-App für die ganze Familie. Sagt, was da ist – wir sagen, was passt.</p>
+    </div>
+    <div>
+      <h4>App</h4>
+      <nav><a href="../">App öffnen</a><a href="#probieren">Ausprobieren</a><a href="#funktionen">Funktionen</a><a href="#installieren">Installieren</a></nav>
+    </div>
+    <div>
+      <h4>Rechtliches</h4>
+      <nav><a href="impressum.html">Impressum</a><a href="datenschutz.html">Datenschutzerklärung</a><a href="datenschutz.html#cookies">Cookies &amp; Speicherung</a></nav>
+    </div>
+  </div>
+  <div class="f-note">
+    <span>© <span id="yr">2026</span> „Was gibt's?“ · Ein privates Projekt</span>
+    <span>Gestaltet und gebaut in Deutschland</span>
+  </div>
 </div></footer>
 
+<div class="cookie" id="ck" role="dialog" aria-live="polite" aria-label="Hinweis zu Cookies und Speicherung" hidden>
+  <h4><svg class="ic"><use href="#u-lock"/></svg>Kurz zur Speicherung</h4>
+  <p>Diese Seite setzt keine Werbe- oder Analyse-Cookies und bindet keine externen Dienste ein. Gespeichert wird nur das, was für die Anzeige nötig ist – zum Beispiel, dass ihr diesen Hinweis schon gelesen habt.</p>
+  <div class="row"><button class="btn btn-herb btn-sm" id="ckOk" type="button">Verstanden</button><a href="datenschutz.html">Mehr dazu</a></div>
+</div>
 <script type="module">
 import { R, ING, CATS } from '../data.js';
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const fine = matchMedia('(pointer:fine)').matches;
-const mobile = () => matchMedia('(max-width:900px)').matches;
+const mobile = () => matchMedia('(max-width:980px)').matches;
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
-const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-$('#cntR').textContent = R.length;
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c]));
+const ico = (id, cls) => `<svg class="ic${cls ? ' ' + cls : ''}" aria-hidden="true"><use href="#${id}"/></svg>`;
+$('#yr').textContent = new Date().getFullYear();
 
-/* Kopfzeile + Fortschritt */
+/* ---------- Zutaten und Gerichte: welches Icon? ---------- */
+const FIC = { zwiebeln:'f-zwiebeln', eier:'f-eier', kartoffeln:'f-kartoffeln', kaese:'f-kaese', passierte:'f-passierte',
+  nudeln:'f-nudeln', paprika:'f-paprika', haehnchen:'f-haehnchen', mehl:'f-mehl', reis:'f-reis', sahne:'f-sahne',
+  milch:'f-milch', tomaten:'f-tomaten', karotten:'f-karotten', butter:'f-butter', hackfleisch:'f-hackfleisch',
+  brot:'f-brot', knoblauch:'f-knoblauch', joghurt:'f-joghurt', gurke:'f-gurke', zucchini:'f-zucchini', spinat:'f-spinat',
+  sojasosse:'f-sojasosse', kokosmilch:'f-kokosmilch', paniermehl:'f-paniermehl', lachs:'f-lachs', broetchen:'f-broetchen',
+  tortillas:'f-tortillas', champignons:'f-champignons', erbsen:'f-erbsen', salat:'d-salat', feta:'f-kaese', mais:'f-erbsen' };
+function dishIcon(r){
+  const n = (r.n || '').toLowerCase(), i = r.i || [], x = r.x || [];
+  if (/suppe|eintopf|brühe|bruehe/.test(n)) return 'd-suppe';
+  if (/salat/.test(n)) return 'd-salat';
+  if (/kuchen|torte|muffin|keks|waffel|pfannkuchen|crêpe|crepe|brownie|pudding|creme|mousse|eis\b|quarkspeise/.test(n)) return 'd-suess';
+  if (/auflauf|gratin|brot backen|zopf/.test(n)) return 'd-backen';
+  if (/pizza|burger|sandwich|toast|baguette|brötchen|broetchen|wrap|tortilla|quesadilla/.test(n)) return 'f-brot';
+  if (/pasta|spaghetti|nudel|lasagne|gnocchi|penne|tagliatelle/.test(n) || i.includes('nudeln')) return 'f-nudeln';
+  if (/risotto|reis|curry|bowl/.test(n) || i.includes('reis')) return 'f-reis';
+  if (x.includes('fisch') || i.includes('lachs') || /fisch|lachs|garnel/.test(n)) return 'f-lachs';
+  if (/omelett|rührei|ruehrei|spiegelei|frittata/.test(n)) return 'd-pfanne';
+  if (i.includes('eier') && i.length <= 4) return 'f-eier';
+  if (i.includes('haehnchen') || i.includes('hackfleisch') || /hähnchen|haehnchen|schnitzel|frikadelle|gulasch|steak/.test(n)) return 'f-haehnchen';
+  if (i.includes('kartoffeln')) return 'f-kartoffeln';
+  if (x.includes('vegetarisch') || x.includes('vegan')) return 'd-gemuese';
+  return 'd-teller';
+}
+
+/* ---------- Kopfzeile und Fortschritt ---------- */
 const hd = $('#top'), prog = $('#prog');
-const onScroll = () => { hd.classList.toggle('scrolled', scrollY > 10); prog.style.transform = `scaleX(${scrollY / (document.documentElement.scrollHeight - innerHeight || 1)})`; };
+const onScroll = () => { hd.classList.toggle('scrolled', scrollY > 10);
+  prog.style.transform = `scaleX(${scrollY / (document.documentElement.scrollHeight - innerHeight || 1)})`; };
 addEventListener('scroll', onScroll, { passive:true }); onScroll();
 
-/* Überschriften: Buchstabe für Buchstabe, federn bei Berührung */
+/* ---------- Überschriften Buchstabe für Buchstabe ---------- */
 $$('[data-split]').forEach(h => { let i = 0;
   h.setAttribute('aria-label', h.textContent);
   h.innerHTML = h.textContent.split(' ').map(w => `<span class="w" aria-hidden="true">${[...w].map(ch => `<span class="c" style="--i:${i++}">${esc(ch)}</span>`).join('')}</span>`).join(' '); });
 const hop = c => { if (reduce || c.classList.contains('hop')) return; c.classList.add('hop'); c.addEventListener('animationend', () => c.classList.remove('hop'), { once:true }); };
 document.addEventListener('pointerover', e => { const c = e.target.closest('.hop-me .c'); if (c) hop(c); });
 
-const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); if (e.target.dataset.count != null) countUp(e.target); } }), { threshold:.18 });
-$$('.rv,[data-split],[data-count]').forEach(el => io.observe(el));
-function countUp(el){ const to = +el.dataset.count, suf = el.dataset.suffix || ''; if (reduce || !to){ el.textContent = to + suf; return; }
-  const t0 = performance.now(); const f = t => { const k = Math.min(1, (t - t0) / 1400); el.textContent = Math.round(to * (1 - Math.pow(1 - k, 3))) + suf; if (k < 1) requestAnimationFrame(f); }; requestAnimationFrame(f); }
+/* ---------- Einblenden – läuft auch rückwärts, wenn man hochscrollt ---------- */
+const io = new IntersectionObserver(es => es.forEach(e => {
+  const el = e.target;
+  if (e.isIntersecting){ el.classList.add('in'); if (el.dataset.count != null) countUp(el); }
+  else if (!reduce) el.classList.remove('in');
+}), { threshold:.14, rootMargin:'-2% 0px -6% 0px' });
+const watch = () => $$('.rv,[data-split],[data-count],.tl-i').forEach(el => io.observe(el));
+watch();
+function countUp(el){ const to = +el.dataset.count, suf = el.dataset.suffix || '';
+  if (reduce || !to){ el.textContent = to + suf; return; }
+  const t0 = performance.now(), f = t => { const k = Math.min(1, (t - t0) / 1300);
+    el.textContent = Math.round(to * (1 - Math.pow(1 - k, 3))) + suf; if (k < 1) requestAnimationFrame(f); };
+  requestAnimationFrame(f); }
 
-/* Wechselndes Wort */
+/* ---------- Wechselndes Wort ---------- */
 const words = $$('.cycle span'); let wi = 0;
-if (!reduce){ const tick = () => { if (wi >= words.length - 1) return; words[wi].classList.replace('on', 'out'); wi++; words[wi].classList.add('on'); if (wi < words.length - 1) setTimeout(tick, 950); }; setTimeout(tick, 1500); }
+if (!reduce){ const tick = () => { if (wi >= words.length - 1) return;
+    words[wi].classList.replace('on', 'out'); wi++; words[wi].classList.add('on');
+    if (wi < words.length - 1) setTimeout(tick, 980); }; setTimeout(tick, 1500); }
 else { words.forEach(s => s.classList.remove('on')); words.at(-1).classList.add('on'); }
 
-/* iPhone oben: Bilder, Maus + Scroll bewegen es */
+/* ---------- Bilder im iPhone ---------- */
 const imgs = $$('#scr img'), dots = $$('#dots button'); let cur = 0, timer;
-const show = n => { imgs[cur].classList.remove('on'); dots[cur].classList.remove('on'); cur = (n + imgs.length) % imgs.length; imgs[cur].classList.add('on'); dots[cur].classList.add('on'); };
-const auto = () => { clearInterval(timer); if (!reduce) timer = setInterval(() => show(cur + 1), 3200); };
+const show = n => { imgs[cur].classList.remove('on'); dots[cur].classList.remove('on');
+  cur = (n + imgs.length) % imgs.length; imgs[cur].classList.add('on'); dots[cur].classList.add('on'); };
+const auto = () => { clearInterval(timer); if (!reduce) timer = setInterval(() => show(cur + 1), 3400); };
 dots.forEach((d, i) => d.addEventListener('click', () => { show(i); auto(); })); auto();
-const ph = $('#phone'); let mx = 0, my = 0, tx = 0, ty = 0;
+
+/* ---------- Laufband mit echten Gerichten ---------- */
+const pick = [...R].sort(() => Math.random() - .5).slice(0, 22);
+const mqEl = $('#mq'), one = pick.map(r => `<a href="#probieren" data-id="${r.id}">${ico(dishIcon(r))}${esc(r.n)}</a>`).join('');
+mqEl.innerHTML = one + one;
+
+/* ---------- Alles, was am Scrollen hängt – läuft in beide Richtungen ---------- */
+const ph = $('#phone'), par = $$('[data-par]'), tlBar = $('.tl-line b'), tlBox = $('#tl');
+let mx = 0, my = 0, tx = 0, ty = 0, mqX = 0, lastY = scrollY, vel = 0;
 if (fine) addEventListener('mousemove', e => { mx = e.clientX / innerWidth - .5; my = e.clientY / innerHeight - .5; }, { passive:true });
-
-/* Laufband mit echten Gerichten – Tempo und Neigung folgen dem Scrollen */
-const pick = [...R].sort(() => Math.random() - .5).slice(0, 26);
-const mqEl = $('#mq'), mqHtml = pick.map(r => `<span>${r.e} ${esc(r.n)}</span>`).join('');
-mqEl.innerHTML = mqHtml + mqHtml;
-let mqX = 0, lastY = scrollY, vel = 0;
-
 const loop = () => {
   const v = scrollY - lastY; lastY = scrollY; vel += (v - vel) * .12;
-  // iPhone
-  tx += (mx - tx) * .08; ty += (my - ty) * .08;
+  tx += (mx - tx) * .07; ty += (my - ty) * .07;
   const s = Math.min(1, scrollY / innerHeight);
-  if (!mobile()) ph.style.transform = `translateY(${-s * 60}px) rotateY(${-14 + tx * 18 + s * 10}deg) rotateX(${6 - ty * 12 + s * 14}deg) scale(${1 - s * .06})`;
-  // Laufband
+  if (!mobile()) ph.style.transform = `perspective(1300px) translateY(${-s * 34}px) rotateY(${tx * 9}deg) rotateX(${-ty * 7}deg) scale(${1 - s * .04})`;
+  else ph.style.transform = '';
+  const mid = innerHeight / 2;
+  for (const el of par){ const r = el.getBoundingClientRect();
+    el.style.setProperty('--py', ((r.top + r.height / 2 - mid) * +el.dataset.par).toFixed(1) + 'px'); }
+  if (tlBox){ const r = tlBox.getBoundingClientRect();
+    tlBar.style.setProperty('--p', Math.max(0, Math.min(1, (innerHeight * .74 - r.top) / (r.height || 1))).toFixed(3)); }
   const half = mqEl.scrollWidth / 2;
-  mqX -= .6 + Math.min(14, Math.abs(vel) * .35); if (half && -mqX > half) mqX += half;
-  mqEl.style.transform = `translateX(${mqX}px) skewX(${Math.max(-10, Math.min(10, -vel * .25))}deg)`;
+  mqX -= .55 + Math.min(13, Math.abs(vel) * .32); if (half && -mqX > half) mqX += half;
+  mqEl.style.transform = `translateX(${mqX}px) skewX(${Math.max(-8, Math.min(8, -vel * .2))}deg)`;
   requestAnimationFrame(loop);
 };
 if (!reduce) requestAnimationFrame(loop);
+else if (tlBar) tlBar.style.setProperty('--p', 1);
 
-/* Kärtchen verschieben */
-$$('.float').forEach(f => { let sx, sy, ox = 0, oy = 0;
-  f.addEventListener('pointerdown', e => { f.setPointerCapture(e.pointerId); f.classList.add('dragging'); f.style.transition = ''; sx = e.clientX - ox; sy = e.clientY - oy; });
-  f.addEventListener('pointermove', e => { if (!f.classList.contains('dragging')) return; ox = e.clientX - sx; oy = e.clientY - sy; f.style.transform = `translate(${ox}px,${oy}px) rotate(${ox * .03}deg) scale(1.05)`; });
-  const end = () => { if (!f.classList.contains('dragging')) return; f.classList.remove('dragging'); f.style.transition = 'transform .7s cubic-bezier(.34,1.56,.64,1)'; f.style.transform = `translate(${ox}px,${oy}px)`; };
+/* ---------- Kärtchen verschieben ---------- */
+$$('.chip').forEach(f => { let sx, sy, ox = 0, oy = 0;
+  f.addEventListener('pointerdown', e => { f.setPointerCapture(e.pointerId); f.classList.add('dragging');
+    f.style.transition = ''; sx = e.clientX - ox; sy = e.clientY - oy; });
+  f.addEventListener('pointermove', e => { if (!f.classList.contains('dragging')) return;
+    ox = e.clientX - sx; oy = e.clientY - sy;
+    f.style.setProperty('--dx', ox + 'px'); f.style.setProperty('--dy', oy + 'px');
+    f.style.setProperty('--rz', (ox * .03).toFixed(2) + 'deg'); f.style.setProperty('--sc', 1.05); });
+  const end = () => { if (!f.classList.contains('dragging')) return; f.classList.remove('dragging');
+    f.style.transition = 'transform .7s cubic-bezier(.34,1.56,.64,1)'; f.style.setProperty('--sc', 1); };
   f.addEventListener('pointerup', end); f.addEventListener('pointercancel', end); });
 
-/* Scroll-Geschichte */
-const s2 = $$('#scr2 img'), bub = $('#bub'), pinPh = $('#pinPhone'); let shot = 1;
+/* ---------- Scroll-Geschichte ---------- */
+const s2 = $$('#scr2 img'), bub = $('#bub'), bubT = $('#bubT'), pinPh = $('#pinPhone'); let shot = 1;
 const chio = new IntersectionObserver(es => es.forEach(e => { if (!e.isIntersecting) return;
   $$('.ch').forEach(c => c.classList.toggle('act', c === e.target));
   const n = +e.target.dataset.shot;
-  if (n !== shot && !reduce) pinPh.animate([{ transform:'none' }, { transform:'rotateY(-16deg) scale(.96)' }, { transform:'none' }], { duration:700, easing:'cubic-bezier(.45,1.35,.5,1)' });
+  if (n !== shot && !reduce) pinPh.animate([{ transform:'none' }, { transform:'rotateY(-13deg) scale(.96)' }, { transform:'none' }],
+    { duration:700, easing:'cubic-bezier(.45,1.35,.5,1)' });
   shot = n; s2.forEach((im, i) => im.classList.toggle('on', i === n));
-  bub.classList.remove('on'); setTimeout(() => { bub.textContent = '✨ ' + e.target.dataset.b; bub.classList.add('on'); }, 280);
-}), { rootMargin: mobile() ? '-60% 0px -30% 0px' : '-45% 0px -45% 0px' });
+  bub.classList.remove('on'); setTimeout(() => { bubT.textContent = e.target.dataset.b; bub.classList.add('on'); }, 280);
+}), { rootMargin: mobile() ? '-58% 0px -32% 0px' : '-45% 0px -45% 0px' });
 $$('.ch').forEach(c => chio.observe(c));
 
-/* ---------- Kühlschrank (echte Rezepte) ---------- */
+/* ---------- Kühlschrank zum Ausprobieren ---------- */
 const freq = {}; R.forEach(r => r.i.forEach(k => freq[k] = (freq[k] || 0) + 1));
-const top = Object.keys(freq).filter(k => ING[k]).sort((a, b) => freq[b] - freq[a]).slice(0, 30);
-const shelves = [['Gemüse & Obst', ['gemuese','obst']], ['Kühlfach', ['milch','fleisch','kuehl']], ['Vorrat', ['getreide','dose','backen','wuerz']]];
+const top = Object.keys(freq).filter(k => ING[k] && FIC[k]).sort((a, b) => freq[b] - freq[a]).slice(0, 30);
+const shelves = [['Gemüse & Frisches', ['gemuese','obst']], ['Kühlfach', ['milch','fleisch','kuehl']], ['Vorrat', ['getreide','dose','backen','wuerz']]];
 const catOf = k => (CATS.find(c => c[3].includes(k)) || ['other'])[0];
 const have = new Set(['nudeln','eier','tomaten','zwiebeln','kaese'].filter(k => ING[k]));
-$('#shelves').innerHTML = shelves.map(([t, cs]) => { const ks = top.filter(k => cs.includes(catOf(k))); return ks.length ? `<div class="shelf"><div class="shelf-t">${t}</div>${ks.map(k => `<button class="ing" data-k="${k}" aria-pressed="${have.has(k)}"><span class="e">${ING[k][1]}</span>${esc(ING[k][0])}</button>`).join('')}</div>` : ''; }).join('');
-$('.door').addEventListener('click', () => $('#fridge').classList.add('in'));
-const matches = () => R.map(r => ({ r, miss: r.i.filter(k => !have.has(k)) })).filter(x => x.miss.length <= 1 && x.r.i.length - x.miss.length >= 1).sort((a, b) => a.miss.length - b.miss.length || a.r.t - b.r.t);
+$('#shelves').innerHTML = shelves.map(([t, cs]) => { const ks = top.filter(k => cs.includes(catOf(k)));
+  return ks.length ? `<div class="shelf"><div class="shelf-t">${t}</div><div class="grid-i">${ks.map(k =>
+    `<button class="ing" data-k="${k}" aria-pressed="${have.has(k)}">${ico(FIC[k])}<span>${esc(ING[k][0])}</span><span class="bdg">${ico('u-check')}</span></button>`).join('')}</div></div>` : ''; }).join('');
+
+const matches = () => R.map(r => ({ r, miss: r.i.filter(k => !have.has(k)) }))
+  .filter(x => x.miss.length <= 1 && x.r.i.length - x.miss.length >= 1)
+  .sort((a, b) => a.miss.length - b.miss.length || a.r.t - b.r.t);
 let lastOk = -1;
 function paint(){
   const m = matches(), ok = m.filter(x => !x.miss.length), al = m.filter(x => x.miss.length === 1);
   const nEl = $('#nOk'), from = lastOk < 0 ? 0 : lastOk; lastOk = ok.length;
-  if (!reduce){ const t0 = performance.now(); const f = t => { const k = Math.min(1, (t - t0) / 450); nEl.textContent = Math.round(from + (ok.length - from) * k); if (k < 1) requestAnimationFrame(f); }; requestAnimationFrame(f); } else nEl.textContent = ok.length;
+  if (!reduce){ const t0 = performance.now(), f = t => { const k = Math.min(1, (t - t0) / 450);
+      nEl.textContent = Math.round(from + (ok.length - from) * k); if (k < 1) requestAnimationFrame(f); }; requestAnimationFrame(f); }
+  else nEl.textContent = ok.length;
   $('#miniN').textContent = ok.length;
+  $('#cntSel').textContent = have.size === 1 ? '1 drin' : have.size + ' drin';
   $('#nOkL').textContent = ok.length === 1 ? 'Gericht geht sofort' : 'Gerichte gehen sofort';
-  $('#nAlmost').textContent = have.size ? `und ${al.length} mit nur einer Zutat mehr` : 'Tippe ein paar Zutaten an.';
+  $('#nAlmost').textContent = have.size ? `Dazu ${al.length}, bei denen genau eine Zutat fehlt.` : 'Tippt links ein paar Zutaten an.';
   const list = [...ok.slice(0, 5), ...al.slice(0, ok.length >= 5 ? 1 : 6 - Math.min(ok.length, 5))];
-  $('#dishes').innerHTML = list.length ? list.map((x, i) => `<button class="dish" data-id="${x.r.id}" style="animation-delay:${i * 50}ms"><span class="e">${x.r.e}</span><span><b>${esc(x.r.n)}</b><small>${x.r.t} Min${x.miss.length ? ` · fehlt: <em>${esc(ING[x.miss[0]] ? ING[x.miss[0]][0] : x.miss[0])}</em>` : ' · alles da'}</small></span><span class="go">›</span></button>`).join('')
-    : `<div class="empty">${have.size ? 'Damit wird es knapp. Tippe noch ein, zwei Sachen an.' : 'Noch leer – der Kühlschrank wartet.'}</div>`;
+  $('#dishes').innerHTML = list.length ? list.map((x, i) => `<button class="dish" data-id="${x.r.id}" style="animation-delay:${i * 50}ms">${ico(dishIcon(x.r))}<span><b>${esc(x.r.n)}</b><small>${ico('u-timer')}${x.r.t} Min${x.miss.length ? ` · fehlt: <em>${esc(ING[x.miss[0]] ? ING[x.miss[0]][0] : x.miss[0])}</em>` : ' · alles da'}</small></span><span class="go">${ico('u-chev')}</span></button>`).join('')
+    : `<div class="empty">${have.size ? 'Damit wird es knapp – tippt noch ein, zwei Sachen an.' : 'Noch leer. Der Kühlschrank wartet.'}</div>`;
   if (mode === 'fridge') buildWheel();
 }
 const bump = () => { const n = mobile() ? $('#miniN') : $('#nOk'); n.classList.remove('bump'); void n.offsetWidth; n.classList.add('bump'); };
-// Zutat fliegt in die Ergebnisse
 function fly(btn){
-  if (reduce) return bump();
-  const a = btn.querySelector('.e').getBoundingClientRect(), tgt = (mobile() ? $('#miniN') : $('#nOk')).getBoundingClientRect();
-  const el = document.createElement('span'); el.className = 'fly'; el.textContent = btn.querySelector('.e').textContent; document.body.append(el);
-  const x0 = a.left, y0 = a.top, x1 = tgt.left + tgt.width / 2 - 11, y1 = tgt.top + tgt.height / 2 - 14, lift = Math.min(160, Math.abs(x1 - x0) * .35 + 60);
+  if (reduce || !btn) return bump();
+  const src = btn.querySelector('.ic'), a = src.getBoundingClientRect();
+  const tgt = (mobile() ? $('#miniN') : $('#nOk')).getBoundingClientRect();
+  const el = src.cloneNode(true); el.setAttribute('class', 'fly'); document.body.append(el);
+  const x0 = a.left, y0 = a.top, x1 = tgt.left + tgt.width / 2 - 15, y1 = tgt.top + tgt.height / 2 - 15;
+  const lift = Math.min(170, Math.abs(x1 - x0) * .35 + 70);
   el.animate([
     { transform:`translate(${x0}px,${y0}px) scale(1)`, opacity:1 },
-    { transform:`translate(${(x0 + x1) / 2}px,${Math.min(y0, y1) - lift}px) scale(1.5) rotate(-20deg)`, opacity:1, offset:.45 },
-    { transform:`translate(${x1}px,${y1}px) scale(.4) rotate(10deg)`, opacity:.2 }
+    { transform:`translate(${(x0 + x1) / 2}px,${Math.min(y0, y1) - lift}px) scale(1.45) rotate(-18deg)`, opacity:1, offset:.45 },
+    { transform:`translate(${x1}px,${y1}px) scale(.35) rotate(10deg)`, opacity:.15 }
   ], { duration:700, easing:'cubic-bezier(.45,0,.3,1)' }).onfinish = () => { el.remove(); bump(); };
 }
-$('#shelves').addEventListener('click', e => { const b = e.target.closest('.ing'); if (!b) return; const k = b.dataset.k;
-  const add = !have.has(k); add ? have.add(k) : have.delete(k); b.setAttribute('aria-pressed', add);
-  if (navigator.vibrate) navigator.vibrate(8); paint(); if (add) fly(b); else bump(); });
+$('#shelves').addEventListener('click', e => { const b = e.target.closest('.ing'); if (!b) return;
+  const k = b.dataset.k, add = !have.has(k); add ? have.add(k) : have.delete(k); b.setAttribute('aria-pressed', add);
+  if (navigator.vibrate) navigator.vibrate(8); paint(); add ? fly(b) : bump(); });
 $('#mini').addEventListener('click', () => $('.res').scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block:'start' }));
 $('#clear').addEventListener('click', () => { have.clear(); $$('.ing').forEach(b => b.setAttribute('aria-pressed', false)); paint(); bump(); });
-$('#rand').addEventListener('click', () => { have.clear(); const sel = [...top].sort(() => Math.random() - .5).slice(0, 7); sel.forEach(k => have.add(k));
+$('#rand').addEventListener('click', () => { have.clear();
+  const sel = [...top].sort(() => Math.random() - .5).slice(0, 7); sel.forEach(k => have.add(k));
   $$('.ing').forEach(b => b.setAttribute('aria-pressed', have.has(b.dataset.k))); paint();
   sel.forEach((k, i) => setTimeout(() => fly($(`.ing[data-k="${k}"]`)), i * 70)); });
 
-/* Rezept ansehen */
+/* ---------- Rezept ansehen ---------- */
 const dlg = $('#dlg');
-function openRecipe(id){ const r = R.find(x => x.id === id); if (!r) return;
-  $('#dlgBody').innerHTML = `<button class="x" aria-label="Schließen" onclick="this.closest('dialog').close()">✕</button><div class="e">${r.e}</div><h3>${esc(r.n)}</h3>
-    <div class="chips">${r.i.map(k => `<span class="${have.has(k) ? '' : 'miss'}">${ING[k] ? ING[k][1] + ' ' + esc(ING[k][0]) : esc(k)}</span>`).join('')}<span>⏱ ${r.t} Min</span></div>
+function openRecipe(id){ const r = R.find(x => String(x.id) === String(id)); if (!r) return;
+  $('#dlgBody').innerHTML = `<button class="x" aria-label="Schließen" data-close>${ico('u-close')}</button>${ico(dishIcon(r))}<h3>${esc(r.n)}</h3>
+    <div class="chips">${r.i.map(k => `<span class="${have.has(k) ? '' : 'miss'}">${FIC[k] ? ico(FIC[k]) : ''}${esc(ING[k] ? ING[k][0] : k)}</span>`).join('')}<span>${ico('u-timer')}${r.t} Min</span></div>
     <ol>${(r.s || []).map(s => `<li>${esc(s)}</li>`).join('')}</ol>
-    <a class="btn btn-herb" href="../" style="width:100%">In der App kochen – mit Timern</a>`;
+    <a class="btn btn-herb" href="../" style="width:100%">In der App kochen – mit Timern${ico('u-arrow')}</a>`;
   dlg.showModal(); }
-document.addEventListener('click', e => { const d = e.target.closest('[data-id]'); if (d) openRecipe(d.dataset.id); });
+document.addEventListener('click', e => {
+  if (e.target.closest('[data-close]')) return dlg.close();
+  const d = e.target.closest('[data-id]'); if (d){ e.preventDefault(); openRecipe(d.dataset.id); } });
 dlg.addEventListener('click', e => { if (e.target === dlg) dlg.close(); });
 
-/* Segment-Schalter mit gleitender Pille */
+/* ---------- Schalter mit gleitender Pille ---------- */
 function segPill(seg){ const on = seg.querySelector('[aria-pressed="true"]'), p = seg.querySelector('.pill'); if (!on || !p) return;
   p.style.width = on.offsetWidth + 'px'; p.style.transform = `translateX(${on.offsetLeft}px)`; }
 const segs = () => $$('.seg').forEach(segPill);
@@ -537,67 +948,100 @@ addEventListener('resize', segs); document.fonts?.ready.then(segs);
 
 /* ---------- Glücksrad ---------- */
 let mode = 'fridge', items = [], rot = 0, spinning = false;
-const COLS = ['#1F8A5B','#F2A91C','#EB5A3C','#3FA675','#E0951A','#D24A30','#5DBB8C','#F6BE45'];
+const CONF = ['#1F8A5B','#2A9A6B','#E0953A','#EB5A3C','#F2C14E','#58B98A'];
+const segCol = i => i === 3 ? '#D9873A' : (i % 2 ? '#2A9A6B' : '#1C7F55');
 const wbox = $('#wbox');
-for (let i = 0; i < 24; i++){ const a = i / 24 * 2 * Math.PI, b = document.createElement('i'); b.className = 'bulb'; b.style.left = 50 + 51.5 * Math.cos(a) + '%'; b.style.top = 50 + 51.5 * Math.sin(a) + '%'; wbox.append(b); }
 function buildWheel(){
   if (spinning) return;
   const pool = mode === 'fridge' ? matches().map(x => x.r) : [...R].sort(() => Math.random() - .5);
-  items = (pool.length >= 8 ? pool.slice(0, 8) : [...pool, ...[...R].sort(() => Math.random() - .5)].filter((r, i, a) => a.indexOf(r) === i).slice(0, 8));
-  const n = items.length, a = 2 * Math.PI / n, R0 = 196;
-  $('#wheel').innerHTML = items.map((r, i) => { const a0 = i * a - Math.PI / 2 - a / 2, a1 = a0 + a;
-    const p = `M0 0 L${R0 * Math.cos(a0)} ${R0 * Math.sin(a0)} A${R0} ${R0} 0 0 1 ${R0 * Math.cos(a1)} ${R0 * Math.sin(a1)} Z`;
-    const am = (a0 + a1) / 2, tx = 120 * Math.cos(am), ty = 120 * Math.sin(am), deg = am * 180 / Math.PI;
+  items = (pool.length >= 8 ? pool.slice(0, 8)
+    : [...pool, ...[...R].sort(() => Math.random() - .5)].filter((r, i, a) => a.indexOf(r) === i).slice(0, 8));
+  const n = items.length, a = 2 * Math.PI / n, R0 = 184;
+  const segsH = items.map((r, i) => { const a0 = i * a - Math.PI / 2 - a / 2, a1 = a0 + a;
+    const p = `M0 0 L${(R0 * Math.cos(a0)).toFixed(1)} ${(R0 * Math.sin(a0)).toFixed(1)} A${R0} ${R0} 0 0 1 ${(R0 * Math.cos(a1)).toFixed(1)} ${(R0 * Math.sin(a1)).toFixed(1)} Z`;
+    return `<path d="${p}" fill="${segCol(i)}"/>`; }).join('');
+  const linesH = items.map((_, i) => { const a0 = i * a - Math.PI / 2 - a / 2;
+    return `<line x1="0" y1="0" x2="${(R0 * Math.cos(a0)).toFixed(1)}" y2="${(R0 * Math.sin(a0)).toFixed(1)}" stroke="rgba(255,255,255,.22)" stroke-width="1.5"/>`; }).join('');
+  const labsH = items.map((r, i) => { const am = i * a - Math.PI / 2, deg = am * 180 / Math.PI;
+    const tx = (112 * Math.cos(am)).toFixed(1), ty = (112 * Math.sin(am)).toFixed(1);
     const name = r.n.length > 15 ? r.n.slice(0, 14) + '…' : r.n, flip = Math.cos(am) < -0.01;
-    const lab = flip
-      ? `<g transform="translate(${tx} ${ty}) rotate(${deg + 180})"><text x="34" y="7" font-size="22">${r.e}</text><text x="28" y="5" text-anchor="end" fill="#fff" font-family="Figtree" font-weight="600" font-size="13">${esc(name)}</text></g>`
-      : `<g transform="translate(${tx} ${ty}) rotate(${deg})"><text x="-58" y="7" font-size="22">${r.e}</text><text x="-28" y="5" fill="#fff" font-family="Figtree" font-weight="600" font-size="13">${esc(name)}</text></g>`;
-    return `<path d="${p}" fill="${COLS[i % COLS.length]}"/>${lab}`; }).join('')
-    + items.map((_, i) => { const a0 = i * a - Math.PI / 2 - a / 2; return `<line x1="0" y1="0" x2="${R0 * Math.cos(a0)}" y2="${R0 * Math.sin(a0)}" stroke="rgba(255,255,255,.35)" stroke-width="1.5"/>`; }).join('');
+    return flip
+      ? `<g transform="translate(${tx} ${ty}) rotate(${deg + 180})"><text x="48" y="5" text-anchor="end" fill="#fff" font-family="Figtree,system-ui" font-weight="600" font-size="13.5">${esc(name)}</text></g>`
+      : `<g transform="translate(${tx} ${ty}) rotate(${deg})"><text x="-48" y="5" fill="#fff" font-family="Figtree,system-ui" font-weight="600" font-size="13.5">${esc(name)}</text></g>`; }).join('');
+  const studs = items.map((_, i) => { const a0 = i * a - Math.PI / 2 - a / 2;
+    return `<circle cx="${(192 * Math.cos(a0)).toFixed(1)}" cy="${(192 * Math.sin(a0)).toFixed(1)}" r="3.4" fill="var(--bg)" opacity=".55"/>`; }).join('');
+  $('#wheel').innerHTML = `<circle r="198" fill="var(--fg)"/>${segsH}${linesH}<circle r="184" fill="none" stroke="rgba(255,255,255,.18)" stroke-width="1.5"/>${labsH}${studs}`;
 }
-$$('#wseg button').forEach(b => b.addEventListener('click', () => { mode = b.dataset.mode; $$('#wseg button').forEach(x => x.setAttribute('aria-pressed', x === b)); segPill($('#wseg')); buildWheel(); }));
+$$('#wseg button').forEach(b => b.addEventListener('click', () => { mode = b.dataset.mode;
+  $$('#wseg button').forEach(x => x.setAttribute('aria-pressed', x === b)); segPill($('#wseg')); buildWheel(); }));
 $('#spin').addEventListener('click', () => {
-  if (spinning || !items.length) return; spinning = true; $('#spin').disabled = true; wbox.classList.remove('won'); wbox.classList.add('spinning');
+  if (spinning || !items.length) return;
+  spinning = true; $('#spin').disabled = true;
   const n = items.length, win = Math.floor(Math.random() * n), seg = 360 / n;
-  rot = rot - (rot % 360) + 360 * (5 + Math.floor(Math.random() * 3)) + (360 - win * seg) + (Math.random() - .5) * seg * .6;
-  const w = $('#wheel'); w.style.transitionDuration = reduce ? '0s' : '4.6s'; w.style.transform = `rotate(${rot}deg)`;
+  rot = rot - (rot % 360) + 360 * (5 + Math.floor(Math.random() * 3)) + (360 - win * seg) + (Math.random() - .5) * seg * .55;
+  const w = $('#wheel'); w.style.transitionDuration = reduce ? '0s' : '4.8s'; w.style.transform = `rotate(${rot}deg)`;
   let last = -1; const t0 = performance.now(), pt = $('#pointer');
-  const tk = () => { const m = getComputedStyle(w).transform; if (m && m !== 'none'){ const [a, b] = m.slice(7, -1).split(',').map(Number); const s = Math.floor(((Math.atan2(b, a) * 180 / Math.PI + 360) % 360) / seg); if (s !== last){ last = s; pt.classList.remove('tick'); void pt.offsetWidth; pt.classList.add('tick'); if (navigator.vibrate) navigator.vibrate(3); } }
-    if (performance.now() - t0 < 4700) requestAnimationFrame(tk); };
+  const tk = () => { const m = getComputedStyle(w).transform;
+    if (m && m !== 'none'){ const [a, b] = m.slice(7, -1).split(',').map(Number);
+      const s = Math.floor(((Math.atan2(b, a) * 180 / Math.PI + 360) % 360) / seg);
+      if (s !== last){ last = s; pt.classList.remove('tick'); void pt.offsetWidth; pt.classList.add('tick'); if (navigator.vibrate) navigator.vibrate(3); } }
+    if (performance.now() - t0 < 4900) requestAnimationFrame(tk); };
   if (!reduce) requestAnimationFrame(tk);
-  setTimeout(() => { spinning = false; $('#spin').disabled = false; $('#spin').textContent = 'Nochmal'; wbox.classList.replace('spinning', 'won');
+  setTimeout(() => { spinning = false; $('#spin').disabled = false; $('#spinT').textContent = 'Nochmal';
     const r = items[win], box = $('#win');
     box.querySelector('.card')?.remove();
-    box.insertAdjacentHTML('afterbegin', `<div class="card"><div class="e">${r.e}</div><h3 class="split hop-me in" data-split>${esc(r.n)}</h3><p>${r.t} Min · ${r.i.length} Zutaten</p><button class="btn btn-main btn-sm" data-id="${r.id}">Rezept ansehen</button></div>`);
-    const h = box.querySelector('.card h3'); let i = 0; h.innerHTML = h.textContent.split(' ').map(w2 => `<span class="w">${[...w2].map(ch => `<span class="c" style="--i:${i++}">${esc(ch)}</span>`).join('')}</span>`).join(' ');
+    box.insertAdjacentHTML('afterbegin', `<div class="card">${ico(dishIcon(r))}<h3 class="split hop-me in" data-split>${esc(r.n)}</h3><p>${ico('u-timer')}${r.t} Min · ${r.i.length} Zutaten</p><button class="btn btn-main btn-sm" data-id="${r.id}">Rezept ansehen${ico('u-chev')}</button></div>`);
+    const h = box.querySelector('.card h3'); let i = 0;
+    h.innerHTML = h.textContent.split(' ').map(w2 => `<span class="w">${[...w2].map(ch => `<span class="c" style="--i:${i++}">${esc(ch)}</span>`).join('')}</span>`).join(' ');
     h.classList.remove('in'); requestAnimationFrame(() => requestAnimationFrame(() => h.classList.add('in')));
-    confetti(r.e); }, reduce ? 50 : 4700);
+    confetti(); }, reduce ? 50 : 4900);
 });
 
-/* Konfetti mit dem gewonnenen Gericht */
+/* ---------- Konfetti ---------- */
 const cv = $('#confetti'), cx = cv.getContext('2d');
-function confetti(emoji){ if (reduce) return; const dpr = devicePixelRatio || 1; cv.width = innerWidth * dpr; cv.height = innerHeight * dpr; cx.setTransform(dpr, 0, 0, dpr, 0, 0);
+function confetti(){ if (reduce) return;
+  const dpr = devicePixelRatio || 1; cv.width = innerWidth * dpr; cv.height = innerHeight * dpr; cx.setTransform(dpr, 0, 0, dpr, 0, 0);
   const o = wbox.getBoundingClientRect(), ox = o.left + o.width / 2, oy = o.top + o.height / 2, P = [];
-  for (let i = 0; i < 120; i++){ const a = Math.random() * Math.PI * 2, sp = 6 + Math.random() * 12;
-    P.push({ x:ox, y:oy, vx:Math.cos(a) * sp, vy:Math.sin(a) * sp - 6, s:5 + Math.random() * 6, c:COLS[i % COLS.length], r:Math.random() * 6, vr:(Math.random() - .5) * .4, e:i % 9 === 0 ? emoji : null }); }
-  const t0 = performance.now(); const f = t => { const d = t - t0; cx.clearRect(0, 0, innerWidth, innerHeight);
-    P.forEach(p => { p.vy += .38; p.vx *= .985; p.x += p.vx; p.y += p.vy; p.r += p.vr; cx.save(); cx.translate(p.x, p.y); cx.rotate(p.r); cx.globalAlpha = Math.max(0, 1 - d / 2200);
-      if (p.e){ cx.font = '26px system-ui'; cx.fillText(p.e, -13, 9); } else { cx.fillStyle = p.c; cx.fillRect(-p.s / 2, -p.s / 3, p.s, p.s * .66); } cx.restore(); });
-    if (d < 2300) requestAnimationFrame(f); else cx.clearRect(0, 0, innerWidth, innerHeight); }; requestAnimationFrame(f); }
+  for (let i = 0; i < 130; i++){ const a = Math.random() * Math.PI * 2, sp = 6 + Math.random() * 12;
+    P.push({ x:ox, y:oy, vx:Math.cos(a) * sp, vy:Math.sin(a) * sp - 6, s:5 + Math.random() * 6, c:CONF[i % CONF.length], r:Math.random() * 6, vr:(Math.random() - .5) * .4 }); }
+  const t0 = performance.now(), f = t => { const d = t - t0; cx.clearRect(0, 0, innerWidth, innerHeight);
+    P.forEach(p => { p.vy += .38; p.vx *= .985; p.x += p.vx; p.y += p.vy; p.r += p.vr;
+      cx.save(); cx.translate(p.x, p.y); cx.rotate(p.r); cx.globalAlpha = Math.max(0, 1 - d / 2200);
+      cx.fillStyle = p.c; cx.fillRect(-p.s / 2, -p.s / 3, p.s, p.s * .66); cx.restore(); });
+    if (d < 2300) requestAnimationFrame(f); else cx.clearRect(0, 0, innerWidth, innerHeight); };
+  requestAnimationFrame(f); }
 
-/* Installieren */
+/* ---------- Sprach-Beispiel ---------- */
+const lrows = $$('#langDemo .lang-row'); let li = 0;
+if (!reduce) setInterval(() => { lrows[li].classList.remove('on'); li = (li + 1) % lrows.length; lrows[li].classList.add('on'); }, 2600);
+
+/* ---------- Installieren ---------- */
 const STEPS = {
-  ios: [['Öffnen', 'Tippe auf „App öffnen" – in Safari.'], ['Teilen', 'Tippe auf das Teilen-Symbol (Quadrat mit Pfeil nach oben).'], ['Zum Home-Bildschirm', 'Wähle „Zum Home-Bildschirm" – fertig. Die App liegt jetzt bei deinen anderen Apps.']],
-  android: [['Öffnen', 'Tippe auf „App öffnen" – in Chrome.'], ['Menü', 'Tippe oben rechts auf die drei Punkte ⋮.'], ['Installieren', 'Wähle „App installieren" – fertig.']],
+  ios: [['Öffnen', 'Tippt oben auf „App öffnen“ – am besten in Safari.', 'u-phone'],
+        ['Teilen', 'Tippt unten in der Leiste auf das Teilen-Symbol.', 'u-share'],
+        ['Zum Home-Bildschirm', 'Wählt „Zum Home-Bildschirm“. Fertig – die App liegt jetzt bei den anderen.', 'u-plusbox']],
+  android: [['Öffnen', 'Tippt oben auf „App öffnen“ – am besten in Chrome.', 'u-phone'],
+        ['Menü', 'Tippt oben rechts auf die drei Punkte.', 'u-dots'],
+        ['Installieren', 'Wählt „App installieren“. Fertig – die App liegt jetzt bei den anderen.', 'u-plusbox']],
 };
-const paintSteps = os => { $('#steps').innerHTML = STEPS[os].map(([b, p]) => `<div class="step"><b>${b}</b><p>${p}</p></div>`).join(''); $$('#oseg button').forEach(x => x.setAttribute('aria-pressed', x.dataset.os === os)); segPill($('#oseg')); };
+const paintSteps = os => { $('#steps').innerHTML = STEPS[os].map(([b, p, i]) =>
+    `<div class="step"><div class="top">${ico(i)}</div><b>${b}</b><p>${p}</p></div>`).join('');
+  $$('#oseg button').forEach(x => x.setAttribute('aria-pressed', x.dataset.os === os)); segPill($('#oseg')); };
 $$('#oseg button').forEach(x => x.addEventListener('click', () => paintSteps(x.dataset.os)));
 paintSteps(/android/i.test(navigator.userAgent) ? 'android' : 'ios');
 
-/* Knöpfe folgen der Maus ein kleines Stück */
+/* ---------- Knöpfe folgen der Maus ein kleines Stück ---------- */
 if (!reduce && fine) $$('.btn').forEach(b => {
-  b.addEventListener('mousemove', e => { const r = b.getBoundingClientRect(); b.style.transform = `translate(${(e.clientX - r.left - r.width / 2) * .18}px,${(e.clientY - r.top - r.height / 2) * .28}px)`; });
+  b.addEventListener('mousemove', e => { const r = b.getBoundingClientRect();
+    b.style.transform = `translate(${(e.clientX - r.left - r.width / 2) * .16}px,${(e.clientY - r.top - r.height / 2) * .26}px)`; });
   b.addEventListener('mouseleave', () => b.style.transform = ''); });
+
+/* ---------- Hinweis zur Speicherung ---------- */
+const ck = $('#ck');
+const seen = () => { try { return localStorage.getItem('wg.ck') === '1'; } catch(e){ return true; } };
+if (!seen()){ ck.hidden = false; setTimeout(() => ck.classList.add('on'), 1200); }
+$('#ckOk').addEventListener('click', () => { try { localStorage.setItem('wg.ck', '1'); } catch(e){}
+  ck.classList.remove('on'); setTimeout(() => ck.hidden = true, 700); });
 
 paint(); buildWheel(); segs();
 </script>

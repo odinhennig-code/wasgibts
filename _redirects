@@ -3,3 +3,6 @@
 /landing        /willkommen/  301
 /landing/*      /willkommen/  301
 /start          /willkommen/  301
+/impressum      /willkommen/impressum.html   301
+/datenschutz    /willkommen/datenschutz.html 301
+/privacy        /willkommen/datenschutz.html 301

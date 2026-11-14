@@ -1529,20 +1529,21 @@ function closeCook(){
 
 /* ---------- Rechtliches ---------- */
 const LEGAL = {
-  impressum: ['Impressum', `<p class="muted" style="font-size:13px">Anschrift und E-Mail werden vor der öffentlichen Veröffentlichung ergänzt.</p>
-    <h3>Angaben gemäß § 5 DDG</h3><p>Odin Hennig<br>[Straße und Hausnummer]<br>[PLZ und Ort]</p>
+  impressum: ['Impressum', `<h3>Angaben gemäß § 5 DDG</h3><p>Odin Hennig<br>[Straße und Hausnummer]<br>[PLZ und Ort]</p>
     <h3>Kontakt</h3><p>E-Mail: [E-Mail-Adresse]</p>
-    <h3>Verantwortlich für den Inhalt</h3><p>Odin Hennig, Anschrift wie oben</p>`],
-  privacy: ['Datenschutz', `<p class="muted" style="font-size:13px">Entwurf. Vor der Veröffentlichung prüfen und die Platzhalter ersetzen.</p>
+    <h3>Verantwortlich für den Inhalt</h3><p>Odin Hennig, Anschrift wie oben (§ 18 Abs. 2 MStV)</p>
+    <h3>Art des Angebots</h3><p>„Was gibt's?" ist ein privates, nicht-kommerzielles Projekt. Die App ist dauerhaft kostenlos und enthält keine Werbung.</p>
+    <p style="margin-top:18px"><a class="btn sm" href="willkommen/impressum.html" target="_blank" rel="noopener">Vollständiges Impressum öffnen</a></p>`],
+  privacy: ['Datenschutz', `<p class="muted" style="font-size:13px">Das Wichtigste in Kürze. Die vollständige Erklärung mit allen Rechtsgrundlagen steht auf der Webseite.</p>
     <h3>Verantwortlich</h3><p>Odin Hennig (Anschrift und E-Mail siehe Impressum)</p>
-    <h3>Welche Daten wir speichern</h3><p>Für dein Konto: E-Mail-Adresse und verschlüsseltes Passwort. In der App: Name, Profilbild-Emoji, Essensvorlieben und Unverträglichkeiten, Familienzugehörigkeit, Wünsche, Lieblingsgerichte, Kühlschrank-Inhalt mit Ablaufdaten, eigene Rezepte, Abstimmungen und Feedback. Diese Daten sehen nur die Mitglieder deiner Familie.</p>
-    <h3>Wo die Daten liegen</h3><p>Die Daten werden bei Supabase in einem Rechenzentrum in Frankfurt (EU) gespeichert.</p>
-    <h3>Kühlschrank-Foto</h3><p>Fotos werden nur zur Erkennung der Zutaten an Google (Gemini) gesendet und von der App nicht gespeichert.</p>
-    <h3>Rezeptfotos und Kochschritte</h3><p>Fotos zu den Rezepten stammen von Pexels (pexels.com) und werden von deren Servern geladen; dabei wird deine IP-Adresse an Pexels übertragen. Fotograf und Quelle stehen am Bild. Für die Bildauswahl und die ausführlichen Kochschritte wird nur der Rezeptname mit seinen Zutaten an Google (Gemini) gesendet – keine persönlichen Daten.</p>
-    <h3>Einkaufsliste und Wochenplan</h3><p>Einträge auf der Einkaufsliste und im Wochenplan sehen nur die Mitglieder deiner Familie.</p>
-    <h3>Sprachsteuerung</h3><p>Wenn du im Kochmodus die Sprachsteuerung einschaltest, verarbeitet dein Gerät bzw. der Spracherkennungsdienst deines Browsers (bei Apple: Siri, bei Google: Google) deine Sprache. Die App selbst speichert keine Aufnahmen.</p>
-    <h3>Hosting und Bibliotheken</h3><p>Die App wird über GitHub Pages ausgeliefert. Dabei werden technisch notwendige Daten wie deine IP-Adresse verarbeitet. Eine Programmbibliothek wird über jsDelivr geladen. Schriften liegen direkt in der App.</p>
-    <h3>Deine Rechte</h3><p>Du hast das Recht auf Auskunft, Berichtigung und Löschung deiner Daten. Schreib uns dazu an die E-Mail-Adresse im Impressum. Du kannst die Familie jederzeit verlassen.</p>`],
+    <h3>Welche Daten wir speichern</h3><p>Für dein Konto: E-Mail-Adresse und verschlüsseltes Passwort. In der App: Name, Profilbild-Emoji, Essensvorlieben und Unverträglichkeiten, Familienzugehörigkeit, Wünsche, Lieblingsgerichte, Kühlschrank-Inhalt mit Ablaufdaten, eigene Rezepte, Wochenplan, Einkaufsliste, Abstimmungen und Feedback. Diese Daten sehen nur die Mitglieder deiner Familie.</p>
+    <h3>Wo die Daten liegen</h3><p>Bei Supabase in einem Rechenzentrum in Frankfurt (EU). Die App selbst wird über Cloudflare Pages ausgeliefert.</p>
+    <h3>Kühlschrank-Foto</h3><p>Fotos werden nur zur Erkennung der Zutaten an Google (Gemini) gesendet, ersatzweise an OpenRouter. Die App speichert sie nicht.</p>
+    <h3>Rezeptfotos und Kochschritte</h3><p>Fotos zu den Rezepten stammen von Pexels und werden von deren Servern geladen; dabei wird deine IP-Adresse an Pexels übertragen. Für die Bildauswahl und die ausführlichen Kochschritte wird nur der Rezeptname mit seinen Zutaten gesendet – keine persönlichen Daten.</p>
+    <h3>Benachrichtigungen</h3><p>Nur wenn du sie einschaltest. Dafür wird eine Push-Adresse deines Browsers gespeichert; der Inhalt der Nachricht ist verschlüsselt.</p>
+    <h3>Sprachsteuerung</h3><p>Dein Gerät bzw. der Spracherkennungsdienst deines Browsers (Apple oder Google) verarbeitet deine Sprache. Die App speichert keine Aufnahmen.</p>
+    <h3>Deine Rechte</h3><p>Du hast das Recht auf Auskunft, Berichtigung, Löschung, Einschränkung, Datenübertragbarkeit und Widerspruch. Schreib uns dazu an die E-Mail-Adresse im Impressum oder über „Hilfe & Support → Datenschutz". Du kannst die Familie jederzeit verlassen und dein Konto löschen.</p>
+    <p style="margin-top:18px"><a class="btn sm" href="willkommen/datenschutz.html" target="_blank" rel="noopener">Vollständige Datenschutzerklärung öffnen</a></p>`],
 };
 
 /* ---------- „Was gibt's? Plus" – Hinweise, aber bewusst nicht nervig ----------
