@@ -1,5 +1,5 @@
 /* =========================================================================
-   WAS GIBT'S? – Admin-Dashboard (Version 4.1)
+   WAS GIBT'S? – Admin-Dashboard (Version 4.3)
    Liquid-Glass-Oberfläche in den Farben der App.
    Computer: schwebende Seitenleiste links („Büro"-Aufbau).
    Handy: große Titel, Karten und eine Glas-Leiste unten.
@@ -89,6 +89,7 @@ small{font-size:12.5px}
 .c-herb{background:var(--herb-soft);color:var(--herb);border-color:transparent}
 .c-tomato{background:var(--tomato-soft);color:var(--tomato);border-color:transparent}
 .c-yolk{background:var(--yolk-soft);color:var(--yolk);border-color:transparent}
+.c-sky{background:rgba(59,143,217,.14);color:#2F7FC6;border-color:transparent}
 
 /* Segment-Umschalter mit gleitender Glas-Pille */
 .seg{position:relative;display:inline-flex;gap:2px;padding:4px;border-radius:16px;background:var(--glass-2);border:1px solid var(--line);max-width:100%;overflow-x:auto;scrollbar-width:none}
@@ -387,3 +388,103 @@ button.li:hover{background:var(--glass-2)}
 @supports not ((-webkit-backdrop-filter:blur(1px)) or (backdrop-filter:blur(1px))){
   .glass,.drawer{background:var(--glass-strong)}
 }
+
+/* =========================================================================
+   Version 4.3 – Handy noch besser
+   ========================================================================= */
+.mbar,.ptr{display:none}
+.m-search{display:none}
+
+@media (hover: none){
+  .btn:hover,.kpi:hover,.todo:hover{transform:none}
+  button.li:hover,.btn-ghost:hover,.nav:hover{background:transparent}
+}
+
+@media (max-width: 900px){
+  body{overscroll-behavior-y:contain}
+  /* Kein Hineinzoomen am iPhone beim Antippen von Feldern */
+  .in,select.in,textarea.in{font-size:16px}
+  /* Größere Fingerflächen */
+  .btn{min-height:44px}
+  .btn-sm{min-height:40px;padding:0 14px;font-size:13.5px}
+  .btn-icon{width:44px}
+  .btn-sm.btn-icon{width:40px}
+  .btn:active,.tile:active,.kpi:active,.li:active,.todo:active{transform:scale(.97)}
+  .tile,.kpi,.li,.todo{transition:transform .25s var(--spring),background .2s}
+  .li{padding:13px 8px}
+  .seg button{padding:9px 13px}
+  .chip{padding:4px 10px}
+
+  /* Kompakte Kopfzeile, die beim Scrollen erscheint */
+  .mbar{display:flex;position:fixed;z-index:45;left:0;right:0;top:0;padding:calc(env(safe-area-inset-top) + 8px) 12px 8px;align-items:center;gap:8px;
+    background:var(--glass);-webkit-backdrop-filter:blur(26px) saturate(180%);backdrop-filter:blur(26px) saturate(180%);border-bottom:1px solid var(--line);
+    transform:translateY(-110%);opacity:0;transition:transform .45s var(--ease),opacity .3s}
+  .mbar.show{transform:none;opacity:1}
+  .mbar b{flex:1;text-align:center;font-family:var(--f-display);font-size:17px;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .mbar .btn{min-height:36px;width:36px;border-radius:12px}
+  .mbar .sp{width:36px;flex:none}
+
+  /* Leiste unten taucht beim Runterscrollen ab */
+  .tabbar{transition:transform .45s var(--ease)}
+  .tabbar.away{transform:translateY(calc(100% + 30px))}
+  .tabbar button:active .i{transform:scale(.85)}
+
+  /* Zum Aktualisieren herunterziehen */
+  .ptr{display:grid;place-items:center;position:fixed;z-index:44;left:50%;top:calc(env(safe-area-inset-top) + 10px);width:42px;height:42px;margin-left:-21px;border-radius:50%;
+    background:var(--glass-strong);border:1px solid var(--glass-brd);box-shadow:var(--sh);transform:translateY(-70px);opacity:0;pointer-events:none}
+  .ptr .spin{width:20px;height:20px;border-width:2.5px;animation:none}
+  .ptr.ready .spin{border-top-color:var(--herb);border-right-color:var(--herb)}
+  .ptr.go .spin{animation:spin .8s linear infinite}
+  .ptr.back{transition:transform .4s var(--ease),opacity .3s}
+
+  /* Blatt von unten: runterwischen zum Schließen */
+  .drawer{max-height:92vh;max-height:92dvh}
+  .drawer.drag{animation:none;transition:none}
+  .drawer.snap{animation:none;transition:transform .35s var(--ease)}
+  .scrim{transition:opacity .3s}
+  .grab{width:44px;height:5px;margin:2px auto 10px;padding:0}
+
+  /* Segmente: zeigen, dass man seitlich wischen kann */
+  .seg.ovf{-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 28px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 28px),transparent)}
+  .seg.ovf.end{-webkit-mask-image:linear-gradient(90deg,transparent,#000 28px);mask-image:linear-gradient(90deg,transparent,#000 28px)}
+  .seg button{flex:1 0 auto}
+
+  /* Suche unter „Mehr" */
+  .m-search{display:block;position:relative;width:100%;margin-bottom:14px}
+  .m-search .in{padding-left:42px;border-radius:999px;background:var(--glass);min-height:48px}
+  .m-search .i{position:absolute;left:15px;top:24px;transform:translateY(-50%);color:var(--muted);width:18px;height:18px;pointer-events:none}
+  .m-search .sr{max-height:55vh}
+  .m-search .sr button{padding:11px 10px}
+
+  /* Feedback: Knöpfe in voller Breite */
+  .fb-top{flex-direction:column;align-items:stretch !important;gap:12px}
+  .fb-act{width:100%}
+  .fb-act .btn:not(.btn-icon){flex:1}
+
+  /* Push: Senden-Knopf bleibt erreichbar */
+  .push-actions{position:sticky;bottom:calc(env(safe-area-inset-bottom) + 88px);z-index:5;margin:0 -10px;padding:10px;border-radius:20px;
+    background:var(--glass-strong);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);border:1px solid var(--glass-brd);box-shadow:var(--sh)}
+  .push-actions .btn-herb,.push-actions .btn-tomato{flex:1}
+
+  /* Support-Liste am Handy lesbarer */
+  .li.tk{align-items:flex-start}
+  .li.tk .end{flex-direction:column}
+  .d-sec .tpls{flex-wrap:nowrap;overflow-x:auto;margin-left:-18px;margin-right:-18px;padding:0 18px 4px;scrollbar-width:none}
+  .d-sec .tpls::-webkit-scrollbar{display:none}
+
+  .sw-row{display:flex;align-items:center;gap:12px;padding:12px 8px}
+  .sw-row .t{flex:1;min-width:0}
+  .sw-row .t b{display:block;font-size:14.5px}
+  .sw-row .t small{display:block;color:var(--muted)}
+}
+
+/* Sophia-Modus pro Person (Detailansicht) */
+.sophia-box{display:flex;align-items:center;gap:12px;padding:14px;border-radius:18px;background:var(--glass-2);border:1px solid var(--line);transition:background .35s,border-color .35s}
+.sophia-box .t{flex:1;min-width:0}
+.sophia-box .t b{display:block}
+.sophia-box .t small{display:block;color:var(--muted);font-weight:600;line-height:1.35;margin-top:2px}
+.sophia-box .sb-heart{font-size:26px;filter:drop-shadow(0 2px 6px rgba(59,143,217,.35))}
+.sophia-box.on{background:linear-gradient(135deg,rgba(156,205,246,.45),rgba(255,255,255,.55));border-color:rgba(59,143,217,.35)}
+.sophia-box.on .sb-heart{animation:sbBeat 1.6s ease-in-out infinite}
+.sophia-box .switch[aria-checked="true"]{background:#3B8FD9}
+@keyframes sbBeat{0%,100%{transform:scale(1)}15%{transform:scale(1.15)}30%{transform:scale(1)}45%{transform:scale(1.08)}}

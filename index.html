@@ -17,7 +17,8 @@
 <script>/* Farben sofort setzen, bevor das iPhone die Farbe der oberen Leiste übernimmt */
 (function(){try{var L=JSON.parse(localStorage.getItem('wasgibts.local'))||{},r=document.documentElement,d=new Date(),m=d.getMonth(),t=d.getDate();
 if(L.theme&&L.theme!=='system')r.setAttribute('data-theme',L.theme);
-if(L.season!==false){var se=L.preview||(((m===9&&t>=24)||(m===10&&t<=2))?'halloween':(m===11&&t<=26)?'advent':'');if(se)r.classList.add(se);}
+if(L.sophia)r.classList.add('sophia');
+else if(L.season!==false){var se=L.preview||(((m===9&&t>=24)||(m===10&&t<=2))?'halloween':(m===11&&t<=26)?'advent':'');if(se)r.classList.add(se);}
 if(L.tz)r.style.setProperty('--tz',L.tz);
 var bg=getComputedStyle(r).getPropertyValue('--bg').trim();if(bg)document.querySelectorAll('meta[name=theme-color]').forEach(function(x){if(L.theme&&L.theme!=='system')x.removeAttribute('media');x.setAttribute('content',bg);});}catch(e){}})();</script>
 </head>

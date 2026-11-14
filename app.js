@@ -110,12 +110,14 @@ async function loadAll(force){
   N.profile = p; N.profiles[uid] = p;
   // „Zuletzt aktiv" höchstens alle 6 Stunden melden – sonst lädt bei allen in der Familie ständig alles neu
   if (!L.seenAt || Date.now() - L.seenAt > 6*36e5){ L.seenAt = Date.now(); saveLocal(); sb.rpc('touch_seen').then(()=>{}, ()=>{}); }
-  const [an, adm, ms] = await Promise.all([
+  const [an, adm, ms, sph] = await Promise.all([
     sb.from('announcements').select('*').eq('active', true).order('created_at', { ascending:false }).limit(1),
     sb.rpc('is_app_admin'),
     sb.from('memberships').select('*').eq('user_id', uid).order('created_at').limit(1),
+    sb.rpc('my_sophia').then(r => r, () => ({ error:true })),   // Sophia-Modus (im Dashboard pro Person schaltbar, ab Datenbank 4.3)
   ]);
   N.ann = (an.data && an.data[0]) || null; N.appAdmin = adm.data === true;
+  if (sph && !sph.error && typeof sph.data === 'boolean') N.sophiaFlag = sph.data;
   N.membership = (ms.data && ms.data[0]) || null;
   Object.assign(N, { notes:[], board:[], colls:[], cap:{}, family:null, members:[], wishes:[], fridge:[], expiries:{}, custom:[], poll:null, votes:[], shop:[], plan:[], log:[], ratings:[] });
   if (N.membership){
@@ -162,6 +164,8 @@ async function loadAll(force){
   if (!force && (g !== gen || busyWriting())) return false;   // in der Zwischenzeit selbst etwas geändert: verwerfen
   const seenW = loadAll.seen;   // neue Wünsche anderer → Banner auf dem iPhone am Computer
   Object.assign(D, N);
+  if (typeof N.sophiaFlag === 'boolean' && !!L.sophia !== N.sophiaFlag){
+    L.sophia = N.sophiaFlag; saveLocal(); applyTheme(); setTimeout(() => { render(); if (L.sophia){ toast('🤍 Hallo Sophia – die App ist jetzt ganz für dich'); heartRain(); } }, 60); }
   if (UI.offline){ UI.offline = false; setTimeout(() => toast('🟢 Wieder online'), 300); }
   saveCache();
   if (!loadXRec.done && D.user){ loadXRec.done = true; loadXRec(); }
@@ -230,6 +234,7 @@ const seasonNow = () => L.season === false ? null : (L.preview || seasonByDate()
 const hwSeason = () => (L.preview || seasonByDate()) === 'halloween';
 const hwOn = () => seasonNow() === 'halloween';
 const adOn = () => seasonNow() === 'advent';
+const sophiaOn = () => !!L.sophia;   // Sophia-Modus: wird im Dashboard pro Person eingeschaltet
 const HW_BATS = '<svg viewBox="0 0 64 28" aria-hidden="true"><path fill="currentColor" d="M32 9c1.6-3 3.2-4 4.2-4-.3 1.3-.1 2.3.6 3.1 3-3.4 8.5-6.3 15.2-6.1-2.6 1.5-3.6 3.6-3.2 6 2.9-.7 6.2-.2 9.2 1.6-3.4.4-5.5 2.1-6.3 4.9-2.6-1.5-5.6-1.5-8.4.4-.6-2.2-2.7-3.5-5.4-3.4L32 17l-5.9-5.5c-2.7-.1-4.8 1.2-5.4 3.4-2.8-1.9-5.8-1.9-8.4-.4-.8-2.8-2.9-4.5-6.3-4.9 3-1.8 6.3-2.3 9.2-1.6.4-2.4-.6-4.5-3.2-6 6.7-.2 12.2 2.7 15.2 6.1.7-.8.9-1.8.6-3.1 1 0 2.6 1 4.2 4z"/></svg>';
 const isoDay = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 const nextDays = n => Array.from({ length:n }, (_, i) => { const d = new Date(); d.setHours(12,0,0,0); d.setDate(d.getDate() + i); return d; });
@@ -404,7 +409,7 @@ function viewNoFamily(){
 
 /* ---------- Ansichten: App ---------- */
 function header(title, sub){
-  return `<div class="top"><div style="min-width:0"><div class="muted" style="font-weight:700">${sub}</div><div class="h1">${title}</div></div>
+  return `<div class="top"><div style="min-width:0">${sophiaOn() ? '<div class="sophia-tag"><span>🤍</span>Sophia</div>' : ''}<div class="muted" style="font-weight:700">${sub}</div><div class="h1">${title}</div></div>
     <div class="top-r">${langSwitch()}<button class="avatar" data-tab="family" aria-label="Familie und Profil">${avIn(D.profile)}</button></div></div>` + offlineBar() + (partyOn() && Date.now() < PARTY.at && UI.tab !== 'home' ? partyChip() : '');
 }
 function suggestionCard(s){
@@ -426,12 +431,12 @@ function viewHome(){
   const n = pool.length, idx = n ? ((UI.pickIdx || 0) % n + n) % n : 0, top = pool[idx];
   const rest = n > 1 ? [1,2,3].map(k => pool[(idx + k) % n]).filter((x, i, arr) => x !== top && arr.indexOf(x) === i) : [];
   const now = new Date(), h = now.getHours();
-  const greet = tr(h<11?'Guten Morgen':h<17?'Hallo':'Guten Abend') + ' · ' + now.toLocaleDateString(LOCALE, { weekday:'long' }) + (hwOn() ? ' 🎃' : adOn() ? ' 🎄' : '');
+  const greet = tr(h<11?'Guten Morgen':h<17?'Hallo':'Guten Abend') + ' · ' + now.toLocaleDateString(LOCALE, { weekday:'long' }) + (sophiaOn() ? '' : hwOn() ? ' 🎃' : adOn() ? ' 🎄' : '');
   const p = isAdmin() ? pendingReq() : [];
   const exp = expiringSoon(), shopN = openShop().length, wishN = new Set(D.wishes.map(w => w.recipe_id).filter(id => rec(id) && wishersOf(id).length)).size;
   const tile = (act, em, big, small, hot) => `<button class="dash-t ${hot ? 'hot' : ''}" ${act}><span class="dash-e" aria-hidden="true">${em}</span><b>${big}</b><small>${small}</small></button>`;
   const P = D.poll, pollLive = P && (P.status === 'open' || (P.status === 'closed' && P.winner && (Date.now() - new Date(P.created_at)) < 18*3600e3));
-  return header(`Was gibt's heute, ${esc(D.profile.name)}?`, greet) + partyCard() + annBanner() + installBanner() + pushBanner() + hwCard() + adventCard() + rateBanner() +
+  return header(sophiaOn() ? `Was gibt's heute, ${esc(D.profile.name)}? <span class="so-h">🤍</span>` : `Was gibt's heute, ${esc(D.profile.name)}?`, greet) + partyCard() + annBanner() + installBanner() + pushBanner() + hwCard() + adventCard() + rateBanner() +
     (p.length ? `<button class="banner" data-tab="family"><span class="avatar sm">${avIn(prof(p[0].user_id))}</span><span style="flex:1"><b>${esc(prof(p[0].user_id).name)}</b> möchte deiner Familie beitreten</span>${I.chev}</button>` : '') +
     `<div class="dash">
       ${exp.length ? tile('data-action="reste-on"', '⏰', plu(exp.length, 'Sache', 'Sachen'), 'laufen bald ab', true) : tile('data-tab="fridge"', '🧊⁠', 'Alles frisch', 'nichts läuft ab')}
@@ -1762,7 +1767,7 @@ document.addEventListener('click', async e => {
     case 'auth-mode': UI.auth=t.dataset.v; UI.err=''; render(); break;
     case 'pick-av': L.av=t.dataset.v; saveLocal(); document.querySelectorAll('[data-action=pick-av]').forEach(b=>b.setAttribute('aria-pressed', b.dataset.v===L.av)); buzz(6); break;
     case 'logout': if (!UI.confirmLogout && D.profile && !D.profile.banned){ UI.confirmLogout = true; render(); setTimeout(() => { if (UI.confirmLogout){ UI.confirmLogout = false; render(); } }, 5000); break; }
-      UI.confirmLogout = false; UI.auth='login'; UI.err=''; await pushOff(true); await sb.auth.signOut(); UI.tab='home'; break;
+      UI.confirmLogout = false; UI.auth='login'; UI.err=''; await pushOff(true); await sb.auth.signOut(); UI.tab='home'; if (L.sophia){ L.sophia = false; saveLocal(); applyTheme(); } break;
     case 'join': { const c=$('#join-code').value.trim(); if(!c){ UI.err='Bitte gib den Familien-Code ein.'; render(); break; }
       UI.err=''; t.disabled=true; const { error } = await sb.rpc('request_join', { join_code:c }); if (error){ t.disabled=false; throw error; }
       L.joinCode=''; saveLocal(); await loadAll(true); subscribe(); render(); toast('Anfrage gesendet'); buzz(20); notifyFamily('join'); break; }
@@ -1983,7 +1988,8 @@ $('#views').addEventListener('touchend', e=>{ if(!D.user || !isActive()) return;
 
 /* ---------- Farbschema ---------- */
 function applyTheme(){ const r=document.documentElement, th=L.theme||'system'; if(th==='system') r.removeAttribute('data-theme'); else r.setAttribute('data-theme', th);
-  r.classList.toggle('halloween', hwOn()); r.classList.toggle('advent', adOn());
+  const so = sophiaOn(); r.classList.toggle('sophia', so);
+  r.classList.toggle('halloween', !so && hwOn()); r.classList.toggle('advent', !so && adOn()); ensureHearts();
   /* Oberer Rand (Statusleiste / Safari-Leiste) in derselben Farbe wie die App */
   const bg = UI.cook ? '#0f1d14' : getComputedStyle(r).getPropertyValue('--bg').trim();
   if (bg && applyTheme.last !== bg){ applyTheme.last = bg; try { lastTop = ''; syncTopColor(); } catch(e){} } }
@@ -2404,7 +2410,13 @@ applyAccent(); setInterval(applyAccent, 60e3);
 /* ---------- Start-Intro ---------- */
 (() => { const sp = $('#splash'), root = document.documentElement; if (!sp) return;
   const setFood = arr => sp.querySelectorAll('.s2-food span').forEach((x, i) => { if (arr[i]) x.textContent = arr[i]; });
-  if (partyOn()){ const c = sp.querySelector('.s2-claim'); if (c) c.textContent = Date.now() < PARTY.at ? '🎉 Heute 20 Uhr: das große Update!' : '🥳 Das große Update ist da!'; setFood(['🎉','🎊','🥳','🎈','✨','🍕']); }
+  if (sophiaOn()){
+    setFood(['🤍','🩵','🤍','🩵','🤍']);
+    const f = sp.querySelector('.s2-fix'); if (f) f.textContent = 'Hallo';
+    sp.querySelectorAll('.s2-slot i').forEach((x, i) => { x.textContent = ['🤍','🩵','✨','Sophia'][i] || x.textContent; });
+    const c = sp.querySelector('.s2-claim'); if (c) c.textContent = 'Schön, dass du da bist 🤍';
+  }
+  else if (partyOn()){ const c = sp.querySelector('.s2-claim'); if (c) c.textContent = Date.now() < PARTY.at ? '🎉 Heute 20 Uhr: das große Update!' : '🥳 Das große Update ist da!'; setFood(['🎉','🎊','🥳','🎈','✨','🍕']); }
   else if (hwOn() || adOn()){ setFood(adOn() ? ['🎄','⭐','🍪','🎁','❄️','🦌'] : ['🎃','🦇','🍬','👻','🕸️','🍂']); }
   let done = false;
   const hide = () => { if (done) return; done = true; sp.classList.add('gone'); root.classList.remove('splashing'); applyTheme.last = null; applyTheme(); };
@@ -2844,9 +2856,35 @@ function openAdvent(keep, opened){
       <div class="card adv-tip">💡 ${esc(ADV_TIPS[sel - 1])}</div></div>` : `<p class="muted" style="text-align:center;margin-top:14px">Jeden Tag geht eine neue Tür auf – mit einem Rezept und einem Küchen-Geheimnis.</p>`}`, keep);
 }
 
+/* ---------- Sophia-Modus: weiße Herzen ---------- */
+function ensureHearts(){
+  const scr = $('#screen'); if (!scr) return;
+  const on = sophiaOn() && !UI.cook && !matchMedia('(prefers-reduced-motion: reduce)').matches; let h = $('#hearts');
+  if (on && !h){ h = document.createElement('div'); h.id = 'hearts'; h.setAttribute('aria-hidden', 'true');
+    h.innerHTML = Array.from({ length:14 }, (_, i) => `<i style="--x:${(i * 37 + 5) % 96}%;--d:${9 + (i * 5) % 8}s;--t:-${((i * 1.7) % 12).toFixed(1)}s;--s:${11 + (i * 7) % 12}px;--w:${((i % 5) - 2) * 14}px">🤍</i>`).join('');
+    scr.appendChild(h); }
+  if (!on && h) h.remove();
+}
+/* Kleine Herzen beim Antippen */
+function heartTap(x, y, n = 5){
+  if (!sophiaOn() || reduceMotion || (!x && !y)) return;
+  for (let i = 0; i < n; i++){
+    const e = document.createElement('span'), a = Math.PI * 2 * i / n + Math.random() * .7, r = 30 + Math.random() * 40;
+    e.className = 'so-burst'; e.textContent = i % 3 === 2 ? '🩵' : '🤍';
+    e.style.cssText = `left:${x}px;top:${y}px;font-size:${11 + Math.random() * 9}px;--bx:${Math.cos(a) * r}px;--by:${Math.sin(a) * r - 26}px;--br:${Math.random() * 60 - 30}deg`;
+    document.body.appendChild(e); setTimeout(() => e.remove(), 950);
+  }
+}
+/* Herzregen, wenn der Modus gerade eingeschaltet wurde */
+function heartRain(){
+  if (reduceMotion) return;
+  for (let i = 0; i < 26; i++) setTimeout(() => heartTap(Math.random() * innerWidth, Math.random() * innerHeight * .7, 3), i * 70);
+}
+document.addEventListener('pointerdown', e => { if (sophiaOn() && e.target.closest('button,a,.row,.rc,.tab')) heartTap(e.clientX, e.clientY, 4); }, { passive:true });
+
 /* ---------- Schnee im Advent ---------- */
 function ensureSnow(){
-  const on = adOn() && !UI.cook; let s = $('#snow');
+  const on = adOn() && !sophiaOn() && !UI.cook; let s = $('#snow');
   if (on && !s){ s = document.createElement('div'); s.id = 'snow'; s.setAttribute('aria-hidden', 'true'); s.innerHTML = Array.from({ length:22 }, (_, i) => `<i style="--x:${(i * 47) % 100}%;--d:${6 + (i * 7) % 7}s;--t:${-(i * 1.3) % 9}s;--s:${3 + (i * 5) % 4}px"></i>`).join(''); $('#screen').appendChild(s); }
   if (!on && s) s.remove();
 }

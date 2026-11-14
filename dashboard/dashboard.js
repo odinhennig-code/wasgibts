@@ -1,8 +1,9 @@
 /* =========================================================================
-   WAS GIBT'S? – Admin-Dashboard (Version 4.1)
+   WAS GIBT'S? – Admin-Dashboard (Version 4.3)
    Eigene Anmeldung (eigener Speicherplatz), damit sich App und Dashboard
    nicht mehr gegenseitig abmelden. Alle Daten über geschützte
    Datenbank-Funktionen, die selbst prüfen, ob ein App-Admin angemeldet ist.
+   4.3: Handy deutlich verbessert + Sophia-Modus pro Person für die App.
    ========================================================================= */
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/+esm';
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from '../config.js';
@@ -58,12 +59,13 @@ let theme = 'auto'; try { theme = localStorage.getItem('wg-dash-theme') || 'auto
 const applyTheme = () => { if (theme === 'auto') document.documentElement.removeAttribute('data-theme'); else document.documentElement.dataset.theme = theme; };
 applyTheme();
 
+
 /* ---------- Zustand ---------- */
 const S = { user:null, me:null, admin:false, v41:true, page:'home', errors:{},
   stats:null, counts:null, people:[], families:[], feedback:[], log:[], anns:[], templates:[], scheduled:[], auto:null, act:null, recent:[],
   chart:'signups', pf:'all', pq:'', fq:'', fb:'open', logf:'all', mod:'feed', modk:'all', gs:'',
   push:{ title:'', body:'', target:'all', fam:'', user:'', url:'home', later:false, at:'' }, confirm:false, busy:false, err:'',
-  dr:null, pills:{}, tickets:[], tf:'open', msgs:{}, statusCfg:{ state:'ok', text:'' }, supCfg:{}, v42:true, online:true, ch:null };
+  dr:null, pills:{}, sophia:[], tickets:[], tf:'open', msgs:{}, statusCfg:{ state:'ok', text:'' }, supCfg:{}, v42:true, online:true, ch:null };
 try { S.online = localStorage.getItem('wg-dash-online') !== '0'; } catch(e){}
 try { S.page = sessionStorage.getItem('dash.page') || 'home'; } catch(e){}
 
@@ -113,7 +115,7 @@ async function load(what){
     templates: async () => { S.templates = await tbl(sb.from('push_templates').select('*').order('created_at', { ascending:false })); },
     scheduled: async () => { S.scheduled = await tbl(sb.from('push_scheduled').select('*').order('send_at', { ascending:true }).limit(50)); },
     tickets:   async () => { try { S.tickets = await rpc('admin_tickets') || []; S.v42 = true; } catch(e){ S.tickets = []; S.v42 = false; } },
-    supset:    async () => { const r = await tbl(sb.from('app_settings').select('key,value').in('key', ['status','support'])); r.forEach(x => { if (x.key === 'status') S.statusCfg = x.value || S.statusCfg; if (x.key === 'support') S.supCfg = x.value || {}; }); },
+    supset:    async () => { const r = await tbl(sb.from('app_settings').select('key,value').in('key', ['status','support','sophia'])); r.forEach(x => { if (x.key === 'status') S.statusCfg = x.value || S.statusCfg; if (x.key === 'support') S.supCfg = x.value || {}; if (x.key === 'sophia') S.sophia = (x.value && x.value.users) || []; }); },
     auto:      async () => { const r = await tbl(sb.from('app_settings').select('value').eq('key','auto_push')); S.auto = (r[0] && r[0].value) || { wish:true, poll:true, join:true, accept:true }; },
   };
   await Promise.all((what || Object.keys(jobs)).map(async k => {
@@ -165,6 +167,8 @@ function shell(){
       </div>
     </aside>
     <main id="main"></main>
+    <div class="mbar" id="mbar"><span class="sp"></span><b id="mbarT"></b><button class="btn btn-icon" data-a="refresh" aria-label="Aktualisieren">${ic('refresh')}</button></div>
+    <div class="ptr" id="ptr" aria-hidden="true"><span class="spin"></span></div>
     <nav class="tabbar glass" aria-label="Bereiche"><span class="pill" id="tabPill"></span>
       ${TABS.map(([k,l]) => `<button data-page="${k}">${ic(PAGES[k][1])}${l}${k==='support'&&supWait()?`<span class="count">${supWait()}</span>`:''}</button>`).join('')}
     </nav>
@@ -300,7 +304,9 @@ function peopleList(){
     return { all:true, today:p.last_seen && new Date(p.last_seen) > day, push:p.devices > 0, banned:p.banned, nofam:!p.family, admin:p.is_admin }[S.pf];
   });
 }
+const isSophia = id => S.sophia.includes(id);
 function statusChip(p){
+  if (isSophia(p.id) && !p.banned) return '<span class="chip c-sky">🤍 Sophia</span>';
   if (p.banned) return '<span class="chip c-tomato">gesperrt</span>';
   if (p.is_admin) return '<span class="chip c-yolk">App-Admin</span>';
   if (p.last_seen && Date.now() - new Date(p.last_seen) < 864e5) return '<span class="chip c-herb">heute aktiv</span>';
@@ -343,8 +349,8 @@ function viewFeedback(){
   return `<div class="wrap">${top('Feedback', 'Alles aus „Mehr → Feedback senden" und „Plus"')}${errBox(['feedback'])}
     <div class="row rise" style="margin-bottom:14px">${seg('fb', [['open',`Offen · ${n('open')}`],['all',`Alle · ${n('all')}`],['support',`Support · ${n('support')}`],['fehler','Fehler'],['idee','Ideen'],['lob','Lob'],['plus','Plus']], f, 'fb')}</div>
     <div class="grid">${list.map((x,i) => `<article class="glass card rise" style="--d:${Math.min(i,8)};${x.done?'opacity:.6':''}">
-      <div class="row" style="justify-content:space-between;align-items:flex-start"><div class="row" style="gap:8px">${kindChip(x.kind)}<b>${esc(x.name || 'Unbekannt')}</b><small class="muted">${fmtTime(x.created_at)}${x.app_version?` · v${esc(x.app_version)}`:''}</small></div>
-        <div class="row" style="gap:6px">${x.email?`<a class="btn btn-sm" href="mailto:${esc(x.email)}">Antworten</a>`:''}<button class="btn btn-sm ${x.done?'':'btn-herb'}" data-a="fb-done" data-id="${x.id}" data-v="${!x.done}">${x.done?'Wieder öffnen':ic('checkmark')+'Erledigt'}</button><button class="btn btn-sm btn-icon btn-soft-red" data-a="fb-del" data-id="${x.id}" aria-label="Löschen">${ic('trash')}</button></div></div>
+      <div class="row fb-top" style="justify-content:space-between;align-items:flex-start"><div class="row" style="gap:8px">${kindChip(x.kind)}<b>${esc(x.name || 'Unbekannt')}</b><small class="muted">${fmtTime(x.created_at)}${x.app_version?` · v${esc(x.app_version)}`:''}</small></div>
+        <div class="row fb-act" style="gap:6px">${x.email?`<a class="btn btn-sm" href="mailto:${esc(x.email)}">Antworten</a>`:''}<button class="btn btn-sm ${x.done?'':'btn-herb'}" data-a="fb-done" data-id="${x.id}" data-v="${!x.done}">${x.done?'Wieder öffnen':ic('checkmark')+'Erledigt'}</button><button class="btn btn-sm btn-icon btn-soft-red" data-a="fb-del" data-id="${x.id}" aria-label="Löschen">${ic('trash')}</button></div></div>
       <p style="margin:10px 0 0;white-space:pre-wrap;overflow-wrap:anywhere">${esc(x.message)}</p></article>`).join('') || `<div class="glass card">${empty('chat','Nichts in dieser Ansicht')}</div>`}</div></div>`;
 }
 
@@ -383,7 +389,7 @@ function viewPush(){
         ${P.target !== 'test' ? `<label class="check"><input type="checkbox" data-a="later" ${P.later?'checked':''}> Später senden</label>
           ${P.later ? `<div class="field"><label for="pa">Wann?</label><input class="in" id="pa" type="datetime-local" data-in="at" min="${localInput(Date.now() + 2*6e4)}" value="${esc(P.at || localInput(Date.now() + 60*6e4))}"></div>` : ''}` : ''}
         ${S.confirm ? `<div class="warn" style="margin:0">${ic('info')}<span>${P.later ? 'Die Nachricht wird zur gewählten Zeit automatisch gesendet.' : 'Wirklich senden? Die Nachricht lässt sich danach nicht zurückholen.'} Geht <b>${esc(reach())}</b>.</span></div>` : ''}
-        <div class="row">
+        <div class="row push-actions">
           ${S.confirm
             ? `<button class="btn btn-tomato" data-a="send" ${S.busy?'disabled':''}>${S.busy?'Sende …':P.later?'Ja, so planen':'Ja, jetzt senden'}</button><button class="btn" data-a="cancel">Abbrechen</button>`
             : `<button class="btn btn-herb" data-a="ask-send" ${S.busy?'disabled':''}>${ic('send')}${S.busy?'Sende …':P.target==='test'?'Test senden':P.later?'Planen …':'Senden …'}</button>`}
@@ -439,6 +445,7 @@ function viewAnn(){
 function viewMore(){
   const t = (p, l, s, i, cls='') => `<button class="glass tile rise ${cls}" data-page="${p}"><span class="ic">${ic(i)}</span><span>${l}<small>${s}</small></span></button>`;
   return `<div class="wrap"><div class="top rise"><div class="ttl"><h1>Mehr</h1></div>${avatar(S.me)}</div>
+    <div class="search m-search rise"><input class="in" id="gs" placeholder="Person oder Familie suchen …" value="${esc(S.gs)}" autocomplete="off" enterkeyhint="search">${ic('search')}<div id="gsr"></div></div>
     <div class="tiles">
       ${t('people','Personen', pl(S.people.length,'Account','Accounts'), 'user')}
       ${t('families','Familien', pl(S.families.length,'Familie','Familien'), 'conference-call')}
@@ -486,6 +493,10 @@ function drawerPerson(){
         <span class="end"><button class="btn btn-sm btn-icon btn-soft-red" data-a="del" data-k="${kindOf[cur[0]]}" data-id="${x.id}" aria-label="Löschen">${ic('trash')}</button></span></div>`).join('') || empty('checkmark','Nichts da')}</div></div>
     ${det.log.length ? `<div class="d-sec"><h3>Verlauf</h3><div class="list">${det.log.map(l => modRow(l)).join('')}</div></div>` : ''}`
     : S.v41 ? `<div class="empty"><span class="spin"></span></div>` : ''}
+    <div class="d-sec"><h3>Sophia-Modus</h3>
+      <div class="sophia-box ${isSophia(p.id) ? 'on' : ''}"><span class="sb-heart">🤍</span><span class="t"><b>Sophia-Modus in der App</b><small>Hellblau und weiß, weiße Herzen, „Sophia" oben und ein eigener Ladebildschirm – nur für ${esc(p.name || 'diese Person')}.</small></span>
+        <button class="switch" role="switch" aria-checked="${isSophia(p.id)}" data-a="sophia-user" data-id="${p.id}" aria-label="Sophia-Modus für ${esc(p.name || 'Person')}"></button></div>
+      <p class="muted" style="font-size:12.5px;margin:8px 2px 0">Wirkt auf allen Geräten dieser Person, sobald sie die App öffnet oder neu lädt.</p></div>
     <div class="d-sec"><h3>Aktionen</h3><div class="row">
       ${p.devices ? `<button class="btn" data-a="push-user" data-id="${p.id}">${ic('send')}Push an ${esc(p.name || 'Person')}</button>` : ''}
       ${S.v41 && p.family_id && !self ? `<button class="btn btn-soft-red" data-a="kick" data-f="${p.family_id}" data-id="${p.id}">Aus Familie entfernen</button>` : ''}
@@ -533,6 +544,7 @@ function render(anim=false){
   if (!anim) window.scrollTo(0, y);
   if (focus){ const el = document.getElementById(focus); if (el && main.contains(el)){ el.focus(); try { el.setSelectionRange(pos, pos); } catch(e){} } }
   updateNav(); placePills(main); drawCharts(anim); if (anim) countUp(main);
+  const mt = $('#mbarT'); if (mt) mt.textContent = (PAGES[S.page] || PAGES.home)[0];
   renderDrawer();
 }
 function refreshShell(){ if (!shellOn) return; const keep = $('#dr').innerHTML; $('#app').innerHTML = shell(); $('#dr').innerHTML = keep; render(false); }
@@ -556,6 +568,8 @@ function placePills(root){
     if (old){ p.style.transition = 'none'; p.style.left = old.l + 'px'; p.style.width = old.w + 'px'; p.offsetWidth; p.style.transition = ''; }
     p.style.left = on.offsetLeft + 'px'; p.style.width = on.offsetWidth + 'px';
     if (on.offsetLeft + on.offsetWidth > s.clientWidth + s.scrollLeft || on.offsetLeft < s.scrollLeft) s.scrollLeft = on.offsetLeft - 20;
+    const ovf = () => { const o = s.scrollWidth > s.clientWidth + 2; s.classList.toggle('ovf', o); s.classList.toggle('end', o && s.scrollLeft + s.clientWidth >= s.scrollWidth - 4); };
+    ovf(); s.addEventListener('scroll', ovf, { passive:true });
   });
 }
 function countUp(root){
@@ -663,15 +677,22 @@ document.addEventListener('keydown', e => {
 });
 document.addEventListener('click', e => { if (S.gs && !e.target.closest('.search')){ S.gs = ''; const g = $('#gs'); if (g) g.value = ''; searchResults(); } }, true);
 
-function go(page){ S.page = page; S.confirm = false; try { sessionStorage.setItem('dash.page', page); } catch(e){} render(true); window.scrollTo({ top:0, behavior: reduced() ? 'auto' : 'smooth' }); }
+function go(page){ const tb = $('.tabbar'); if (tb) tb.classList.remove('away'); S.page = page; S.confirm = false; try { sessionStorage.setItem('dash.page', page); } catch(e){} render(true); window.scrollTo({ top:0, behavior: reduced() ? 'auto' : 'smooth' }); }
 
 document.addEventListener('click', async e => {
   const nav = e.target.closest('[data-page]');
-  if (nav){ if (S.dr){ S.dr = null; renderDrawer(); } go(nav.dataset.page); return; }
+  if (nav){ if (nav.closest('.tabbar')) try { navigator.vibrate && navigator.vibrate(6); } catch(err){}
+    if (S.dr){ S.dr = null; renderDrawer(); } go(nav.dataset.page); return; }
   const t = e.target.closest('[data-a]'); if (!t) return;
   const id = t.dataset.id, v = t.dataset.v;
   try {
     switch (t.dataset.a){
+      case 'sophia-user': {
+        const p = person(id), on = !isSophia(id), keep = S.sophia;
+        S.sophia = on ? [...new Set([...S.sophia, id])] : S.sophia.filter(x => x !== id); t.setAttribute('aria-checked', on);
+        const { error } = await sb.from('app_settings').upsert({ key:'sophia', value:{ users:S.sophia } }, { onConflict:'key' });
+        if (error){ S.sophia = keep; t.setAttribute('aria-checked', !on); throw error; }
+        renderDrawer(); render(); toast(on ? `🤍 Sophia-Modus für ${p?.name || 'die Person'} ist an` : `Sophia-Modus für ${p?.name || 'die Person'} ist aus`); break; }
       case 'theme': theme = { auto:'light', light:'dark', dark:'auto' }[theme]; try { localStorage.setItem('wg-dash-theme', theme); } catch(err){} applyTheme(); refreshShell(); break;
       case 'logout':
         if (!confirmTwice(t, 'Wirklich abmelden?')) break;
@@ -932,6 +953,66 @@ setInterval(async () => {
 }, 90e3);
 let lastMobile = mobile();
 addEventListener('resize', () => { if (!shellOn) return; updateNav(); placePills($('#main')); if (mobile() !== lastMobile){ lastMobile = mobile(); render(); } else drawCharts(false); });
+
+/* ---------- Handy: Kopfzeile, Leiste, Ziehen zum Aktualisieren/Schließen ---------- */
+let lastY = 0;
+addEventListener('scroll', () => {
+  if (!shellOn || !mobile()) return;
+  const y = window.scrollY, mb = $('#mbar'), tb = $('.tabbar');
+  if (mb) mb.classList.toggle('show', y > 70);
+  if (tb){ if (y > lastY + 6 && y > 140) tb.classList.add('away'); else if (y < lastY - 6 || y < 140) tb.classList.remove('away'); }
+  lastY = y;
+}, { passive:true });
+
+/* Zum Aktualisieren herunterziehen (oben auf der Seite) */
+let pull = null;
+const pullReset = () => { const el = $('#ptr'); if (!el) return; el.classList.add('back'); el.classList.remove('ready'); el.style.transform = ''; el.style.opacity = ''; };
+addEventListener('touchstart', e => {
+  pull = null;
+  if (!shellOn || !mobile() || S.dr || window.scrollY > 2 || e.touches.length !== 1) return;
+  if (e.target.closest('.seg,.kpis,.tpls,input,textarea,select,.tabbar,.chart')) return;
+  pull = { y0:e.touches[0].clientY, dy:0 };
+}, { passive:true });
+addEventListener('touchmove', e => {
+  if (!pull) return;
+  const dy = e.touches[0].clientY - pull.y0;
+  if (dy <= 0 || window.scrollY > 2){ pull = null; pullReset(); return; }
+  pull.dy = dy; const el = $('#ptr'); if (!el) return;
+  el.classList.remove('back'); el.style.opacity = Math.min(1, dy / 70);
+  el.style.transform = `translateY(${-70 + Math.min(dy * .55, 72)}px) rotate(${dy * 3}deg)`;
+  el.classList.toggle('ready', dy > 90);
+}, { passive:true });
+addEventListener('touchend', async () => {
+  if (!pull) return; const ok = pull.dy > 90; pull = null; const el = $('#ptr');
+  if (!ok || !el){ pullReset(); return; }
+  el.classList.add('back', 'go'); el.style.transform = 'translateY(0)'; el.style.opacity = 1;
+  try { navigator.vibrate && navigator.vibrate(10); } catch(e){}
+  await load(); refreshShell(); toast(Object.keys(S.errors).length ? 'Einiges konnte nicht geladen werden' : 'Aktualisiert ✓');
+});
+
+/* Blatt von unten: nach unten wischen schließt es */
+let sheet = null;
+document.addEventListener('touchstart', e => {
+  sheet = null; const d = e.target.closest('.drawer'); if (!d || !mobile()) return;
+  if (e.target.closest('input,textarea,select,.seg,.tpls,.dur')) return;
+  if (d.scrollTop > 0 && !e.target.closest('.grab')) return;
+  sheet = { d, y0:e.touches[0].clientY, dy:0, t0:Date.now() };
+}, { passive:true });
+document.addEventListener('touchmove', e => {
+  if (!sheet) return; const dy = e.touches[0].clientY - sheet.y0;
+  if (!sheet.dy && (dy < 0 || sheet.d.scrollTop > 0)){ sheet = null; return; }
+  sheet.dy = Math.max(0, dy); sheet.d.classList.remove('snap'); sheet.d.classList.add('drag');
+  sheet.d.style.transform = `translateY(${sheet.dy}px)`;
+  const sc = sheet.d.previousElementSibling; if (sc) sc.style.opacity = Math.max(0, 1 - sheet.dy / 400);
+}, { passive:true });
+document.addEventListener('touchend', () => {
+  if (!sheet) return; const { d, dy, t0 } = sheet; sheet = null; if (!dy) return;
+  d.classList.remove('drag'); d.classList.add('snap'); const sc = d.previousElementSibling;
+  if (dy > 130 || (dy > 50 && Date.now() - t0 < 260)){
+    d.style.transform = 'translateY(105%)'; if (sc) sc.style.opacity = 0;
+    setTimeout(() => { S.dr = null; const r = $('#dr'); if (r) r.innerHTML = ''; }, 320);
+  } else { d.style.transform = ''; if (sc) sc.style.opacity = ''; }
+});
 
 /* ---------- Start ---------- */
 let current;

@@ -1818,3 +1818,63 @@ html.lang-switch #views,html.lang-switch #tabbar{transition:opacity .25s,filter 
 .xt-btns{display:flex;justify-content:space-between;gap:8px}
 html.xt-on #tabbar{z-index:1}
 @media (prefers-reduced-motion:reduce){#xp *,#xt *{animation:none !important;transition:none !important}.xs2-door{display:none}.xs1-b,.xs2-i,.xs2-i i,.xs3-plate,.xs3-card,.xs3-n,.xs4-c,.xs2-cam,.xs1-q{opacity:1}}
+
+/* =====================================================================
+   Sophia-Modus 🤍 (4.3) – im Dashboard pro Person einschaltbar
+   Hellblau und weiß, weiße Herzen, „Sophia" oben, eigenes Start-Intro
+   ===================================================================== */
+:root.sophia{
+  --bg:#EAF4FD; --surface:#FFFFFF; --surface-2:#DCEBF9; --fg:#132A42; --muted:#58728F; --line:#CFE2F5;
+  --herb:#3B8FD9; --herb-ink:#FFFFFF; --herb-soft:#D6EAFB;
+  --yolk-soft:#FBF0D2; --shadow:0 1px 2px rgba(19,42,66,.05),0 8px 24px rgba(59,143,217,.12);
+  --so-1:#9CCDF6; --so-2:#5FA8E6;
+}
+@media (prefers-color-scheme: dark){:root.sophia:not([data-theme="light"]){
+  --bg:#0B1626; --surface:#13233A; --surface-2:#1B2F4A; --fg:#E7F2FD; --muted:#93AAC4; --line:#24395A;
+  --herb:#86C5F7; --herb-ink:#06182B; --herb-soft:#173352; --so-1:#2B5F96; --so-2:#1C4E80}}
+:root.sophia[data-theme="dark"]{
+  --bg:#0B1626; --surface:#13233A; --surface-2:#1B2F4A; --fg:#E7F2FD; --muted:#93AAC4; --line:#24395A;
+  --herb:#86C5F7; --herb-ink:#06182B; --herb-soft:#173352; --so-1:#2B5F96; --so-2:#1C4E80}
+
+/* Vorschlagskarte und Plus-Karte in Himmelblau mit weißem Schimmer */
+:root.sophia .pick,:root.sophia[data-theme="dark"] .pick,:root.sophia .pick.planned{background:
+  radial-gradient(90% 70% at 100% 0%,rgba(255,255,255,.55),transparent 60%),linear-gradient(155deg,#7FBDF2,#3B8FD9 70%,#2F7FC6);
+  box-shadow:0 16px 34px rgba(59,143,217,.3)}
+.sophia .plus-card{background:linear-gradient(140deg,#7FBDF2,#3B8FD9 55%,#E6F2FD)}
+
+/* „Sophia" steht oben */
+.sophia-tag{display:inline-flex;align-items:center;gap:6px;padding:4px 11px 4px 8px;margin:0 0 6px;border-radius:999px;font-weight:800;font-size:0.7647rem;letter-spacing:.02em;
+  color:var(--herb);background:var(--surface);box-shadow:0 2px 10px rgba(59,143,217,.18),inset 0 0 0 1px var(--line);animation:heroIn .6s both}
+.sophia-tag span{display:inline-block;animation:soBeat 2.4s ease-in-out infinite}
+.so-h{display:inline-block;font-size:.8em;animation:soBeat 2s ease-in-out infinite}
+.sophia #navTitle::after{content:" 🤍";font-size:.85em}
+.sophia .h1:not(:has(.so-h))::after{content:" 🤍";font-size:.7em}
+.sophia .tab[aria-current="page"]{position:relative}
+.sophia .tab[aria-current="page"]::after{content:"🤍";position:absolute;left:50%;bottom:-3px;transform:translateX(-50%);font-size:8px;line-height:1}
+.sophia .tab-pill{background:color-mix(in srgb,var(--herb) 18%,#fff 10%)}
+.sophia ::selection{background:#BFE0FB}
+
+/* Schwebende weiße Herzen (wie der Schnee im Advent, nur nach oben) */
+#hearts{position:absolute;inset:0;z-index:31;pointer-events:none;overflow:hidden;-webkit-mask-image:linear-gradient(transparent,#000 25%,#000 70%,transparent);mask-image:linear-gradient(transparent,#000 25%,#000 70%,transparent)}
+.framed #hearts{border-radius:53px}
+#hearts i{position:absolute;left:var(--x);bottom:-30px;font-style:normal;font-size:var(--s);opacity:.55;filter:drop-shadow(0 2px 4px rgba(59,143,217,.35));animation:soRise var(--d) linear var(--t) infinite}
+@keyframes soRise{0%{transform:translate(0,0) rotate(-8deg)}50%{transform:translate(var(--w),-50vh) rotate(8deg)}100%{transform:translate(0,-105vh) rotate(-6deg)}}
+
+/* Herzen beim Antippen */
+.so-burst{position:fixed;z-index:9999;pointer-events:none;line-height:1;filter:drop-shadow(0 2px 4px rgba(59,143,217,.4));animation:soBurst .9s cubic-bezier(.2,.8,.2,1) forwards}
+@keyframes soBurst{0%{transform:translate(-50%,-50%) scale(.4);opacity:1}100%{transform:translate(calc(-50% + var(--bx)),calc(-50% + var(--by))) scale(1.15) rotate(var(--br));opacity:0}}
+@keyframes soBeat{0%,100%{transform:scale(1)}15%{transform:scale(1.16)}30%{transform:scale(1)}45%{transform:scale(1.08)}}
+
+/* Start-Intro: Himmelblau, Teller wird zum Herzen-Teller, „Hallo Sophia" */
+.sophia #splash{background:radial-gradient(70% 45% at 50% 42%,#FFFFFF,#D4EAFC 55%,#9CCDF6) !important}
+:root.sophia[data-theme="dark"] #splash{background:radial-gradient(70% 45% at 50% 42%,#2B5F96,#123459 60%,#0B1626) !important}
+@media (prefers-color-scheme: dark){:root.sophia:not([data-theme="light"]) #splash{background:radial-gradient(70% 45% at 50% 42%,#2B5F96,#123459 60%,#0B1626) !important}}
+.sophia .s2-rim{fill:#FFFFFF;stroke:#CFE2F5}
+.sophia .s2-in{stroke:#3B8FD9}
+.sophia .s2-food span{filter:drop-shadow(0 4px 8px rgba(59,143,217,.35))}
+.sophia .s2-food span:last-child{font-size:60px;margin:-30px 0 0 -30px}
+.sophia .s2-slot{width:3.7em}
+.sophia .s2-slot i:nth-child(4){color:var(--herb)}
+.sophia .sp-glow{background:radial-gradient(circle,rgba(255,255,255,.6),transparent 65%)}
+
+@media (prefers-reduced-motion: reduce){ #hearts,.so-burst{display:none} .sophia-tag span,.so-h{animation:none} }
