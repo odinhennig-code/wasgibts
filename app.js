@@ -38,7 +38,7 @@ if (sb) document.addEventListener('visibilitychange', () => { try {
 
 /* ---------- Zustand ---------- */
 const D = { notes:[], board:[], colls:[], xrec:[], cap:{}, lastWeek:[], user:null, profile:null, membership:null, family:null, members:[], profiles:{}, wishes:[], fridge:[], expiries:{}, custom:[], poll:null, votes:[], shop:[], plan:[], log:[], ratings:[], ann:null, appAdmin:false };
-const UI = { tab:'home', time:60, mood:'egal', rtab:'week', q:'', auth:'code', busy:false, err:'', loading:true,
+const UI = { tab:'home', time:60, mood:'egal', rtab:'week', q:'', auth:'login', busy:false, err:'', loading:true,
              joinCode: new URLSearchParams(location.search).get('join') || '' };
 const LOCAL = 'wasgibts.local';
 let L = (() => { try { return JSON.parse(localStorage.getItem(LOCAL)) || {}; } catch(e){ return {}; } })();
@@ -364,40 +364,26 @@ function viewSetup(){
     <p class="muted" style="text-align:center">Trage in <b>config.js</b> die Adresse und den Schlüssel deines Supabase-Projekts ein. Die Anleitung steht in der README.</p></div>`;
 }
 function viewAuth(){
+  const reg = UI.auth === 'register';
   if (UI.auth === 'check') return `<div class="center"><div class="r-hero">📬</div><div class="h1" style="text-align:center">Fast geschafft!</div>
     <p class="muted" style="text-align:center">Wir haben dir eine E-Mail geschickt. Tippe auf den Link darin und melde dich dann hier an.</p>
-    <button class="btn btn-herb btn-block" data-action="auth-mode" data-v="mail">Zur Anmeldung</button></div>`;
-  const mail = UI.auth === 'mail';
-  const join = UI.joinCode || L.joinCode
-    ? `<div class="card" style="background:var(--herb-soft);font-weight:700">👋 Du wurdest in eine Familie eingeladen. Melde dich an, dann geht's los.</div>` : '';
-  const err = UI.err ? `<div class="err" role="alert">${esc(UI.err)}</div>` : '';
-
-  const codeForm = `<form id="authForm" class="stack" style="gap:0" novalidate>
-      <p class="muted" style="text-align:center;margin:0 0 14px">Du hast einen Code bekommen?<br>Tipp ihn hier ein.</p>
-      <input id="a-code" class="input code-in" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="one-time-code"
-             maxlength="4" placeholder="––––" aria-label="Vierstelliger Code" ${UI.busy?'disabled':''}>
-      ${err}
-      <button class="btn btn-herb btn-block" type="submit" style="margin-top:14px" ${UI.busy?'disabled':''}>${UI.busy?'<span class="spin"></span>':'Loslegen'}</button>
-    </form>
-    <button class="linkbtn" data-action="auth-mode" data-v="mail">Ich habe einen Account mit E-Mail</button>`;
-
-  const mailForm = `<form id="authForm" class="stack" style="gap:0" novalidate>
-      <div class="field"><label for="a-mail">E-Mail</label><input id="a-mail" class="input" type="email" autocomplete="email" required></div>
-      <div class="field"><label for="a-pass">Passwort</label><input id="a-pass" class="input" type="password" minlength="6" autocomplete="current-password" required></div>
-      ${err}
-      <button class="btn btn-herb btn-block" type="submit" style="margin-top:12px" ${UI.busy?'disabled':''}>${UI.busy?'<span class="spin"></span>':'Anmelden'}</button>
-    </form>
-    <button class="linkbtn" data-action="auth-mode" data-v="code">Ich habe einen Tester-Code</button>`;
-
+    <button class="btn btn-herb btn-block" data-action="auth-mode" data-v="login">Zur Anmeldung</button></div>`;
   return `<div class="lang-float">${langSwitch()}</div><div class="center">
     ${installBanner()}
     <div class="logo-big">Was<br>gibt's<span>?</span></div>
     <p class="muted" style="text-align:center;margin:0 0 6px">Ein Essen, das allen schmeckt, aus dem, was da ist.</p>
-    ${join}
-    ${mail ? mailForm : codeForm}
+    ${UI.joinCode||L.joinCode ? `<div class="card" style="background:var(--herb-soft);font-weight:700">👋 Du wurdest in eine Familie eingeladen. ${reg?'Erstelle':'Melde dich an oder erstelle'} deinen Account, dann geht's los.</div>` : ''}
+    <form id="authForm" class="stack" style="gap:0" novalidate>
+      ${reg ? `<div class="field"><label for="a-name">Dein Name</label><input id="a-name" class="input" maxlength="30" autocomplete="given-name" required></div>
+        <div class="field"><span class="lbl2">Dein Bild</span><div class="emoji-pick">${AVS.map(a=>`<button type="button" data-action="pick-av" data-v="${a}" aria-pressed="${(L.av||'🧑')===a}">${a}</button>`).join('')}</div></div>` : ''}
+      <div class="field"><label for="a-mail">E-Mail</label><input id="a-mail" class="input" type="email" autocomplete="email" required></div>
+      <div class="field"><label for="a-pass">Passwort</label><input id="a-pass" class="input" type="password" minlength="6" autocomplete="${reg?'new-password':'current-password'}" required></div>
+      ${UI.err ? `<div class="err" role="alert">${esc(UI.err)}</div>` : ''}
+      <button class="btn btn-herb btn-block" type="submit" style="margin-top:12px" ${UI.busy?'disabled':''}>${UI.busy?'<span class="spin"></span>':reg?'Account erstellen':'Anmelden'}</button>
+    </form>
+    <button class="linkbtn" data-action="auth-mode" data-v="${reg?'login':'register'}">${reg?'Ich habe schon einen Account':'Neu hier? Account erstellen'}</button>
   </div>`;
 }
-
 /* ---------- Erster Start eines Testers: Sprache wählen ---------- */
 const isTester = () => !!(D.user && D.user.user_metadata && D.user.user_metadata.tester);
 const needLang = () => isTester() && !L.langPicked;
@@ -1152,7 +1138,7 @@ document.addEventListener('input', e => {
   else if (id === 'expDate' && UI.expScan){ UI.expScan.date = e.target.value; refreshSheet(); }
 });
 document.addEventListener('submit', async e => {
-  if (e.target.id === 'authForm') (UI.auth === 'mail' ? onAuth : onCode)(e);
+  if (e.target.id === 'authForm') onAuth(e);
   if (e.target.classList.contains('note-add')){ e.preventDefault(); const i = e.target.querySelector('input'); const v = i.value; i.value = ''; try { await addNote(e.target.dataset.rid, v); } catch(err){ toast(errText(err)); } }
   if (e.target.classList.contains('board-add')){ e.preventDefault(); const i = e.target.querySelector('input'); const v = i.value; i.value = ''; try { await addPost(v); } catch(err){ toast(errText(err)); } }
   if (e.target.id === 'shopForm'){ e.preventDefault();
@@ -1183,7 +1169,7 @@ async function onCode(e){
   } catch(err){ UI.err = errText(err); UI.busy = false; render(); }
 }
 async function onAuth(e){
-  e.preventDefault(); UI.err=''; const reg = false;
+  e.preventDefault(); UI.err=''; const reg = UI.auth==='register';
   const mail=$('#a-mail').value.trim(), pass=$('#a-pass').value, name=reg?$('#a-name').value.trim():'';
   if (reg && !name){ UI.err='Bitte gib deinen Namen ein.'; render(); return; }
   if (!mail || pass.length<6){ UI.err='Bitte E-Mail und ein Passwort mit mindestens 6 Zeichen eingeben.'; render(); return; }
@@ -1201,7 +1187,7 @@ async function onAuth(e){
 async function onSession(session){
   D.user = session ? session.user : null; UI.busy=false;
   if (D.user){ try { await loadAll(true); subscribe(); } catch(e){ if (!useCache()) UI.err = errText(e); offlineRetry(); } }
-  else { try { localStorage.removeItem('wg.cache'); } catch(e){} UI.offline = false; UI.auth = UI.auth==='check' ? 'check' : 'code'; D.profile=null; D.membership=null; if (channel){ sb.removeChannel(channel); channel=null; } }
+  else { try { localStorage.removeItem('wg.cache'); } catch(e){} UI.offline = false; UI.auth = UI.auth==='check' ? 'check' : 'login'; D.profile=null; D.membership=null; if (channel){ sb.removeChannel(channel); channel=null; } }
   UI.loading=false; render();
   if (D.user && !D.profile?.banned) syncPush().then(() => setTimeout(maybePushPrompt, performance.now() < 6000 ? 3800 : 600));
   if (D.user && D.profile && UI.supFor !== D.user.id){ UI.supFor = D.user.id; loadSupport().then(() => { if (SUP.tickets.some(t => t.status !== 'geloest')) supSubscribe(); if (supUnread() && UI.tab === 'more' && !$('.sheet')) render(); }).catch(()=>{}); }
@@ -1814,10 +1800,11 @@ document.addEventListener('click', async e => {
     case 'close': keepName(); closeSheet(); render(); break;
     case 'retry': t.disabled = true; try { await loadAll(true); subscribe(); UI.err = ''; } catch(err){ toast('Noch keine Verbindung'); offlineRetry(); } t.disabled = false; render(); break;
     case 'auth-mode': UI.auth=t.dataset.v; UI.err=''; render(); break;
+    case 'pick-av': L.av=t.dataset.v; saveLocal(); document.querySelectorAll('[data-action=pick-av]').forEach(b=>b.setAttribute('aria-pressed', b.dataset.v===L.av)); buzz(6); break;
     case 'lang-first': { const l = t.dataset.v; L.langPicked = true; saveLocal(); buzz(10);
       if (l === LANG) render(); else setLang(l); break; }
     case 'logout': if (!UI.confirmLogout && D.profile && !D.profile.banned){ UI.confirmLogout = true; render(); setTimeout(() => { if (UI.confirmLogout){ UI.confirmLogout = false; render(); } }, 5000); break; }
-      UI.confirmLogout = false; UI.auth='code'; UI.err=''; await pushOff(true); await sb.auth.signOut(); UI.tab='home'; if (L.sophia){ L.sophia = false; saveLocal(); applyTheme(); } break;
+      UI.confirmLogout = false; UI.auth='login'; UI.err=''; await pushOff(true); await sb.auth.signOut(); UI.tab='home'; if (L.sophia){ L.sophia = false; saveLocal(); applyTheme(); } break;
     case 'join': { const c=$('#join-code').value.trim(); if(!c){ UI.err='Bitte gib den Familien-Code ein.'; render(); break; }
       UI.err=''; t.disabled=true; const { error } = await sb.rpc('request_join', { join_code:c }); if (error){ t.disabled=false; throw error; }
       L.joinCode=''; saveLocal(); await loadAll(true); subscribe(); render(); toast('Anfrage gesendet'); buzz(20); notifyFamily('join'); break; }
