@@ -61,7 +61,8 @@ applyTheme();
 
 
 /* ---------- Zustand ---------- */
-const S = { user:null, me:null, admin:false, v41:true, page:'home', errors:{},
+const S = { user:null, me:null, admin:false, v41:true, v60:true, page:'home', errors:{},
+             testers:[], tNew:false, tAv:'\u{1F9D1}', tCode:null, tEdit:null, tq:'',
   stats:null, counts:null, people:[], families:[], feedback:[], log:[], anns:[], templates:[], scheduled:[], auto:null, act:null, recent:[],
   chart:'signups', pf:'all', pq:'', fq:'', fb:'open', logf:'all', mod:'feed', modk:'all', gs:'',
   push:{ title:'', body:'', target:'all', fam:'', user:'', url:'home', later:false, at:'' }, confirm:false, busy:false, err:'',
@@ -71,8 +72,8 @@ try { S.page = sessionStorage.getItem('dash.page') || 'home'; } catch(e){}
 
 const PAGES = {
   home:['Übersicht','dashboard'], mod:['Moderation','shield'], people:['Personen','user'], families:['Familien','conference-call'],
-  support:['Support','chat'], feedback:['Feedback','info'], push:['Push senden','send'], auto:['Automatisch','robot-2'], ann:['Ankündigung','megaphone'], more:['Mehr','more'] };
-const GROUPS = [['Mein Büro',['home']], ['Community',['support','mod','people','families','feedback']], ['Nachrichten',['push','auto','ann']]];
+  testers:['Tester','key'], support:['Support','chat'], feedback:['Feedback','info'], push:['Push senden','send'], auto:['Automatisch','robot-2'], ann:['Ankündigung','megaphone'], more:['Mehr','more'] };
+const GROUPS = [['Mein Büro',['home']], ['Community',['support','mod','people','families','testers','feedback']], ['Nachrichten',['push','auto','ann']]];
 const TABS = [['home','Start'],['support','Support'],['mod','Moderation'],['push','Push'],['more','Mehr']];
 const LINKS = [['home','Heute'],['fridge','Kühlschrank'],['recipes','Rezepte'],['family','Familie'],['more','Mehr']];
 const TARGETS = [['all','Alle'],['active7','Aktive'],['inactive14','Inaktive'],['family','Familie'],['user','Person'],['test','Test an mich']];
@@ -107,6 +108,7 @@ async function load(what){
       catch(e){ S.v41 = false; S.people = (await rpc('admin_users') || []).map(u => ({ ...u, family_id:null, posts:0 })); }
     },
     families:  async () => { S.families = await rpc('admin_families') || []; },
+    testers:   async () => { try { S.testers = await rpc('admin_testers') || []; S.v60 = true; } catch(e){ S.testers = []; S.v60 = false; } },
     feedback:  async () => { S.feedback = await rpc('admin_feedback') || []; },
     act:       async () => { try { S.act = await rpc('admin_activity'); } catch(e){ S.act = null; } },
     recent:    async () => { try { S.recent = await rpc('admin_recent_content') || []; } catch(e){ S.recent = []; } },
@@ -341,6 +343,64 @@ function viewFamilies(){
     <section class="glass card rise" style="--d:1;padding:${mobile()?'10px 12px':'12px'}">${rows}</section></div>`;
 }
 
+/* ---------- Tester ---------- */
+const AVS = ['\u{1F9D2}','\u{1F467}','\u{1F466}','\u{1F469}','\u{1F468}','\u{1F475}','\u{1F474}','\u{1F9D1}','\u{1F98A}','\u{1F431}','\u{1F436}','\u{1F43C}'];
+const v60Box = () => S.v60 ? '' : `<div class="warn rise">${ic('info')}<span><b>Noch ein Schritt:</b> Bitte <code>supabase/migration-6.0-tester.sql</code> im SQL-Editor ausf&uuml;hren und die Server-Funktion <code>tester</code> ver&ouml;ffentlichen. Dann k&ouml;nnen hier Tester-Accounts entstehen.</span></div>`;
+
+function codeCell(t){
+  if (!t.open_code) return `<button class="btn btn-sm" data-a="t-code" data-id="${t.user_id}">Code erzeugen</button>`;
+  const h = Math.max(0, Math.round((new Date(t.code_until) - Date.now()) / 36e5));
+  return `<span class="tcode" data-a="t-copy" data-v="${t.open_code}" role="button" tabindex="0" title="Antippen zum Kopieren">${t.open_code}</span>
+    <small class="muted"> noch ${h} Std.</small>`;
+}
+function testerRow(t){
+  const open = S.tEdit === t.user_id;
+  return `<div class="li tli${open ? ' open' : ''}">
+    <div class="row" style="gap:12px;align-items:center">
+      <span class="av">${esc(t.avatar || '\u{1F9D1}')}</span>
+      <span class="t" style="flex:1 1 auto"><b>${esc(t.name || 'Ohne Namen')}</b>
+        <small>${t.family ? esc(t.family) : 'noch keine Familie'}${t.last_claim ? ' &middot; eingel&ouml;st ' + fmtDate(t.last_claim) : ' &middot; noch nie angemeldet'}${t.note ? ' &middot; ' + esc(t.note) : ''}</small></span>
+      <span class="d-only">${codeCell(t)}</span>
+      <button class="btn btn-icon btn-sm" data-a="t-edit" data-id="${t.user_id}" aria-label="Bearbeiten">${ic('user')}</button>
+    </div>
+    <div class="m-only" style="margin-top:8px">${codeCell(t)}</div>
+    ${open ? `<div class="tedit" style="margin-top:12px;padding-top:12px;border-top:1px solid var(--line)">
+      <input class="in" id="tn-${t.user_id}" value="${esc(t.name || '')}" maxlength="30" placeholder="Name" style="max-width:260px">
+      <div class="row" style="flex-wrap:wrap;gap:4px;margin:10px 0">${AVS.map(a => `<button class="btn btn-sm" data-a="t-av2" data-id="${t.user_id}" data-v="${a}" aria-pressed="${(t.avatar || '\u{1F9D1}') === a}">${a}</button>`).join('')}</div>
+      <div class="row" style="gap:8px;flex-wrap:wrap">
+        <button class="btn btn-herb btn-sm" data-a="t-save" data-id="${t.user_id}">Speichern</button>
+        <button class="btn btn-sm" data-a="t-code" data-id="${t.user_id}">Neuen Code</button>
+        ${t.open_code ? `<button class="btn btn-sm" data-a="t-codeoff" data-id="${t.user_id}">Code zur&uuml;ckziehen</button>` : ''}
+        <button class="btn btn-sm" data-a="t-edit" data-id="">Schlie&szlig;en</button>
+      </div></div>` : ''}
+  </div>`;
+}
+function viewTesters(){
+  const q = S.tq.toLowerCase();
+  const list = S.testers.filter(t => !q || (t.name || '').toLowerCase().includes(q) || (t.open_code || '').includes(q));
+  return `<div class="wrap">${top('Tester', pl(S.testers.length, 'Zugang', 'Zug&auml;nge'),
+      `<button class="btn btn-herb" data-a="t-open">${ic('key')}Neuer Tester</button>`)}
+    ${v60Box()}${errBox(['testers'])}
+    ${S.tCode ? `<section class="glass card rise" style="text-align:center;padding:26px">
+      <p class="muted" style="margin:0 0 6px">Code f&uuml;r <b>${esc(S.tCode.name)}</b> &middot; gilt 24 Stunden</p>
+      <div class="tbig" data-a="t-copy" data-v="${S.tCode.code}" role="button" tabindex="0">${S.tCode.code}</div>
+      <p class="muted" style="margin:10px 0 0">In der App auf <b>Code eingeben</b> tippen. Der Code gilt einmal &ndash; danach bleibt das Handy angemeldet.</p>
+      <button class="btn btn-sm" data-a="t-hide" style="margin-top:14px">Verstanden</button></section>` : ''}
+    ${S.tNew ? `<section class="glass card rise" style="--d:1">
+      <h3 style="margin:0 0 12px">Neuer Tester</h3>
+      <input class="in" id="tname" placeholder="Name, z.&nbsp;B. Mia" maxlength="30" style="max-width:280px">
+      <div class="row" style="flex-wrap:wrap;gap:4px;margin:12px 0">${AVS.map(a => `<button class="btn btn-sm" data-a="t-av" data-v="${a}" aria-pressed="${S.tAv === a}">${a}</button>`).join('')}</div>
+      <input class="in" id="tnote" placeholder="Notiz f&uuml;r dich, z.&nbsp;B. &bdquo;Handy von Mia&ldquo;" maxlength="120" style="max-width:360px">
+      <div class="row" style="gap:8px;margin-top:14px">
+        <button class="btn btn-herb" data-a="t-create">Anlegen und Code erzeugen</button>
+        <button class="btn" data-a="t-open">Abbrechen</button></div></section>` : ''}
+    <div class="row rise" style="margin:14px 0">
+      <input class="in" id="tq" placeholder="Name oder Code suchen" value="${esc(S.tq)}" style="max-width:360px;border-radius:999px"></div>
+    <section class="glass card rise" style="--d:1;padding:${mobile() ? '10px 12px' : '12px'}">
+      <div class="list">${list.map(testerRow).join('') || empty('key', S.v60 ? 'Noch keine Tester' : 'Migration 6.0 fehlt')}</div>
+    </section></div>`;
+}
+
 /* ---------- Feedback ---------- */
 function kindChip(k){ return ({ fehler:'<span class="chip c-tomato">🐞 Fehler</span>', idee:'<span class="chip c-yolk">💡 Idee</span>', lob:'<span class="chip c-herb">💚 Lob</span>', support:'<span class="chip c-tomato">🛟 Support</span>', plus:'<span class="chip c-herb">✨ Plus</span>' })[k] || `<span class="chip">${esc(k)}</span>`; }
 function viewFeedback(){
@@ -526,7 +586,7 @@ function drawerFamily(){
 /* =========================================================================
    Zeichnen
    ========================================================================= */
-const VIEWS = { support:viewSupport, home:viewHome, mod:viewMod, people:viewPeople, families:viewFamilies, feedback:viewFeedback, push:viewPush, auto:viewAuto, ann:viewAnn, more:viewMore };
+const VIEWS = { support:viewSupport, testers:viewTesters, home:viewHome, mod:viewMod, people:viewPeople, families:viewFamilies, feedback:viewFeedback, push:viewPush, auto:viewAuto, ann:viewAnn, more:viewMore };
 let shellOn = false;
 function render(anim=false){
   const app = $('#app');
@@ -666,6 +726,7 @@ document.addEventListener('input', e => {
   if (t.id === 'gs'){ S.gs = t.value; searchResults(); return; }
   if (t.id === 'pq'){ S.pq = t.value; const b = $('#peopleRows'); if (b) b.innerHTML = peopleRows(peopleList()); return; }
   if (t.id === 'fq'){ S.fq = t.value; render(); return; }
+  if (t.id === 'tq'){ S.tq = t.value; render(); return; }
   if (t.id === 'reason' && S.dr){ S.dr.reason = t.value; return; }
   if (t.id === 'delname'){ const f = S.dr && family(S.dr.id), b = $('#delfam'); if (b && f) b.disabled = t.value.trim() !== f.name.trim(); }
 });
@@ -677,6 +738,7 @@ document.addEventListener('keydown', e => {
 });
 document.addEventListener('click', e => { if (S.gs && !e.target.closest('.search')){ S.gs = ''; const g = $('#gs'); if (g) g.value = ''; searchResults(); } }, true);
 
+async function rpcTop(fn, args){ const { data, error } = await sb.rpc(fn, args); if (error) throw error; return data; }
 function go(page){ const tb = $('.tabbar'); if (tb) tb.classList.remove('away'); S.page = page; S.confirm = false; try { sessionStorage.setItem('dash.page', page); } catch(e){} render(true); window.scrollTo({ top:0, behavior: reduced() ? 'auto' : 'smooth' }); }
 
 document.addEventListener('click', async e => {
@@ -693,6 +755,43 @@ document.addEventListener('click', async e => {
         const { error } = await sb.from('app_settings').upsert({ key:'sophia', value:{ users:S.sophia } }, { onConflict:'key' });
         if (error){ S.sophia = keep; t.setAttribute('aria-checked', !on); throw error; }
         renderDrawer(); render(); toast(on ? `🤍 Sophia-Modus für ${p?.name || 'die Person'} ist an` : `Sophia-Modus für ${p?.name || 'die Person'} ist aus`); break; }
+      case 't-open': S.tNew = !S.tNew; S.tCode = null; render(); break;
+      case 't-hide': S.tCode = null; render(); break;
+      case 't-av': S.tAv = v; render(); break;
+      case 't-edit': S.tEdit = id || null; render(); break;
+      case 't-copy': {
+        try { await navigator.clipboard.writeText(v); toast('Code ' + v + ' kopiert ✓'); }
+        catch(err){ toast('Code: ' + v); }
+        break; }
+      case 't-av2': {
+        const row = S.testers.find(x => x.user_id === id); if (!row) break;
+        row.avatar = v; render();
+        break; }
+      case 't-create': {
+        const name = (($('#tname') || {}).value || '').trim();
+        if (!name){ toast('Bitte einen Namen eintragen'); break; }
+        const note = (($('#tnote') || {}).value || '').trim();
+        t.disabled = true;
+        const { data, error } = await sb.functions.invoke('tester', { body:{ action:'create', name, avatar:S.tAv, note } });
+        t.disabled = false;
+        if (error || !data || data.error){ throw new Error((data && data.message) || (error && error.message) || 'Anlegen fehlgeschlagen'); }
+        S.tCode = { code:data.code, name:data.name };
+        S.tNew = false; S.tAv = '\u{1F9D1}';
+        await load(['testers']); render(); toast('Tester angelegt ✓');
+        break; }
+      case 't-code': {
+        const r = await rpcTop('admin_tester_code', { uid:id });
+        const row = S.testers.find(x => x.user_id === id);
+        S.tCode = { code:r.code, name:(row && row.name) || 'den Tester' };
+        S.tEdit = null;
+        await load(['testers']); render(); break; }
+      case 't-codeoff': {
+        await rpcTop('admin_tester_code_off', { uid:id });
+        S.tCode = null; await load(['testers']); render(); toast('Code zurückgezogen'); break; }
+      case 't-save': {
+        const el = $('#tn-' + id); const row = S.testers.find(x => x.user_id === id);
+        await rpcTop('admin_tester_edit', { uid:id, new_name:(el && el.value) || null, new_avatar:(row && row.avatar) || null });
+        S.tEdit = null; await load(['testers']); render(); toast('Gespeichert ✓'); break; }
       case 'theme': theme = { auto:'light', light:'dark', dark:'auto' }[theme]; try { localStorage.setItem('wg-dash-theme', theme); } catch(err){} applyTheme(); refreshShell(); break;
       case 'logout':
         if (!confirmTwice(t, 'Wirklich abmelden?')) break;

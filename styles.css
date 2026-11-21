@@ -1819,7 +1819,7 @@ html.lang-switch #views,html.lang-switch #tabbar{transition:opacity .25s,filter 
 html.xt-on #tabbar{z-index:1}
 @media (prefers-reduced-motion:reduce){#xp *,#xt *{animation:none !important;transition:none !important}.xs2-door{display:none}.xs1-b,.xs2-i,.xs2-i i,.xs3-plate,.xs3-card,.xs3-n,.xs4-c,.xs2-cam,.xs1-q{opacity:1}}
 
-/* =====================================================================
+/* ==============================================================
    Sophia-Modus 🤍 (4.3) – im Dashboard pro Person einschaltbar
    Hellblau und weiß, weiße Herzen, „Sophia" oben, eigenes Start-Intro
    ===================================================================== */
@@ -1878,3 +1878,27 @@ html.xt-on #tabbar{z-index:1}
 .sophia .sp-glow{background:radial-gradient(circle,rgba(255,255,255,.6),transparent 65%)}
 
 @media (prefers-reduced-motion: reduce){ #hearts,.so-burst{display:none} .sophia-tag span,.so-h{animation:none} }
+=======
+/* ---------- 6.0: Tester-Code und erste Sprachwahl ---------- */
+.code-in{text-align:center;font:700 clamp(34px,11vw,44px)/1.1 ui-monospace,SFMono-Regular,Menlo,monospace;
+  letter-spacing:.4em;text-indent:.4em;padding:16px 10px;min-height:76px;caret-color:var(--herb)}
+.code-in::placeholder{color:var(--line);letter-spacing:.34em}
+.code-in:focus{border-color:var(--herb);box-shadow:0 0 0 4px var(--herb-soft)}
+.code-in:disabled{opacity:.6}
+
+.lang-first .r-hero{animation:wave 1.6s ease-in-out 2}
+@keyframes wave{20%{transform:rotate(16deg)}40%{transform:rotate(-10deg)}60%{transform:rotate(12deg)}80%{transform:rotate(-6deg)}}
+.lang-pick{display:grid;gap:10px;width:100%;max-width:340px;margin:0 auto}
+.lang-opt{display:flex;align-items:center;gap:14px;padding:14px 16px;border:1.5px solid var(--line);border-radius:18px;
+  background:var(--surface);color:var(--fg);font:inherit;cursor:pointer;text-align:left;
+  transition:transform .45s cubic-bezier(.45,1.35,.5,1),border-color .2s,background .2s;
+  animation:loIn .5s cubic-bezier(.45,1.35,.5,1) both}
+.lang-opt:nth-child(2){animation-delay:.07s}
+.lang-opt:nth-child(3){animation-delay:.14s}
+@keyframes loIn{from{opacity:0;transform:translateY(14px) scale(.97)}}
+.lang-opt:hover{border-color:var(--herb);background:var(--herb-soft)}
+.lang-opt:active{transform:scale(.96)}
+.lo-s{display:grid;place-items:center;width:44px;height:44px;border-radius:14px;background:var(--herb-soft);
+  color:var(--herb);font:700 14px/1 var(--f-display);letter-spacing:.06em;flex:none}
+.lo-f{font-weight:600;font-size:1.0rem}
+@media (prefers-reduced-motion:reduce){.lang-first .r-hero,.lang-opt{animation:none}}

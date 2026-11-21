@@ -389,7 +389,7 @@ button.li:hover{background:var(--glass-2)}
   .glass,.drawer{background:var(--glass-strong)}
 }
 
-/* =========================================================================
+/* ==================================================================
    Version 4.3 – Handy noch besser
    ========================================================================= */
 .mbar,.ptr{display:none}
@@ -488,3 +488,17 @@ button.li:hover{background:var(--glass-2)}
 .sophia-box.on .sb-heart{animation:sbBeat 1.6s ease-in-out infinite}
 .sophia-box .switch[aria-checked="true"]{background:#3B8FD9}
 @keyframes sbBeat{0%,100%{transform:scale(1)}15%{transform:scale(1.15)}30%{transform:scale(1)}45%{transform:scale(1.08)}}
+=======
+/* ---------- Tester (6.0) ---------- */
+.tcode{display:inline-block;font:700 19px/1 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.22em;
+  padding:8px 12px 8px 16px;border-radius:12px;background:var(--herb-soft);color:var(--herb);cursor:pointer;
+  transition:transform .35s cubic-bezier(.45,1.35,.5,1),background .2s}
+.tcode:hover{background:var(--herb);color:#fff}
+.tcode:active{transform:scale(.94)}
+.tbig{font:700 clamp(46px,11vw,76px)/1 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.2em;
+  color:var(--herb);cursor:pointer;padding:10px 0 4px;transition:transform .4s cubic-bezier(.45,1.35,.5,1)}
+.tbig:active{transform:scale(.96)}
+.tli{display:block}
+.tli.open{background:var(--glass-2);border-radius:14px;padding:12px}
+.tli .av{font-size:22px}
+.tedit .btn[aria-pressed="true"]{background:var(--herb);color:#fff}
