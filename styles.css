@@ -1944,3 +1944,12 @@ html.xt-on #tabbar{z-index:1}
    braucht darum selbst den Hintergrund einer Liste. */
 .vorrat-auto{margin-top:16px;background:var(--surface);border-radius:20px;box-shadow:var(--shadow);cursor:pointer}
 .vorrat-auto small{white-space:normal}
+
+/* ===================== 5.2 · Mengen im Kühlschrank =====================
+   Freiwillig: wer nichts einträgt, sieht nichts davon. */
+.mg{display:inline-block;margin-left:4px;padding:1px 6px;border-radius:8px;background:color-mix(in srgb,var(--herb) 16%,transparent);color:var(--herb);font-size:0.72em;font-weight:800;vertical-align:1px}
+.mg-row{gap:8px}
+.mg-in{width:86px;flex:0 0 auto;text-align:right;padding:8px 10px;font-weight:800}
+.mg-in::-webkit-outer-spin-button,.mg-in::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.mg-in[type=number]{-moz-appearance:textfield}
+.mg-e{flex:0 0 auto;min-width:56px;border:0;border-radius:12px;padding:9px 8px;background:var(--line);color:var(--fg);font:800 0.8rem/1 var(--f-body);cursor:pointer}

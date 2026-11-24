@@ -37,7 +37,7 @@ if (sb) document.addEventListener('visibilitychange', () => { try {
   else { sb.auth.startAutoRefresh && sb.auth.startAutoRefresh(); sb.auth.getSession().catch(()=>{}); } } catch(e){} });
 
 /* ---------- Zustand ---------- */
-const D = { notes:[], board:[], colls:[], xrec:[], cap:{}, lastWeek:[], user:null, profile:null, membership:null, family:null, members:[], profiles:{}, wishes:[], fridge:[], expiries:{}, custom:[], poll:null, votes:[], shop:[], plan:[], log:[], ratings:[], ann:null, appAdmin:false };
+const D = { notes:[], board:[], colls:[], xrec:[], cap:{}, lastWeek:[], user:null, profile:null, membership:null, family:null, members:[], profiles:{}, wishes:[], fridge:[], expiries:{}, amounts:{}, custom:[], poll:null, votes:[], shop:[], plan:[], log:[], ratings:[], ann:null, appAdmin:false };
 const UI = { tab:'home', time:60, mood:'egal', rtab:'week', q:'', auth:'login', busy:false, err:'', loading:true,
              joinCode: new URLSearchParams(location.search).get('join') || '' };
 const LOCAL = 'wasgibts.local';
@@ -119,7 +119,7 @@ async function loadAll(force){
   N.ann = (an.data && an.data[0]) || null; N.appAdmin = adm.data === true;
   if (sph && !sph.error && typeof sph.data === 'boolean') N.sophiaFlag = sph.data;
   N.membership = (ms.data && ms.data[0]) || null;
-  Object.assign(N, { notes:[], board:[], colls:[], cap:{}, family:null, members:[], wishes:[], fridge:[], expiries:{}, custom:[], poll:null, votes:[], shop:[], plan:[], log:[], ratings:[] });
+  Object.assign(N, { notes:[], board:[], colls:[], cap:{}, family:null, members:[], wishes:[], fridge:[], expiries:{}, amounts:{}, custom:[], poll:null, votes:[], shop:[], plan:[], log:[], ratings:[] });
   if (N.membership){
     const fid = N.membership.family_id;
     const { data: fam } = await sb.from('families').select('*').eq('id', fid).maybeSingle();
@@ -140,17 +140,19 @@ async function loadAll(force){
       N.shop = shp.data || []; N.plan = pln.data || [];
       N.members = mem.data || []; N.wishes = wis.data || []; N.fridge = (fr.data && fr.data.items) || [];
       N.expiries = (fr.data && fr.data.expiries) || {};
+      N.amounts = (fr.data && fr.data.amounts) || {};
       N.custom = (cus.data || []).map(c => ({ id:'c_'+c.id, dbid:c.id, n:c.name, e:c.emoji, t:c.minutes, m:c.mood, i:c.ingredients||[], o:c.optional||[], x:c.traits||[], s:c.steps||[], custom:true, by:c.created_by }));
       N.poll = (pol.data && pol.data[0]) || null;
       /* 4.0: neue Tabellen/Spalten – nur nutzen, wenn das Datenbank-Update schon da ist */
-      const [cp, cs, nt, bd, cl] = await Promise.all([
+      const [cp, cs, nt, bd, cl, am] = await Promise.all([
         sb.from('meal_plan').select('slot,cook,label').limit(1),
         sb.from('shopping_items').select('note,list,assigned_to').limit(1),
         sb.from('recipe_notes').select('*').eq('family_id', fid).order('created_at'),
         sb.from('board_posts').select('*').eq('family_id', fid).order('created_at', { ascending:false }).limit(30),
         sb.from('recipe_collections').select('*').eq('family_id', fid).order('created_at'),
+        sb.from('fridges').select('amounts').limit(1),
       ]);
-      N.cap = { plan3: !cp.error, shop3: !cs.error, notes: !nt.error, board: !bd.error, colls: !cl.error };
+      N.cap = { plan3: !cp.error, shop3: !cs.error, notes: !nt.error, board: !bd.error, colls: !cl.error, mengen: !am.error };
       N.notes = nt.data || []; N.board = bd.data || []; N.colls = cl.data || [];
       const ids = N.members.map(m=>m.user_id);
       const [vs, ps] = await Promise.all([
@@ -561,6 +563,36 @@ function todayPlanned(){
       <button class="btn btn-herb" data-action="cook" data-id="${r.id}">👨‍🍳⁠ Jetzt kochen</button>
       ${miss.length ? `<button class="btn btn-ghost" data-action="shop-missing" data-id="${r.id}">🛒 Auf die Liste</button>` : ''}</div>`;
 }
+/* ---------- Mengen: wie viel ist da? ----------
+   Freiwillig. Wer nichts einträgt, merkt nichts davon – der Kühlschrank
+   bleibt ein einfaches „da / nicht da". Wer etwas einträgt, sieht die
+   Menge direkt auf dem Zettel und später im Fitness-Modus. */
+const EINHEITEN = ['g', 'ml', 'Stück', 'Pck.'];
+const STUECK = new Set(['eier','zitrone','apfel','banane','avocado','paprika','zwiebeln','knoblauch','gurke','salat',
+  'aubergine','blumenkohl','brokkoli','lauch','kuerbis','suesskartoffel','broetchen','tortillas','wuerstchen','ananas','mais']);
+const FLUESSIG = new Set(['milch','sahne','kokosmilch','passierte','sojasosse','honig','schmand','joghurt']);
+function standardEinheit(k){ return STUECK.has(k) ? 'Stück' : FLUESSIG.has(k) ? 'ml' : 'g'; }
+function menge(k){ const m = D.amounts[k]; return m && m.n > 0 ? m : null; }
+function mengeText(k){
+  const m = menge(k); if (!m) return '';
+  const n = Math.round(m.n * 10) / 10;
+  return String(n).replace('.', ',') + (m.e === 'Stück' ? '×' : ' ' + (m.e || 'g'));
+}
+function mengeTag(k){ const t = mengeText(k); return t ? ` <span class="mg">${t}</span>` : ''; }
+function openMengen(){
+  sheetFn = null;
+  const items = D.fridge.filter(k => ING[k]);
+  const zeile = k => { const m = D.amounts[k] || {}, e = m.e || standardEinheit(k);
+    return `<label class="row mg-row" for="mg-${k}"><span style="font-size:22px">${ingEmoji(k)}</span><span class="grow"><b>${ingName(k)}</b></span>
+      <input id="mg-${k}" class="input mg-in" type="number" inputmode="decimal" min="0" step="any" placeholder="–" value="${m.n > 0 ? esc(String(m.n)) : ''}">
+      <button type="button" class="mg-e" data-action="menge-einheit" data-k="${k}" data-v="${esc(e)}" aria-label="Einheit wechseln">${esc(e)}</button></label>`; };
+  openSheet(`${sheetHead('Mengen')}
+    <p class="muted" style="margin-top:-6px">Freiwillig. Trag nur ein, was du wissen willst – auf die Einheit tippen wechselt sie.</p>
+    ${items.length ? `<div class="list">${items.map(zeile).join('')}</div>
+    <button class="btn btn-herb btn-block" style="margin-top:16px" data-action="save-mengen">Speichern</button>
+    <button class="linkbtn" style="display:block;margin:10px auto 0" data-action="mengen-leeren">Alle Mengen löschen</button>`
+    : `<div class="card empty"><div class="g">🧊⁠</div><b>Kühlschrank ist leer</b>Wähle zuerst aus, was da ist.</div>`}`);
+}
 function expTag(k){ const d = daysLeft(k); if (d === null) return ''; return ` <span class="exp ${d<=1?'hot':''}">${d<0?'abgelaufen':d===0?'heute':d+' T'}</span>`; }
 function viewFridge(){
   const n = openShop().length;
@@ -570,7 +602,7 @@ function viewFridge(){
   if (UI.ftab === 'shop') return header('Einkaufsliste', 'Für die ganze Familie · live') + tabs + viewShopping();
   const fr = new Set(D.fridge), q = (UI.fq || '').trim().toLowerCase();
   const match = k => !q || ingMatch(k, q) > 0;
-  const chip = k => `<button class="ing ${UI.justAdded&&UI.justAdded.includes(k)?'just':''}" data-action="ing" data-k="${k}" aria-pressed="${fr.has(k)}">${fr.has(k) ? '<span class="ing-ok" aria-hidden="true">✓</span>' : ''}${ING[k][1]} ${ING[k][0]}${expTag(k)}</button>`;
+  const chip = k => `<button class="ing ${UI.justAdded&&UI.justAdded.includes(k)?'just':''}" data-action="ing" data-k="${k}" aria-pressed="${fr.has(k)}">${fr.has(k) ? '<span class="ing-ok" aria-hidden="true">✓</span>' : ''}${ING[k][1]} ${ING[k][0]}${mengeTag(k)}${expTag(k)}</button>`;
   const onlyHave = UI.fonly === 'have';
   if (!UI.recentSnap) UI.recentSnap = [...(L.recentIng || [])];
   const recent = UI.recentSnap.filter(k => ING[k] && match(k)).slice(0, 8);
@@ -588,7 +620,7 @@ function viewFridge(){
       <div class="seg mini" role="group"><button data-action="fonly" data-v="all" aria-pressed="${!onlyHave}">Alle</button><button data-action="fonly" data-v="have" aria-pressed="${onlyHave}">Da</button></div></div>
     ${recent.length && !onlyHave ? `<div class="h2">🕘 Zuletzt benutzt</div><div class="chips">${recent.map(chip).join('')}</div>` : ''}
     ${cats || `<div class="card empty"><div class="g">🔍</div><b>Nichts gefunden</b>${q ? `<button class="btn btn-line btn-block" style="margin-top:12px" data-action="shop-free" data-v="${esc(UI.fq)}">„${esc(UI.fq)}" auf die Einkaufsliste</button>` : 'Tipp oben auf „Alle".'}</div>`}
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:16px"><button class="btn btn-line" data-action="exp-photo">📷 MHD fotografieren</button><button class="btn btn-line" data-action="expiry">📅 Haltbarkeit</button></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:16px"><button class="btn btn-line" data-action="exp-photo">📷 MHD fotografieren</button><button class="btn btn-line" data-action="expiry">📅 Haltbarkeit</button><button class="btn btn-line" style="grid-column:1/-1" data-action="mengen">⚖️ Mengen eintragen${Object.keys(D.amounts).length ? ` <span class="chip c-muted">${Object.keys(D.amounts).length}</span>` : ''}</button></div>
     <p class="muted" style="font-size:13px;margin-top:12px">Salz, Pfeffer, Öl, Zucker und Gewürze setzen wir als vorhanden voraus.</p>
     <button class="btn btn-line btn-block" style="margin-top:6px" data-action="clear-fridge">Alles abwählen</button>`;
   UI.justAdded = null; return html;
@@ -1763,13 +1795,13 @@ function vorratListe(r){
 function vorratWeg(keys){
   const weg = (keys || []).filter(k => D.fridge.includes(k));
   if (!weg.length) return false;
-  const was = [...D.fridge], wasExp = { ...D.expiries };
+  const was = [...D.fridge], wasExp = { ...D.expiries }, wasMg = { ...D.amounts };
   D.fridge = D.fridge.filter(k => !weg.includes(k));
-  weg.forEach(k => delete D.expiries[k]);
+  weg.forEach(k => { delete D.expiries[k]; delete D.amounts[k]; });
   saveFridgeSoon(); render();
   undoToast(weg.length === 1 ? `${ingName(weg[0])} ist aus dem Kühlschrank raus`
     : `${weg.length} Zutaten sind aus dem Kühlschrank raus`,
-    () => { D.fridge = was; D.expiries = wasExp; saveFridgeSoon(); render(); });
+    () => { D.fridge = was; D.expiries = wasExp; D.amounts = wasMg; saveFridgeSoon(); render(); });
   return true;
 }
 /* Nach dem Abhaken geht es weiter mit dem Bewerten. */
@@ -1796,8 +1828,11 @@ function flushFridge(){
   clearTimeout(fridgeT); fridgeT = null;
   if (!D.family) return Promise.resolve();
   Object.keys(D.expiries).forEach(k => { if (!D.fridge.includes(k)) delete D.expiries[k]; });
-  const items = [...D.fridge], expiries = { ...D.expiries };
-  return save(() => sb.from('fridges').update({ items, expiries, updated_at: new Date().toISOString() }).eq('family_id', D.family.id)).catch(e => toast(errText(e)));
+  Object.keys(D.amounts).forEach(k => { if (!D.fridge.includes(k)) delete D.amounts[k]; });
+  const items = [...D.fridge], expiries = { ...D.expiries }, amounts = { ...D.amounts };
+  const satz = { items, expiries, updated_at: new Date().toISOString() };
+  if (D.cap.mengen) satz.amounts = amounts;   // nur wenn das Datenbank-Update schon durch ist
+  return save(() => sb.from('fridges').update(satz).eq('family_id', D.family.id)).catch(e => toast(errText(e)));
 }
 /* Beim Verlassen der App noch offene Änderungen sofort speichern */
 document.addEventListener('visibilitychange', () => { if (document.hidden){ if (fridgeT) flushFridge(); if (profT) flushProfile(); } });
@@ -2060,8 +2095,19 @@ document.addEventListener('click', async e => {
     case 'vorrat-skip': { closeSheet(); nachVorrat(); break; }
     case 'vorrat-toggle': { L.vorratAuto = !L.vorratAuto; saveLocal(); buzz(10); render();
       toast(L.vorratAuto ? 'Wird nach dem Kochen automatisch abgezogen' : 'Ich frage nach dem Kochen nach'); break; }
-    case 'clear-fridge': { const was = [...D.fridge], wasExp = { ...D.expiries }; D.fridge=[]; D.expiries={}; saveFridgeSoon(); render(); buzz(8);
-      undoToast('Kühlschrank geleert', () => { D.fridge = was; D.expiries = wasExp; saveFridgeSoon(); render(); }); break; }
+    case 'mengen': openMengen(); break;
+    case 'menge-einheit': { const e = t.dataset.v, next = EINHEITEN[(EINHEITEN.indexOf(e) + 1) % EINHEITEN.length];
+      t.dataset.v = next; t.textContent = next; buzz(6); break; }
+    case 'save-mengen': { const neu = {};
+      document.querySelectorAll('input.mg-in').forEach(inp => { const k = inp.id.slice(3), n = parseFloat(String(inp.value).replace(',', '.'));
+        const b = document.querySelector('.mg-e[data-k="' + (window.CSS && CSS.escape ? CSS.escape(k) : k) + '"]');
+        if (n > 0) neu[k] = { n, e: (b && b.dataset.v) || standardEinheit(k) }; });
+      D.amounts = neu; saveFridgeSoon(); closeSheet(); render(); buzz(10);
+      toast(Object.keys(neu).length ? 'Mengen gespeichert' : 'Keine Mengen eingetragen'); break; }
+    case 'mengen-leeren': { const was = { ...D.amounts }; D.amounts = {}; saveFridgeSoon(); closeSheet(); render();
+      undoToast('Alle Mengen gel\u00f6scht', () => { D.amounts = was; saveFridgeSoon(); render(); }); break; }
+    case 'clear-fridge': { const was = [...D.fridge], wasExp = { ...D.expiries }, wasMg = { ...D.amounts }; D.fridge=[]; D.expiries={}; D.amounts={}; saveFridgeSoon(); render(); buzz(8);
+      undoToast('Kühlschrank geleert', () => { D.fridge = was; D.expiries = wasExp; D.amounts = wasMg; saveFridgeSoon(); render(); }); break; }
     case 'photo': {
       const today = isoDay(new Date());
       if (L.scanDay !== today){ L.scanDay = today; L.scanN = 0; }
@@ -2283,7 +2329,7 @@ window.__wgCloseSheet = () => { closeSheet(); render(); };
 window.__wgTheme = th => { L.theme = th; saveLocal(); render(); };
 
 /* --- Offline: letzter Stand bleibt sichtbar, automatisch neu verbinden --- */
-const CACHE_KEYS = ['profile','membership','family','members','profiles','wishes','fridge','expiries','custom','poll','votes','shop','plan','log','ratings','notes','board','colls','cap','ann','appAdmin'];
+const CACHE_KEYS = ['profile','membership','family','members','profiles','wishes','fridge','expiries','amounts','custom','poll','votes','shop','plan','log','ratings','notes','board','colls','cap','ann','appAdmin'];
 function saveCache(){ try { if (!D.user || !D.profile) return; const c = { uid: D.user.id, at: Date.now() }; CACHE_KEYS.forEach(k => c[k] = D[k]); localStorage.setItem('wg.cache', JSON.stringify(c)); } catch(e){} }
 function useCache(){ try { const c = JSON.parse(localStorage.getItem('wg.cache') || 'null'); if (!c || !D.user || c.uid !== D.user.id || !c.profile) return false;
   CACHE_KEYS.forEach(k => { if (c[k] !== undefined) D[k] = c[k]; }); UI.offline = c.at || Date.now(); return true; } catch(e){ return false; } }
