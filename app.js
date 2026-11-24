@@ -298,20 +298,68 @@ function softNotes(r, people){
   return [...new Set(n)];
 }
 const wishersOf = rid => [...new Set(D.wishes.filter(w=>w.recipe_id===rid).map(w=>w.user_id))].filter(id => active().some(m=>m.user_id===id));
+/* ---------- Geschmack: die App merkt sich, was bei euch ankommt ---------- */
+/* Nichts davon ist eine neue Seite oder ein Schalter – es läuft im Hintergrund
+   aus dem, was sowieso schon da ist: das Kochbuch (wie oft gekocht), die
+   Sternchen (wie gut) und das Wegwischen von "Andere Idee". */
+const WEG_RAUS = 3;            // dreimal weggewischt → verschwindet aus den Vorschlägen
+const WEG_FRIST = 90 * 864e5;  // nach drei Monaten vergisst die App das wieder
+
+function wegZahl(rid){
+  const w = (L.weg || {})[rid];
+  if (!w) return 0;
+  if (Date.now() - (w.t || 0) > WEG_FRIST){ delete L.weg[rid]; saveLocal(); return 0; }
+  return w.n || 0;
+}
+function lernWeg(rid){
+  if (!rid) return;
+  const w = L.weg || (L.weg = {});
+  const alt = (w[rid] && Date.now() - w[rid].t <= WEG_FRIST) ? (w[rid].n || 0) : 0;
+  w[rid] = { n: Math.min(9, alt + 1), t: Date.now() };
+  saveLocal();
+}
+/* Wann war das zuletzt auf dem Tisch? (in Tagen, null = noch nie) */
+function zuletztGekocht(rid){
+  const l = D.log.find(x => x.recipe_id === rid);
+  return l ? (Date.now() - Date.parse(l.cooked_at)) / 864e5 : null;
+}
+/* Oft gekocht und gut bewertet zählt – frisch Gekochtes stärker als alte Jahre. */
+function geschmack(rid){
+  const jetzt = Date.now();
+  let punkte = 0, mal = 0;
+  D.log.forEach(l => {
+    if (l.recipe_id !== rid) return;
+    mal++;
+    const tage = (jetzt - Date.parse(l.cooked_at)) / 864e5;
+    punkte += tage <= 30 ? 1 : tage <= 120 ? .6 : tage <= 365 ? .3 : .1;
+  });
+  const rt = ratingOf(rid);
+  const gut = rt.n ? Math.max(-1, Math.min(1, (rt.avg - 3.2) / 1.3)) : 0;
+  const haeufig = Math.min(3, punkte), weg = wegZahl(rid);
+  return { mal, haeufig, gut, weg, rt,
+           score: haeufig * 6 * (1 + gut * .6) + gut * 8 - weg * 16 };
+}
 function suggest(){
   const people = eatersNow().map(prof), fr = new Set(D.fridge);
   /* Tageszeit: morgens Frühstück nach oben, Süßes nie als Hauptgericht */
   const h = new Date().getHours(), morning = h >= 5 && h < 11;
   const mealAdj = r => r.meal === 'fruehstueck' ? (morning ? 35 : -25) : r.meal === 'suess' ? -45 : (morning ? -10 : 0);
-  return RX().filter(r => r.t <= UI.time && (UI.mood==='egal' || r.m===UI.mood))
+  const alle = RX().filter(r => r.t <= UI.time && (UI.mood==='egal' || r.m===UI.mood))
     .filter(r => people.every(p => conflicts(r,p).length===0))
     .map(r => {
       const missing = r.i.filter(k=>!fr.has(k)), wishers = wishersOf(r.id), favs = people.filter(p=>(p.favs||[]).includes(r.id));
       const cover = r.i.length ? (r.i.length-missing.length)/r.i.length : 1;
       const uses = [...r.i, ...r.o].filter(k => fr.has(k) && (d => d !== null && d >= 0 && d <= 3)(daysLeft(k)));
-      const rt = ratingOf(r.id), seas = inSeason(r);
-      return { r, missing, wishers, favs, cover, uses, rt, seas, score: wishers.length*40 + favs.length*14 + cover*60 - missing.length*8 + uses.length*30 + mealAdj(r) + (rt.n ? (rt.avg - 3) * 12 : 0) + (seas ? 10 : 0) };
+      const g = geschmack(r.id), rt = g.rt, seas = inSeason(r);
+      /* Gerade gekocht kommt nicht sofort wieder – sonst gibt es drei Tage lang das Gleiche. */
+      const letzt = zuletztGekocht(r.id);
+      const satt = letzt === null ? 0 : letzt < 2 ? -45 : letzt < 5 ? -18 : 0;
+      return { r, missing, wishers, favs, cover, uses, rt, seas, g, weg: g.weg,
+               score: wishers.length*40 + favs.length*14 + cover*60 - missing.length*8 + uses.length*30 + mealAdj(r) + g.score + satt + (seas ? 10 : 0) };
     }).sort((a,b)=>b.score-a.score);
+  /* Dreimal weggewischt verschwindet – aber nie so weit, dass gar nichts übrig bleibt. */
+  const bleibt = alle.filter(s => s.weg < WEG_RAUS);
+  return bleibt.length >= 3 ? bleibt : alle;
 }
 function whyLines(s){
   const l=[];
@@ -319,6 +367,7 @@ function whyLines(s){
   if (s.favs.length) l.push(`❤️ Lieblingsessen von ${esc(names(s.favs.map(p=>p.name)))}`);
   if (s.uses && s.uses.length) l.push(`⏰ Verbraucht ${esc(names(s.uses.map(ingName)))}, läuft bald ab`);
   if (s.rt && s.rt.n && s.rt.avg >= 4.2) l.push(`⭐ Familien-Hit – ${s.rt.avg.toFixed(1).replace('.', ',')} von 5`);
+  if (s.g && s.g.mal >= 3 && s.g.gut >= 0) l.push(`👨‍🍳 Kommt bei euch oft auf den Tisch`);
   if (s.seas) l.push(`🍂 Gerade in Saison: ${esc(names(s.seas.map(ingName)))}`);
   l.push(s.missing.length===0 ? '✅ Du hast alles da' : s.missing.length===1 ? `🛒 Es fehlt nur: ${ingName(s.missing[0])}` : `🛒 Es fehlen ${s.missing.length} Zutaten`);
   return l;
@@ -446,6 +495,7 @@ function viewHome(){
   if (fromShop) pool = almost;
   if (todayP) pool = pool.filter(x => x.r.id !== todayP.recipe_id);
   const n = pool.length, idx = n ? ((UI.pickIdx || 0) % n + n) % n : 0, top = pool[idx];
+  UI.pickId = top ? top.r.id : null;
   const rest = n > 1 ? [1,2,3].map(k => pool[(idx + k) % n]).filter((x, i, arr) => x !== top && arr.indexOf(x) === i) : [];
   const now = new Date(), h = now.getHours();
   const greet = tr(h<11?'Guten Morgen':h<17?'Hallo':'Guten Abend') + ' · ' + now.toLocaleDateString(LOCALE, { weekday:'long' }) + (sophiaOn() ? '' : hwOn() ? ' 🎃' : adOn() ? ' 🎄' : '');
@@ -2051,7 +2101,7 @@ document.addEventListener('click', async e => {
     case 'party-go': { const d = $('#partyDay'); if (d) UI.party.day = d.value; t.disabled = true; await partyGo(); break; }
     case 'plan-repeat': t.disabled = true; await planRepeat(); t.disabled = false; break;
     case 'plan-image': await planImage(); break;
-    case 'next-pick': { UI.pickIdx = (UI.pickIdx || 0) + 1; buzz(6); const w = $('#pickWrap'); if (w && !reduceMotion){ w.classList.add('out'); setTimeout(() => { render(); const w2 = $('#pickWrap'); if (w2){ w2.classList.add('in'); setTimeout(() => w2.classList.remove('in'), 450); } }, 160); } else render(); break; }
+    case 'next-pick': { lernWeg(UI.pickId); UI.pickIdx = (UI.pickIdx || 0) + 1; buzz(6); const w = $('#pickWrap'); if (w && !reduceMotion){ w.classList.add('out'); setTimeout(() => { render(); const w2 = $('#pickWrap'); if (w2){ w2.classList.add('in'); setTimeout(() => w2.classList.remove('in'), 450); } }, 160); } else render(); break; }
     case 'lang': setLang(t.dataset.v); break;
     case 'feed-all': UI.feedAll = !UI.feedAll; render(); break;
     case 'go-shop': UI.ftab = 'shop'; if (UI.tab === 'fridge') render(); else go('fridge'); break;
