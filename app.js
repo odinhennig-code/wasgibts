@@ -2878,7 +2878,14 @@ function passFilters(r){ const f = UI.rf;
 function filterChips(){ return `<div class="fchips">${[['quick','⏱ Bis 20 Min'],['veg','🥦 Vegetarisch'],['have','✅ Alles da'],['season','🍂 Saison']].map(([k, l]) => `<button data-action="rf" data-v="${k}" aria-pressed="${!!UI.rf[k]}">${l}</button>`).join('')}</div>`; }
 
 /* ---------- Einkaufsliste: nach Supermarkt-Bereichen, teilen, Einkaufs-Modus ---------- */
-const AISLES = [['obst','🍎 Obst'],['gemuese','🥦 Gemüse'],['getreide','🍞 Brot, Nudeln & Reis'],['milch','🥛 Milch, Käse & Eier'],['kuehl','🧊⁠ Kühlregal'],['fleisch','🥩 Fleisch & Fisch'],['dose','🥫 Dosen & Gläser'],['backen','🧁 Backen & Süßes'],['wuerz','🧂 Soßen & Gewürze']];
+/* Reihenfolge = so, wie man durch einen Supermarkt läuft: vorne Obst und
+   Gemüse, dann Backwaren und Trockensortiment, danach Kühlung und Fleisch,
+   zum Schluss Tiefkühl, Getränke und Drogerie. Damit läuft man einmal durch
+   statt dreimal hin und her. */
+const AISLES = [['obst','🍎 Obst'],['gemuese','🥦 Gemüse'],['getreide','🍞 Brot, Nudeln & Reis'],
+  ['dose','🥫 Dosen & Gläser'],['wuerz','🧂 Soßen & Gewürze'],['backen','🧁 Backen & Süßes'],
+  ['milch','🥛 Milch, Käse & Eier'],['kuehl','🧊 Kühlregal'],['fleisch','🥩 Fleisch & Fisch'],
+  ['tiefkuehl','❄️ Tiefkühl']];
 function aisleOf(x){ if (!x.ing_key) return 'other'; const c = CATS.find(c => c[3].includes(x.ing_key)); return c ? c[0] : 'other'; }
 function aisles(items){ const g = [...AISLES, ['other','🧺 Sonstiges']].map(([id, t]) => [t, items.filter(x => aisleOf(x) === id)]).filter(x => x[1].length); return g; }
 async function shareList(){
@@ -3371,7 +3378,8 @@ const AISLE_WORDS = [
   ['gemuese', /salat|gurke|tomate|paprika|zwiebel|knoblauch|kartoffel|möhre|karotte|zucchini|brokkoli|kohl|spinat|pilz|champignon|lauch|sellerie|kräuter|petersilie|basilikum|ingwer|gemüse|avocado|mais/],
   ['getreide', /brot|brötchen|toast|baguette|nudel|spaghetti|reis|mehl|haferflocken|müsli|cornflakes|wrap|tortilla|knäcke|semmel|croissant/],
   ['milch', /milch|joghurt|quark|käse|butter|sahne|schmand|ei(er)?$|eier|frischkäse|mozzarella|feta|parmesan/],
-  ['kuehl', /tiefkühl|tk-|eis$|eiscreme|pizza|fischstäbchen|pommes|aufschnitt|wurst|tofu|hummus/],
+  ['tiefkuehl', /tiefkühl|tiefgekühlt|gefroren|\btk\b|tk-|eis$|eiscreme|speiseeis|fischstäbchen|pommes|rahmspinat|blätterteig/],
+  ['kuehl', /aufschnitt|wurst|tofu|hummus|pudding|dessert|pizza/],
   ['fleisch', /fleisch|hähnchen|hühnchen|rind|schwein|hack|wurst|schinken|speck|lachs|fisch|thunfisch|garnele/],
   ['dose', /dose|konserve|passata|tomatenmark|bohnen|kichererbsen|linsen|mais|glas|marmelade|nutella|honig|pesto|oliven/],
   ['backen', /zucker|backpulver|hefe|schokolade|kekse|kuchen|vanille|puderzucker|chips|süß|gummibär|snack/],
