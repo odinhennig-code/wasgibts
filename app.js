@@ -544,13 +544,21 @@ function viewFridge(){
   UI.justAdded = null; return html;
 }
 const SLISTS = [['super','Supermarkt','🛒'],['drogerie','Drogerie','🧴'],['markt','Markt','🥕']];
+/* „Hab ich das schon?" – zeigt beim Einkaufen, was zu Hause noch liegt.
+   Spart den dritten Senf im Schrank. */
+function daheim(x){
+  if (!x || x.checked || !x.ing_key || !D.fridge.includes(x.ing_key)) return '';
+  const d = daysLeft(x.ing_key);
+  const zusatz = d === null ? '' : d < 0 ? ' · ist abgelaufen' : d === 0 ? ' · läuft heute ab' : d <= 3 ? ` · noch ${d} ${d === 1 ? 'Tag' : 'Tage'}` : '';
+  return `<small class="shop-have">Zu Hause noch da${zusatz}</small>`;
+}
 function viewShopping(){
   const inList = x => !D.cap.shop3 || !UI.slist || (x.list || 'super') === UI.slist;
   const open = openShop().filter(inList), done = D.shop.filter(x => x.checked && inList(x)), q = (UI.sq || '').trim().toLowerCase();
   const sugg = q ? Object.keys(ING).map(k => [k, ingMatch(k, q)]).filter(x => x[1] > 0).sort((a, b) => b[1] - a[1] || ING[a[0]][0].length - ING[b[0]][0].length).map(x => x[0]).slice(0, 6) : [];
   const row = x => `<div class="shop-row ${x.checked?'done':''}" data-id="${x.id}">
       <button class="tick" data-action="shop-toggle" data-id="${x.id}" aria-label="${x.checked?'Wieder offen':'Abhaken'}" aria-pressed="${x.checked}">✓</button>
-      <button class="grow shop-name" data-action="shop-edit" data-id="${x.id}">${shopName(x)}${x.note ? `<small class="shop-note">${esc(x.note)}</small>` : ''}${x.assigned_to ? `<small class="shop-who">🙋 ${x.assigned_to === D.user.id ? 'Du bringst es mit' : esc(prof(x.assigned_to).name) + ' bringt es mit'}</small>` : ''}</button>
+      <button class="grow shop-name" data-action="shop-edit" data-id="${x.id}">${shopName(x)}${x.note ? `<small class="shop-note">${esc(x.note)}</small>` : ''}${daheim(x)}${x.assigned_to ? `<small class="shop-who">🙋 ${x.assigned_to === D.user.id ? 'Du bringst es mit' : esc(prof(x.assigned_to).name) + ' bringt es mit'}</small>` : ''}</button>
       ${x.added_by && x.added_by !== D.user.id && !x.assigned_to ? `<span class="avatar sm" title="${esc(prof(x.added_by).name)}">${avIn(prof(x.added_by))}</span>` : ''}
       <button class="x" data-action="shop-del" data-id="${x.id}" aria-label="Entfernen">${I.x}</button></div>`;
   const planned = plannedMissing();
@@ -2904,7 +2912,7 @@ function renderShopMode(first){
     <header class="sm-top"><button class="icon-btn" data-action="shop-mode-x" aria-label="Schließen">${I.x}</button>
       <div><b>Einkaufs-Modus</b><small>Bildschirm bleibt an · ${open.length ? `${open.length} noch offen` : 'alles erledigt'}</small></div>
       <svg class="sm-ring" viewBox="0 0 60 60"><circle cx="30" cy="30" r="26"/><circle class="p" cx="30" cy="30" r="26" style="stroke-dasharray:${C};stroke-dashoffset:${C * (1 - pct)}"/><text x="30" y="35">${k}/${n}</text></svg></header>
-    <main class="sm-list">${open.length ? aisles(open).map(([t, it]) => `<div class="sm-h">${t}</div>${it.map(x => `<button class="sm-item" data-action="sm-tick" data-id="${x.id}"><span class="sm-box"></span><span class="sm-name">${shopName(x)}</span></button>`).join('')}`).join('')
+    <main class="sm-list">${open.length ? aisles(open).map(([t, it]) => `<div class="sm-h">${t}</div>${it.map(x => `<button class="sm-item" data-action="sm-tick" data-id="${x.id}"><span class="sm-box"></span><span class="sm-name">${shopName(x)}${daheim(x)}</span></button>`).join('')}`).join('')
       : `<div class="sm-done"><div class="sm-done-em">🎉</div><b>Alles im Wagen!</b><span>Die Sachen sind jetzt automatisch im Kühlschrank.</span><button class="btn btn-herb" data-action="shop-mode-x">Fertig</button></div>`}
       ${done.length && open.length ? `<div class="sm-h">✓ Im Wagen</div>${done.map(x => `<button class="sm-item done" data-action="sm-tick" data-id="${x.id}"><span class="sm-box">✓</span><span class="sm-name">${shopName(x)}</span></button>`).join('')}` : ''}</main></div>`;
   const cur = $('.shopmode');

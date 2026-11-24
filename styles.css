@@ -1390,6 +1390,9 @@ html:not(.framed) #sbcol{display:block;position:fixed;left:0;right:0;top:0;heigh
 .shop-name{border:0;background:none;text-align:left;color:inherit;font:inherit;padding:0;cursor:pointer;display:flex;flex-direction:column;gap:2px;min-width:0}
 .shop-note{color:var(--muted);font-weight:700;font-size:0.7353rem}
 .shop-who{color:var(--herb);font-weight:700;font-size:0.7059rem}
+/* 5.2: Hinweis, dass etwas zu Hause noch da ist */
+.shop-have{display:block;color:var(--yolk);font-weight:700;font-size:0.7059rem}
+.shop-have::before{content:"\2302\00a0"}
 .live-shop{background:var(--herb-soft);color:var(--fg);align-items:center}
 .ls-dot{width:10px;height:10px;border-radius:50%;background:var(--herb);box-shadow:0 0 0 0 var(--herb);animation:lsPulse 1.6s infinite;flex:none}
 @keyframes lsPulse{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--herb) 60%,transparent)}100%{box-shadow:0 0 0 10px transparent}}
