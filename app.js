@@ -2740,12 +2740,21 @@ function feedText(g){
 const FEED_IC = { wish:'🙋', cook:'🍳⁠', rate:'⭐', shop:'🛒', plan:'📅' };
 function feedHtml(){
   const groups = feedItems(); if (!groups.length) return '';
-  const day = t => { const d = new Date(t), today = new Date(); today.setHours(0,0,0,0); const diff = Math.round((today - new Date(d).setHours(0,0,0,0)) / 864e5); return diff <= 0 ? 'Heute' : diff === 1 ? 'Gestern' : 'Diese Woche'; };
+  // Jeder Tag bekommt seine eigene Überschrift. Vorher landete alles ab
+  // vorgestern in einem Topf „Diese Woche" – daneben stand dann „Sa", „Fr", „Do".
+  const day = t => {
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const diff = Math.round((today - new Date(t).setHours(0, 0, 0, 0)) / 864e5);
+    if (diff <= 0) return 'Heute';
+    if (diff === 1) return 'Gestern';
+    if (diff < 7) return new Date(t).toLocaleDateString(LOCALE, { weekday:'long' });
+    return new Date(t).toLocaleDateString(LOCALE, { day:'numeric', month:'long' });
+  };
   const shown = UI.feedAll ? groups : groups.slice(0, 5);
   let lastDay = '', html = '';
   shown.forEach(g => { const d = day(g.t), p = prof(g.who);
     if (d !== lastDay){ if (lastDay) html += '</div>'; html += `<div class="feed-day">${d}</div><div class="list feed">`; lastDay = d; }
-    const time = d === 'Heute' || d === 'Gestern' ? new Date(g.t).toLocaleTimeString(LOCALE, { hour:'2-digit', minute:'2-digit' }) : new Date(g.t).toLocaleDateString(LOCALE, { weekday:'short' });
+    const time = new Date(g.t).toLocaleTimeString(LOCALE, { hour:'2-digit', minute:'2-digit' });
     html += `<div class="row"><span class="avatar sm">${p.avatar || '🙂'}</span><span class="grow"><span><b>${esc(p.name || 'Jemand')}</b> ${feedText(g)}</span></span><span class="feed-t">${FEED_IC[g.k]} ${time}</span></div>`; });
   html += '</div>';
   return `<div class="h2">Neuigkeiten</div>${html}${groups.length > 5 ? `<button class="linkbtn feed-more" data-action="feed-all">${UI.feedAll ? 'Weniger anzeigen' : `${groups.length - 5} weitere anzeigen`}</button>` : ''}`;
