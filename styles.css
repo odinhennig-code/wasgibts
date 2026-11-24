@@ -1938,3 +1938,9 @@ html.xt-on #tabbar{z-index:1}
 .lg[open] .lg-g{animation:lgIn .3s ease both}
 @keyframes lgIn{from{opacity:0;transform:translateY(-4px)}}
 @media (prefers-reduced-motion:reduce){.lg summary::after,.lg[open] .lg-g{transition:none;animation:none}}
+
+/* ===================== 5.2 · Vorrat nach dem Kochen =====================
+   Die Zeile „Immer automatisch abziehen" steht im Blatt allein da und
+   braucht darum selbst den Hintergrund einer Liste. */
+.vorrat-auto{margin-top:16px;background:var(--surface);border-radius:20px;box-shadow:var(--shadow);cursor:pointer}
+.vorrat-auto small{white-space:normal}

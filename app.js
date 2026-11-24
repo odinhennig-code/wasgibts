@@ -862,6 +862,8 @@ function viewMore(){
     <div class="seg" role="group" aria-label="Textgröße">${[['1','Normal'],['1.1','Groß'],['1.2','Sehr groß']].map(([k,l])=>`<button data-action="tz" data-v="${k}" aria-pressed="${String(L.tz||1)===k}">${l}</button>`).join('')}</div>
     ${D.appAdmin ? `<div class="h2">Vorschau Saison-Look <span class="chip c-muted">nur für dich</span></div><div class="seg" role="group">${[['','Aus'],['halloween','🎃'],['advent','🎄']].map(([k,l])=>`<button data-action="preview" data-v="${k}" aria-pressed="${(L.preview||'')===k}">${l}</button>`).join('')}</div>` : ''}
     ${isStandalone() ? '' : `<div class="h2">App</div><div class="list"><button class="row" data-action="install">${ic8(IC.dl,'row-ic')}<span class="grow"><b>App installieren</b><small>Auf den Startbildschirm – Schritt für Schritt</small></span>${I.chev}</button></div>`}
+    <div class="h2">Kühlschrank</div>
+    <div class="list"><button class="row" data-action="vorrat-toggle" aria-pressed="${!!L.vorratAuto}"><span style="font-size:22px">🧺</span><span class="grow"><b>Vorrat nach dem Kochen abziehen</b><small>${L.vorratAuto ? 'Geht automatisch – ohne Nachfrage' : 'Die App fragt nach dem Kochen nach'}</small></span><span class="switch" role="switch" aria-checked="${!!L.vorratAuto}"></span></button></div>
     <div class="h2">Benachrichtigungen</div>
     <div class="list">${pushRow()}</div>
     <div class="h2">Kontakt</div>
@@ -1742,6 +1744,53 @@ function flushProfile(){
 }
 /* Kühlschrank: kurz sammeln, dann den aktuellen Stand speichern */
 let fridgeT = null;
+/* ---------- Nach dem Kochen: Vorrat abziehen ----------
+   Was gekocht wurde, ist meistens auch verbraucht. Die App fragt einmal
+   nach und hakt die Zutaten im Kühlschrank ab. Wer will, lässt das
+   automatisch laufen (Mehr › Kühlschrank). */
+/* Davon ist nach einem Essen fast immer noch was da – darum nicht vorausgewählt. */
+const VORRAT_BLEIBT = new Set(['mehl','hefe','backpulver','paniermehl','honig','schokolade','nuesse','erdnussbutter',
+  'sojasosse','currypaste','pesto','senf','oliven','tomatenmark','kraeuter','chili','ingwer','knoblauch','zitrone','reis','nudeln']);
+
+function vorratListe(r){
+  if (!r) return { raus: [], rest: [] };
+  const drin = k => ING[k] && D.fridge.includes(k);
+  const haupt = [...new Set(r.i || [])].filter(drin);
+  const opt = [...new Set(r.o || [])].filter(k => drin(k) && !haupt.includes(k));
+  return { raus: haupt.filter(k => !VORRAT_BLEIBT.has(k)),
+           rest: [...haupt.filter(k => VORRAT_BLEIBT.has(k)), ...opt] };
+}
+function vorratWeg(keys){
+  const weg = (keys || []).filter(k => D.fridge.includes(k));
+  if (!weg.length) return false;
+  const was = [...D.fridge], wasExp = { ...D.expiries };
+  D.fridge = D.fridge.filter(k => !weg.includes(k));
+  weg.forEach(k => delete D.expiries[k]);
+  saveFridgeSoon(); render();
+  undoToast(weg.length === 1 ? `${ingName(weg[0])} ist aus dem Kühlschrank raus`
+    : `${weg.length} Zutaten sind aus dem Kühlschrank raus`,
+    () => { D.fridge = was; D.expiries = wasExp; saveFridgeSoon(); render(); });
+  return true;
+}
+/* Nach dem Abhaken geht es weiter mit dem Bewerten. */
+function nachVorrat(){
+  const id = UI.vorratRate; UI.vorratRate = null; UI.vorratSel = null;
+  if (id) setTimeout(() => openRate(id), 450);
+}
+function openVorrat(r, rateId){
+  const v = vorratListe(r);
+  UI.vorratSel = new Set(v.raus);
+  UI.vorratRate = rateId || null;
+  const zeile = k => `<button class="opt pick-opt" data-action="vorrat-pick" data-k="${k}" aria-pressed="${UI.vorratSel.has(k)}"><span class="oe">${ingEmoji(k)}</span><span class="on">${ingName(k)}</span><span class="tick">✓</span></button>`;
+  sheetFn = null;
+  openSheet(`${sheetHead('Aus dem Kühlschrank raus?')}
+    <p class="muted" style="margin-top:-6px">Angetippt heißt: ist verbraucht. Tippe weg, was noch da ist.</p>
+    ${v.raus.length ? `<div class="stack" style="gap:8px">${v.raus.map(zeile).join('')}</div>` : ''}
+    ${v.rest.length ? `<div class="h2">Reicht meistens länger</div><div class="stack" style="gap:8px">${v.rest.map(zeile).join('')}</div>` : ''}
+    <button class="btn btn-herb btn-block" style="margin-top:16px" data-action="vorrat-ok">Fertig</button>
+    <button class="linkbtn" style="display:block;margin:10px auto 0" data-action="vorrat-skip">Nichts rausnehmen</button>
+    <button class="row vorrat-auto" data-action="vorrat-auto" aria-pressed="${!!L.vorratAuto}"><span style="font-size:22px">✨</span><span class="grow"><b>Immer automatisch abziehen</b><small>Dann frage ich nicht mehr nach</small></span><span class="switch" role="switch" aria-checked="${!!L.vorratAuto}"></span></button>`);
+}
 function saveFridgeSoon(){ bump(); clearTimeout(fridgeT); fridgeT = setTimeout(flushFridge, 450); }
 function flushFridge(){
   clearTimeout(fridgeT); fridgeT = null;
@@ -1974,7 +2023,12 @@ document.addEventListener('click', async e => {
     case 'cooked': { if (UI.cookedBusy) break; UI.cookedBusy = true; setTimeout(() => UI.cookedBusy = false, 2500); const r=rec(id); burstAt(t); buzz([20,50,20]); D.wishes = D.wishes.filter(w=>w.recipe_id!==id);
       L.cookedCount = (L.cookedCount||0) + 1; saveLocal();
       const logP = logCooked(r);
-      setTimeout(()=>{ closeSheet(); render(); logP.then(log => { if (log) setTimeout(() => openRate(log.id), 500); }); }, 450); toast(`Guten Appetit! ${r.e}`);
+      setTimeout(()=>{ closeSheet(); render(); logP.then(log => {
+        const v = vorratListe(r);
+        if (!v.raus.length && !v.rest.length){ if (log) setTimeout(() => openRate(log.id), 500); return; }
+        if (L.vorratAuto){ vorratWeg(v.raus); if (log) setTimeout(() => openRate(log.id), 1200); return; }
+        setTimeout(() => openVorrat(r, log && log.id), 500);
+      }); }, 450); toast(`Guten Appetit! ${r.e}`);
       await save(() => sb.from('wishes').delete().eq('family_id', D.family.id).eq('recipe_id', id)); break; }
     case 'ing': { const k=t.dataset.k; const drin = D.fridge.includes(k);
       // Korrigiert jemand kurz nach einem Foto, merkt sich die App das für das nächste Mal
@@ -1996,6 +2050,16 @@ document.addEventListener('click', async e => {
         chip.insertAdjacentHTML('afterbegin', '<span class="ing-ok" aria-hidden="true">✓</span>');
       }
       break; }
+    case 'vorrat-pick': { const k = t.dataset.k; if (!UI.vorratSel) break;
+      UI.vorratSel.has(k) ? UI.vorratSel.delete(k) : UI.vorratSel.add(k);
+      t.setAttribute('aria-pressed', UI.vorratSel.has(k)); buzz(6); break; }
+    case 'vorrat-auto': { L.vorratAuto = !L.vorratAuto; saveLocal(); buzz(10);
+      t.setAttribute('aria-pressed', !!L.vorratAuto);
+      const sw = t.querySelector('.switch'); if (sw) sw.setAttribute('aria-checked', !!L.vorratAuto); break; }
+    case 'vorrat-ok': { const keys = [...(UI.vorratSel || [])]; closeSheet(); buzz(12); vorratWeg(keys); nachVorrat(); break; }
+    case 'vorrat-skip': { closeSheet(); nachVorrat(); break; }
+    case 'vorrat-toggle': { L.vorratAuto = !L.vorratAuto; saveLocal(); buzz(10); render();
+      toast(L.vorratAuto ? 'Wird nach dem Kochen automatisch abgezogen' : 'Ich frage nach dem Kochen nach'); break; }
     case 'clear-fridge': { const was = [...D.fridge], wasExp = { ...D.expiries }; D.fridge=[]; D.expiries={}; saveFridgeSoon(); render(); buzz(8);
       undoToast('Kühlschrank geleert', () => { D.fridge = was; D.expiries = wasExp; saveFridgeSoon(); render(); }); break; }
     case 'photo': {
