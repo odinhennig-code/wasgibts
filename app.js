@@ -1668,21 +1668,65 @@ function shrink(file){ // Bild verkleinern, damit es schnell hochlädt
     c.width = Math.round(img.width*s); c.height = Math.round(img.height*s); c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
     res(c.toDataURL('image/jpeg', .82).split(',')[1]); }; img.onerror = rej; img.src = URL.createObjectURL(file); });
 }
+/* Aus Korrekturen lernen: Was die KI hier schon danebengelegen hat, bekommt sie
+   beim nächsten Foto als Hinweis mit. Bleibt auf dem Gerät, geht an niemanden. */
+function scanHints(){
+  const h = L.scanHints || {};
+  const top = o => Object.entries(o || {}).filter(([, n]) => n >= 2).sort((a, b) => b[1] - a[1]).slice(0, 12).map(([k]) => k);
+  return { falsch: top(h.falsch), uebersehen: top(h.uebersehen) };
+}
+function lernScan(key, art){
+  if (!ING[key]) return;
+  const h = L.scanHints || (L.scanHints = {});
+  h[art] = h[art] || {};
+  h[art][key] = Math.min(9, (h[art][key] || 0) + 1);
+  const gegen = art === 'falsch' ? 'uebersehen' : 'falsch';   // sonst blockieren sich beide
+  if (h[gegen] && h[gegen][key]){ h[gegen][key]--; if (h[gegen][key] <= 0) delete h[gegen][key]; }
+  saveLocal();
+}
 async function handlePhoto(file){
   if (UI.tab!=='fridge' || UI.ftab==='shop'){ UI.tab='fridge'; UI.ftab='fridge'; render(); }
-  const area = $('#scanArea'), url = URL.createObjectURL(file);
+  const area = $('#scanArea');
   if (!area) return;
-  area.innerHTML = `<div class="scan" style="margin-top:12px"><img src="${url}" alt="Dein Kühlschrank-Foto"></div><p class="muted" style="display:flex;gap:8px;align-items:center;justify-content:center"><span class="spin"></span> Zutaten werden erkannt …</p>`;
+  // Das Foto selbst wird nicht angezeigt – es geht nur um das Ergebnis.
+  area.innerHTML = `<div class="card scan-wait" style="margin-top:12px"><span class="spin"></span><span>Das Foto wird gelesen …</span></div>`;
   $('#island').classList.add('wide'); const done = () => $('#island').classList.remove('wide');
   try {
     let image; try { image = await shrink(file); } catch(err){ throw { code:'failed', detail:'Bild konnte nicht gelesen werden (' + (file.type || 'unbekanntes Format') + ')' }; }
-    const { data, error } = await sb.functions.invoke('scan-fridge', { body: { image, mediaType:'image/jpeg', keys: Object.keys(ING) } });
+    const { data, error } = await sb.functions.invoke('scan-fridge', { body: { image, mediaType:'image/jpeg', keys: Object.keys(ING), hints: scanHints() } });
     if (error || !data) throw { code:'failed', detail: error && error.message };
     if (data.error) throw { code: data.error, detail: data.detail };
+    done();
+
+    // Die KI sagt, das Bild zeigt gar keinen Kühlschrank – dann nichts eintragen, sondern erklären.
+    if (data.szene === 'anderes'){
+      UI.lastScan = null;
+      $('#scanArea').innerHTML = `<div class="card" style="margin-top:12px">
+        <b>Das ist kein Kühlschrank.</b><br>
+        <span class="muted" style="font-size:14px">${data.beschreibung ? esc(data.beschreibung) : 'Auf dem Bild sind keine Lebensmittel zu sehen.'}</span>
+        <div class="muted" style="font-size:13px;margin-top:10px">Mach ein Foto vom offenen Kühlschrank oder von deinen Vorräten.</div></div>`;
+      buzz(12); return;
+    }
+
     const found = (data.items||[]).filter(k=>ING[k]), fresh = found.filter(k=>!D.fridge.includes(k));
-    D.fridge = [...new Set([...D.fridge, ...found])]; saveFridgeSoon(); done();
-    UI.justAdded = fresh; render();
-    $('#scanArea').innerHTML = `<div class="card" style="margin-top:12px;background:var(--herb-soft)"><b>📸 ${plu(found.length,'Zutat','Zutaten')} erkannt</b><br><span class="muted" style="font-size:14px">${found.length?esc(found.map(ingName).join(', ')):'Leider nichts Eindeutiges. Versuch ein helleres Foto.'}</span></div>`;
+    const unsicher = (data.unsicher||[]).filter(u => u && u.was);
+    D.fridge = [...new Set([...D.fridge, ...found])]; saveFridgeSoon();
+    UI.justAdded = fresh;
+    UI.lastScan = { keys: found, at: Date.now() };   // für das Lernen aus Korrekturen
+    render();
+
+    const kopf = found.length
+      ? `<b>${plu(found.length,'Zutat','Zutaten')} erkannt</b><br><span class="muted" style="font-size:14px">${esc(found.map(ingName).join(', '))}</span>`
+      : `<b>Nichts Eindeutiges gefunden</b><br><span class="muted" style="font-size:14px">${data.szene === 'lebensmittel' ? 'Lebensmittel sind zu sehen, aber keine, die ich sicher zuordnen kann.' : 'Versuch ein helleres Foto mit offener Tür.'}</span>`;
+    const bericht = unsicher.length ? `<div class="scan-un">
+        <div class="scan-un-h">Da bin ich mir nicht sicher</div>
+        ${unsicher.map((u,i) => `<div class="scan-un-r">
+          <span>${u.wo ? `<b>${esc(u.wo)}:</b> ` : ''}${esc(u.was)}</span>
+          ${u.schluessel && ING[u.schluessel] && !D.fridge.includes(u.schluessel)
+            ? `<button class="btn sm" data-action="scan-add" data-k="${esc(u.schluessel)}">Stimmt</button>` : ''}
+        </div>`).join('')}
+      </div>` : '';
+    $('#scanArea').innerHTML = `<div class="card" style="margin-top:12px;background:var(--herb-soft)">${kopf}${bericht}</div>`;
     if (fresh.length) burstAt($('.photo-card')); buzz([20,40,20]);
   } catch(e){
     done(); const a = $('#scanArea');
@@ -1839,10 +1883,26 @@ document.addEventListener('click', async e => {
       const logP = logCooked(r);
       setTimeout(()=>{ closeSheet(); render(); logP.then(log => { if (log) setTimeout(() => openRate(log.id), 500); }); }, 450); toast(`Guten Appetit! ${r.e}`);
       await save(() => sb.from('wishes').delete().eq('family_id', D.family.id).eq('recipe_id', id)); break; }
-    case 'ing': { const k=t.dataset.k; D.fridge = D.fridge.includes(k) ? D.fridge.filter(x=>x!==k) : [...D.fridge,k]; saveFridgeSoon(); buzz(6);
+    case 'ing': { const k=t.dataset.k; const drin = D.fridge.includes(k);
+      // Korrigiert jemand kurz nach einem Foto, merkt sich die App das für das nächste Mal
+      if (UI.lastScan && Date.now() - UI.lastScan.at < 300000){
+        if (drin && UI.lastScan.keys.includes(k)) lernScan(k, 'falsch');
+        else if (!drin && !UI.lastScan.keys.includes(k)) lernScan(k, 'uebersehen');
+      }
+      D.fridge = drin ? D.fridge.filter(x=>x!==k) : [...D.fridge,k]; saveFridgeSoon(); buzz(6);
       L.recentIng = [k, ...(L.recentIng||[]).filter(x => x !== k)].slice(0, 12); saveLocal();
       t.setAttribute('aria-pressed', D.fridge.includes(k)); t.classList.remove('just'); void t.offsetWidth; if (D.fridge.includes(k)) t.classList.add('just');
       render(); break; }
+    case 'scan-add': { const k = t.dataset.k; if (!ING[k]) break;
+      if (!D.fridge.includes(k)){ D.fridge = [...D.fridge, k]; saveFridgeSoon(); lernScan(k, 'uebersehen'); buzz(8); }
+      const zeile = t.closest('.scan-un-r');
+      if (zeile) zeile.innerHTML = zeile.querySelector('span').outerHTML + '<span class="muted" style="font-size:13px">übernommen ✓</span>';
+      const chip = document.querySelector('.ing[data-k="' + (window.CSS && CSS.escape ? CSS.escape(k) : k) + '"]');
+      if (chip && chip.getAttribute('aria-pressed') !== 'true'){
+        chip.setAttribute('aria-pressed', 'true'); chip.classList.add('just');
+        chip.insertAdjacentHTML('afterbegin', '<span class="ing-ok" aria-hidden="true">✓</span>');
+      }
+      break; }
     case 'clear-fridge': { const was = [...D.fridge], wasExp = { ...D.expiries }; D.fridge=[]; D.expiries={}; saveFridgeSoon(); render(); buzz(8);
       undoToast('Kühlschrank geleert', () => { D.fridge = was; D.expiries = wasExp; saveFridgeSoon(); render(); }); break; }
     case 'photo': {

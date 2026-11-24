@@ -30,10 +30,19 @@ Deno.serve(async (req) => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return json({ error: "auth" });
 
-    const { image, mediaType, keys, mode, today } = await req.json();
+    const { image, mediaType, keys, mode, today, hints } = await req.json();
     const expiry = mode === "expiry";
     if (!image || !Array.isArray(keys)) return json({ error: "failed", detail: "Bild fehlt" });
     if (image.length > 6_000_000) return json({ error: "failed", detail: "Bild zu groß" });
+
+    // Aus früheren Korrekturen gelernt: was die KI hier schon mal falsch hatte.
+    let gelernt = "";
+    if (hints && typeof hints === "object") {
+      const falsch = Array.isArray(hints.falsch) ? hints.falsch.slice(0, 12).map(String) : [];
+      const uebersehen = Array.isArray(hints.uebersehen) ? hints.uebersehen.slice(0, 12).map(String) : [];
+      if (falsch.length) gelernt += " In diesem Haushalt wurden folgende Schlüssel in der Vergangenheit fälschlich erkannt – sei dabei besonders streng und nimm sie nur bei eindeutiger Sicht auf: " + JSON.stringify(falsch) + ".";
+      if (uebersehen.length) gelernt += " Folgende Schlüssel wurden in der Vergangenheit übersehen – achte besonders auf sie: " + JSON.stringify(uebersehen) + ".";
+    }
 
     const prompt = expiry ?
       "Das Foto zeigt eine Lebensmittel-Verpackung, meistens mit Mindesthaltbarkeitsdatum (MHD, 'mindestens haltbar bis', 'zu verbrauchen bis', 'best before', EXP). " +
@@ -42,9 +51,19 @@ Deno.serve(async (req) => {
       "2) Erkenne das Produkt und ordne es EINEM Schlüssel aus dieser Liste zu, falls passend: " + JSON.stringify(keys) + ". " +
       "Antworte NUR mit JSON in genau dieser Form: {\"date\":\"JJJJ-MM-TT\" oder null, \"product\":\"schlüssel\" oder null, \"label\":\"kurzer Produktname auf Deutsch\" oder null, \"raw\":\"das Datum genau so, wie es auf der Packung steht\" oder null}"
       :
-      "Das Bild zeigt einen Kühlschrank, Vorräte oder Lebensmittel. Welche dieser Zutaten sind sichtbar? " +
-      "Antworte NUR mit einem JSON-Array der passenden Schlüssel aus dieser Liste: " + JSON.stringify(keys) +
-      '. Beispiel: ["eier","milch"]. Wenn nichts erkennbar ist: []';
+      "Du schaust auf ein Foto und sollst Lebensmittel erkennen. Antworte auf Deutsch und NUR mit einem JSON-Objekt, ohne Text davor oder danach.\n" +
+      "1) Entscheide zuerst, was das Bild zeigt:\n" +
+      "   \"kuehlschrank\" = ein Kühlschrank, ein Fach daraus oder ein Vorratsschrank\n" +
+      "   \"lebensmittel\" = Lebensmittel, aber kein Kühlschrank (Tisch, Einkauf, Teller, Verpackungen)\n" +
+      "   \"anderes\"      = irgendetwas anderes (Person, Zimmer, Bildschirm, Tier, Landschaft …)\n" +
+      "2) Bei \"anderes\": beschreibe in einem kurzen deutschen Satz, was tatsächlich zu sehen ist, und lass die Listen leer.\n" +
+      "3) \"sicher\": nur Schlüssel, die du wirklich eindeutig siehst.\n" +
+      "4) \"unsicher\": alles, bei dem du dir nicht sicher bist – mit Ortsangabe im Bild (z. B. \"oben links\", \"mittleres Fach\", \"in der Tür\") " +
+      "und was es sein könnte. Nenne dort, wenn möglich, auch den passenden Schlüssel. Lieber hier eintragen als raten.\n" +
+      "Erlaubte Schlüssel: " + JSON.stringify(keys) + "\n" +
+      "Form: {\"szene\":\"kuehlschrank|lebensmittel|anderes\",\"beschreibung\":\"…\" oder null," +
+      "\"sicher\":[\"eier\",\"milch\"],\"unsicher\":[{\"wo\":\"oben links\",\"was\":\"könnte Joghurt oder Quark sein\",\"schluessel\":\"joghurt\" oder null}]}" +
+      gelernt;
     const mime = mediaType || "image/jpeg";
 
     const gemini = Deno.env.get("GEMINI_API_KEY");
@@ -68,7 +87,7 @@ Deno.serve(async (req) => {
         if (!r.ok) { lastDetail = `Gemini ${model}: ${r.status} ${d?.error?.message ?? ""}`; continue; }
         const text = (d?.candidates?.[0]?.content?.parts ?? []).map((p: { text?: string }) => p.text ?? "").join("");
         if (!text){ lastDetail = `Gemini ${model}: leere Antwort ${d?.promptFeedback?.blockReason ?? ""}`; continue; }
-        return json(expiry ? parseExpiry(text, keys) : { items: parse(text, keys), via: model });
+        return json(expiry ? parseExpiry(text, keys) : { ...parse(text, keys), via: model });
       }
     }
 
@@ -87,7 +106,7 @@ Deno.serve(async (req) => {
       });
       if (r.status === 429) limited = true;
       const d = await r.json().catch(() => ({}));
-      if (r.ok){ const t = d?.choices?.[0]?.message?.content ?? ""; return json(expiry ? parseExpiry(t, keys) : { items: parse(t, keys), via: "openrouter" }); }
+      if (r.ok){ const t = d?.choices?.[0]?.message?.content ?? ""; return json(expiry ? parseExpiry(t, keys) : { ...parse(t, keys), via: "openrouter" }); }
       lastDetail = `OpenRouter: ${r.status} ${d?.error?.message ?? ""}`;
     }
 
@@ -97,10 +116,29 @@ Deno.serve(async (req) => {
   }
 });
 
-function parse(text: string, keys: string[]): string[] {
-  const m = text.match(/\[[\s\S]*?\]/);
-  if (!m) return [];
-  try { return (JSON.parse(m[0]) as unknown[]).map(String).filter((k) => keys.includes(k)); } catch { return []; }
+/** Liest die Antwort der KI. Versteht das neue Objekt und das alte reine Array. */
+function parse(text: string, keys: string[]) {
+  const leer = { items: [] as string[], szene: "kuehlschrank", beschreibung: null as string | null, unsicher: [] as unknown[] };
+  const obj = text.match(/\{[\s\S]*\}/);
+  if (obj) {
+    try {
+      const o = JSON.parse(obj[0]) as Record<string, unknown>;
+      const szene = ["kuehlschrank", "lebensmittel", "anderes"].includes(String(o.szene)) ? String(o.szene) : "kuehlschrank";
+      const items = Array.isArray(o.sicher) ? o.sicher.map(String).filter((k) => keys.includes(k)) : [];
+      const unsicher = (Array.isArray(o.unsicher) ? o.unsicher : []).slice(0, 6).map((u) => {
+        const x = (u ?? {}) as Record<string, unknown>;
+        const s = typeof x.schluessel === "string" && keys.includes(x.schluessel) ? x.schluessel : null;
+        return { wo: String(x.wo ?? "").slice(0, 40), was: String(x.was ?? "").slice(0, 90), schluessel: s };
+      }).filter((u) => u.was);
+      const beschreibung = typeof o.beschreibung === "string" && o.beschreibung.trim()
+        ? o.beschreibung.trim().slice(0, 200) : null;
+      return { items, szene, beschreibung, unsicher };
+    } catch { /* fällt unten auf das Array zurück */ }
+  }
+  const arr = text.match(/\[[\s\S]*?\]/);
+  if (!arr) return leer;
+  try { return { ...leer, items: (JSON.parse(arr[0]) as unknown[]).map(String).filter((k) => keys.includes(k)) }; }
+  catch { return leer; }
 }
 
 function parseExpiry(text: string, keys: string[]) {

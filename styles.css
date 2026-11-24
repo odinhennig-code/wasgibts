@@ -1902,3 +1902,12 @@ html.xt-on #tabbar{z-index:1}
   color:var(--herb);font:700 14px/1 var(--f-display);letter-spacing:.06em;flex:none}
 .lo-f{font-weight:600;font-size:1.0rem}
 @media (prefers-reduced-motion:reduce){.lang-first .r-hero,.lang-opt{animation:none}}
+
+/* ---------- 5.2: Kühlschrank-Foto – Ergebnis statt Bild ---------- */
+.scan-wait{display:flex;align-items:center;gap:12px;font-weight:600}
+.scan-un{margin-top:14px;padding-top:12px;border-top:1px solid color-mix(in srgb,var(--fg) 10%,transparent)}
+.scan-un-h{font-weight:700;font-size:13px;letter-spacing:.02em;color:var(--muted);margin-bottom:8px}
+.scan-un-r{display:flex;align-items:center;gap:10px;justify-content:space-between;padding:7px 0;font-size:14px;line-height:1.4}
+.scan-un-r+.scan-un-r{border-top:1px dashed color-mix(in srgb,var(--fg) 10%,transparent)}
+.scan-un-r>span{min-width:0}
+.scan-un-r .btn{flex:none}
