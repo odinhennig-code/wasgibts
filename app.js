@@ -815,8 +815,19 @@ function viewFamily(){
 }
 
 /* ---------- Reiter „Mehr" ---------- */
-const VERSION = '5.1';
+const VERSION = '5.2';
 const CHANGELOG = [
+  { v:'5.2', d:'24. November 2026', items:[
+    'Neu: Kassenbon fotografieren – der ganze Einkauf landet mit einem Foto im Kühlschrank, Mengen inklusive, und auf der Einkaufsliste wird abgehakt, was du gerade gekauft hast',
+    'Neu: Mengen im Kühlschrank – du kannst eintragen, wie viel von etwas da ist (g, ml, Stück, Packung). Freiwillig: wer nichts einträgt, hat weiter einfach „da / nicht da"',
+    'Neu: Nach dem Kochen zieht sich der Vorrat ab – die App fragt einmal nach, welche Zutaten verbraucht sind, und hakt sie im Kühlschrank ab. Auf Wunsch geht das automatisch (Mehr › Kühlschrank)',
+    'Die App lernt euren Geschmack: Was ihr oft kocht und gut bewertet, kommt öfter als Vorschlag. Dreimal „Andere Idee" weggewischt, und ein Gericht verschwindet aus den Vorschlägen',
+    'Die Einkaufsliste steht jetzt in Laufreihenfolge durch den Supermarkt – Obst und Gemüse zuerst, Tiefkühl zum Schluss',
+    '„Hab ich das schon?" – auf der Einkaufsliste steht jetzt dabei, was zu Hause noch im Kühlschrank liegt und wie lange es noch hält',
+    'Kühlschrank-Foto: Das Bild wird nicht mehr angezeigt, es geht nur noch ums Ergebnis. Die KI sagt jetzt, wo sie sich unsicher ist („oben links könnte Joghurt sein"), erkennt, wenn das gar kein Kühlschrank ist, und lernt aus deinen Korrekturen',
+    'Der Update-Log ist aufgeräumt: nach Neu, Besser und Behoben sortiert, zum Auf- und Zuklappen',
+    'Behoben: Bei Familie › Neuigkeiten stand alles unter „Diese Woche" – jetzt steht da Heute, Gestern, der Wochentag oder das Datum, mit Uhrzeit',
+    'Impressum und Datenschutz sind jetzt vollständig ausgefüllt'] },
   { v:'5.1', d:'14. November 2026', items:['Neu: Die App spricht jetzt Deutsch, Englisch und Russisch – oben auf jeder Seite umschaltbar, alle 620 Rezepte mit Schritten inklusive','Neu: „Die App erklärt" unter „Mehr" – ein kleiner Animationsfilm zum Prinzip und danach eine Tour mit Lichtkegel durch die echte App'] },
   { v:'5.0.1', d:'13. November 2026', items:['Behoben: Der Support (Anfragen, Live-Chat, Meldungen) funktionierte nicht, weil die Datenbank dafür fehlte – jetzt geht alles'] },
   { v:'5.0', d:'12. November 2026', items:['Aufgeräumt: Die Startseite ist jetzt ein kleines Dashboard – was bald abläuft, was auf der Liste steht, welche Wünsche offen sind, und ein Vorschlag für heute mit „Andere Idee"','Die Filter (wer isst mit, Zeit, Lust) stehen jetzt bei „Alle Rezepte", wo man wirklich sucht','Neue Icons überall statt Emojis – Essen bleibt bunt','Neuigkeiten in der Familie nach Tagen sortiert und zusammengefasst, nur die letzten 7 Tage'] },
@@ -1304,7 +1315,7 @@ const LOG_GRUPPEN = [['neu', 'Neu'], ['besser', 'Besser'], ['fix', 'Behoben']];
 function logSortiere(items){
   const g = { neu: [], besser: [], fix: [] };
   items.forEach(i => {
-    const t = String(i).replace(/^[\s\p{Extended_Pictographic}←-⇿⌀-➿️‍]+/u, '').trim();
+    const t = String(i).replace(/^[\s\p{Extended_Pictographic}←-⇿⌀-➿︎️‍⁠]+/u, '').trim();
     if (/^behoben:/i.test(t)) g.fix.push(t.replace(/^behoben:\s*/i, ''));
     else if (/^neu:/i.test(t)) g.neu.push(t.replace(/^neu:\s*/i, ''));
     else g.besser.push(t);
