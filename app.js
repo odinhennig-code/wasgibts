@@ -1569,13 +1569,13 @@ function closeCook(){
 
 /* ---------- Rechtliches ---------- */
 const LEGAL = {
-  impressum: ['Impressum', `<h3>Angaben gemäß § 5 DDG</h3><p>Odin Hennig<br>[Straße und Hausnummer]<br>[PLZ und Ort]</p>
-    <h3>Kontakt</h3><p>E-Mail: [E-Mail-Adresse]</p>
+  impressum: ['Impressum', `<h3>Angaben gemäß § 5 DDG</h3><p>Odin Hennig<br>Pilsenhöher Straße 1<br>06388 Edderitz</p>
+    <h3>Kontakt</h3><p>E-Mail: <a href="mailto:odinhennig@gmail.com">odinhennig@gmail.com</a></p>
     <h3>Verantwortlich für den Inhalt</h3><p>Odin Hennig, Anschrift wie oben (§ 18 Abs. 2 MStV)</p>
     <h3>Art des Angebots</h3><p>„Was gibt's?" ist ein privates, nicht-kommerzielles Projekt. Die App ist dauerhaft kostenlos und enthält keine Werbung.</p>
     <p style="margin-top:18px"><a class="btn sm" href="willkommen/impressum.html" target="_blank" rel="noopener">Vollständiges Impressum öffnen</a></p>`],
   privacy: ['Datenschutz', `<p class="muted" style="font-size:13px">Das Wichtigste in Kürze. Die vollständige Erklärung mit allen Rechtsgrundlagen steht auf der Webseite.</p>
-    <h3>Verantwortlich</h3><p>Odin Hennig (Anschrift und E-Mail siehe Impressum)</p>
+    <h3>Verantwortlich</h3><p>Odin Hennig, Pilsenhöher Straße 1, 06388 Edderitz · odinhennig@gmail.com</p>
     <h3>Welche Daten wir speichern</h3><p>Für dein Konto: E-Mail-Adresse und verschlüsseltes Passwort. In der App: Name, Profilbild-Emoji, Essensvorlieben und Unverträglichkeiten, Familienzugehörigkeit, Wünsche, Lieblingsgerichte, Kühlschrank-Inhalt mit Ablaufdaten, eigene Rezepte, Wochenplan, Einkaufsliste, Abstimmungen und Feedback. Diese Daten sehen nur die Mitglieder deiner Familie.</p>
     <h3>Wo die Daten liegen</h3><p>Bei Supabase in einem Rechenzentrum in Frankfurt (EU). Die App selbst wird über Cloudflare Pages ausgeliefert.</p>
     <h3>Kühlschrank-Foto</h3><p>Fotos werden nur zur Erkennung der Zutaten an Google (Gemini) gesendet, ersatzweise an OpenRouter. Die App speichert sie nicht.</p>
@@ -2455,11 +2455,35 @@ applyAccent(); setInterval(applyAccent, 60e3);
   }
   else if (partyOn()){ const c = sp.querySelector('.s2-claim'); if (c) c.textContent = Date.now() < PARTY.at ? '🎉 Heute 20 Uhr: das große Update!' : '🥳 Das große Update ist da!'; setFood(['🎉','🎊','🥳','🎈','✨','🍕']); }
   else if (hwOn() || adOn()){ setFood(adOn() ? ['🎄','⭐','🍪','🎁','❄️','🦌'] : ['🎃','🦇','🍬','👻','🕸️','🍂']); }
+  const setWords = (fix, slots, claim) => {
+    const f = sp.querySelector('.s2-fix'); if (f && fix) f.textContent = fix;
+    sp.querySelectorAll('.s2-slot i').forEach((x, i) => { if (slots[i]) x.textContent = slots[i]; });
+    const c = sp.querySelector('.s2-claim'); if (c && claim) c.textContent = claim;
+  };
+  // Beim Start in der eingestellten Sprache begrüßen
+  const WORTE = {
+    en: [null, ['Pasta?', 'Curry?', 'Soup?', 'today?'], 'A meal everyone likes.'],
+    ru: [null, ['Паста?', 'Карри?', 'Суп?', 'сегодня?'], 'Еда, которая нравится всем.'],
+  };
+  if (!sophiaOn() && WORTE[LANG]) setWords(...WORTE[LANG]);
+
+  // Kommt man gerade von einem Sprachwechsel? Dann kurz bestätigen statt stumm neu laden.
+  let swap = null;
+  try { swap = sessionStorage.getItem('wg.langswap'); if (swap) sessionStorage.removeItem('wg.langswap'); } catch(e){}
+  const GRUSS = { de:['Hallo', 'Deutsch', 'Die App spricht jetzt Deutsch.'],
+                  en:['Hello', 'English', 'The app now speaks English.'],
+                  ru:['Привет', 'Русский', 'Теперь приложение говорит по-русски.'] };
+  if (swap && GRUSS[swap]){
+    const [gruss, name, satz] = GRUSS[swap];
+    const andere = LANGS.filter(x => x[0] !== swap).map(x => x[2]);
+    setWords(gruss, [andere[0], andere[1], andere[0], name], satz);
+  }
+
   let done = false;
   const hide = () => { if (done) return; done = true; sp.classList.add('gone'); root.classList.remove('splashing'); applyTheme.last = null; applyTheme(); };
   // Nur beim ersten Öffnen zeigen – nicht noch einmal, wenn die App sich für ein Update kurz neu lädt
   let seen = false; try { seen = !!sessionStorage.getItem('wg.splash'); sessionStorage.setItem('wg.splash', '1'); } catch(e){}
-  if (seen || window.matchMedia('(prefers-reduced-motion: reduce)').matches){ hide(); return; }
+  if ((seen && !swap) || window.matchMedia('(prefers-reduced-motion: reduce)').matches){ hide(); return; }
   root.classList.add('splashing');   // oberer Rand bleibt in App-Farbe (iPhone übernimmt sonst das Grün des Intros)
   sp.addEventListener('animationend', e => { if (e.target === sp && (e.animationName === 's2Out' || e.animationName === 'spOut')) hide(); });
   sp.addEventListener('click', hide); setTimeout(hide, 3500); })();

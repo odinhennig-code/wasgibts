@@ -15,8 +15,17 @@ export function setLang(l){
   try { localStorage.setItem('wg.lang', l); } catch(e){}
   const i = LANGS.findIndex(x => x[0] === l);
   document.querySelectorAll('.lang-sw').forEach(s => { s.style.setProperty('--i', i); s.querySelectorAll('button').forEach(b => b.setAttribute('aria-checked', b.dataset.v === l)); });
-  setTimeout(() => document.documentElement.classList.add('lang-switch'), 180);
-  setTimeout(() => location.reload(), 420);
+  try { sessionStorage.setItem('wg.langswap', l); } catch(e){}
+  // Eigener Übergang: ohne ihn sieht das Neuladen aus wie ein Absturz.
+  const [, kurz, voll] = LANGS[i];
+  const ov = document.createElement('div');
+  ov.className = 'lang-go';
+  ov.innerHTML = `<div class="lg-codes">${LANGS.map(([k, s2]) =>
+      `<span class="${k === l ? 'on' : 'off'}">${s2}</span>`).join('')}</div>
+    <div class="lg-name">${voll}</div><div class="lg-bar"><i></i></div>`;
+  document.body.appendChild(ov);
+  requestAnimationFrame(() => ov.classList.add('in'));
+  setTimeout(() => location.reload(), 900);
 }
 
 let UI_MAP = null, PATTERNS = [];

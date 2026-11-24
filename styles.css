@@ -1902,3 +1902,25 @@ html.xt-on #tabbar{z-index:1}
   color:var(--herb);font:700 14px/1 var(--f-display);letter-spacing:.06em;flex:none}
 .lo-f{font-weight:600;font-size:1.0rem}
 @media (prefers-reduced-motion:reduce){.lang-first .r-hero,.lang-opt{animation:none}}
+
+/* ---------- 5.2: Ladebildschirm mit echten Icons ---------- */
+.s2-food span svg{width:46px;height:46px;display:block;filter:drop-shadow(0 7px 12px rgba(22,32,26,.2))}
+.s2-food span:last-child{margin:-26px 0 0 -26px}
+.s2-food span:last-child svg{width:52px;height:52px}
+
+/* ---------- 5.2: Übergang beim Sprachwechsel ---------- */
+.lang-go{position:fixed;inset:0;z-index:999;display:grid;place-content:center;justify-items:center;gap:20px;
+  background:var(--bg);opacity:0;transition:opacity .22s ease}
+.lang-go.in{opacity:1}
+.lg-codes{display:flex;align-items:center;gap:18px;font-family:var(--f-display);font-weight:700;font-size:26px;letter-spacing:.05em}
+.lg-codes span{color:var(--muted);opacity:.3;transition:transform .55s cubic-bezier(.34,1.56,.64,1),color .4s,opacity .4s}
+.lang-go.in .lg-codes span.on{color:var(--herb);opacity:1;transform:scale(1.7)}
+.lang-go.in .lg-codes span.off{opacity:.18;transform:scale(.82)}
+.lg-name{font-family:var(--f-display);font-weight:600;font-size:19px;color:var(--fg);opacity:0;transform:translateY(6px);
+  transition:opacity .4s .25s,transform .4s .25s}
+.lang-go.in .lg-name{opacity:1;transform:none}
+.lg-bar{width:130px;height:4px;border-radius:3px;background:var(--line);overflow:hidden}
+.lg-bar i{display:block;height:100%;width:0;border-radius:3px;background:var(--herb)}
+.lang-go.in .lg-bar i{animation:lgBar .8s cubic-bezier(.35,0,.2,1) forwards}
+@keyframes lgBar{to{width:100%}}
+@media (prefers-reduced-motion:reduce){.lang-go,.lang-go *{transition:none !important;animation:none !important}}
