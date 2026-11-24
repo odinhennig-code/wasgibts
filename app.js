@@ -614,6 +614,7 @@ function viewFridge(){
   }).join('');
   const html = header('Was ist da?', `${plu(D.fridge.length,'Zutat','Zutaten')} · für alle sichtbar`) + tabs +
     `<button class="photo-card" data-action="photo"><span class="cam">${I.cam}</span><span style="flex:1"><b style="font-size:17px">Kühlschrank fotografieren</b><br><span style="opacity:.9;font-size:14px">Die App erkennt deine Zutaten automatisch</span></span></button>
+    <button class="btn btn-line btn-block" style="margin-top:8px" data-action="bon-photo">\ud83e\uddfe Kassenbon fotografieren</button>
     <div id="scanArea"></div>
     ${plusHint('fridge')}
     <div class="fbar"><input id="fsearch" class="input" type="search" placeholder="Zutat suchen …" value="${esc(UI.fq||'')}" aria-label="Zutat suchen" autocomplete="off">
@@ -1920,6 +1921,74 @@ async function handlePhoto(file){
 }
 $('#photoInput').addEventListener('change', e => { const f = e.target.files[0]; e.target.value=''; if (f) handlePhoto(f); });
 $('#expInput').addEventListener('change', e => { const f = e.target.files[0]; e.target.value=''; if (f) handleExpiryPhoto(f); });
+$('#bonInput').addEventListener('change', e => { const f = e.target.files[0]; e.target.value=''; if (f) handleBonPhoto(f); });
+
+/* ---------- Kassenbon fotografieren ----------
+   Ein Foto vom Bon, und der Einkauf steht im K\u00fchlschrank. Mengen, die auf
+   dem Bon stehen, kommen gleich mit. Was auf der Einkaufsliste stand, wird
+   dabei abgehakt. */
+function bonFehler(e){
+  const msg = {
+    limit: '\ud83d\ude34 Die Foto-Erkennung macht f\u00fcr heute Pause. Morgen geht sie wieder.',
+    nokey: 'Die Foto-Erkennung ist noch nicht eingerichtet.',
+    auth: 'Bitte melde dich neu an und versuch es dann noch mal.',
+  }[e && e.code] || 'Der Bon war nicht zu lesen. Leg ihn flach hin, mach es hell und fotografiere von oben.';
+  openSheet(`${sheetHead('Kassenbon')}<div class="card">${msg}${e && e.detail ? `<div class="muted" style="font-size:11px;margin-top:8px">Technik-Info: ${esc(String(e.detail).slice(0,160))}</div>` : ''}</div>
+    <button class="btn btn-line btn-block" style="margin-top:14px" data-action="bon-photo">Noch mal fotografieren</button>`);
+}
+async function handleBonPhoto(file){
+  sheetFn = null;
+  openSheet(`${sheetHead('Kassenbon')}
+    <p class="muted" style="display:flex;gap:8px;align-items:center;justify-content:center;margin:18px 0"><span class="spin"></span> Der Bon wird gelesen \u2026</p>`);
+  try {
+    let image; try { image = await shrink(file); } catch(err){ throw { code:'failed', detail:'Bild konnte nicht gelesen werden' }; }
+    const { data, error } = await sb.functions.invoke('scan-fridge', { body: { image, mediaType:'image/jpeg', keys:Object.keys(ING), mode:'bon' } });
+    if (error || !data) throw { code:'failed', detail: error && error.message };
+    if (data.error) throw { code:data.error, detail:data.detail };
+    const b = data.bon || {};
+    if (b.szene !== 'bon'){
+      UI.bon = null; buzz(12);
+      openSheet(`${sheetHead('Kassenbon')}<div class="card"><b>Das ist kein Kassenbon.</b><br>
+        <span class="muted" style="font-size:14px">${b.beschreibung ? esc(b.beschreibung) : 'Auf dem Bild ist kein Beleg zu erkennen.'}</span>
+        <div class="muted" style="font-size:13px;margin-top:10px">Leg den Bon flach hin und fotografiere ihn von oben.</div></div>
+        <button class="btn btn-line btn-block" style="margin-top:14px" data-action="bon-photo">Noch mal fotografieren</button>`);
+      return;
+    }
+    /* Dieselbe Zutat kann mehrfach auf dem Bon stehen \u2013 zusammenz\u00e4hlen. */
+    const map = new Map();
+    (b.artikel || []).forEach(a => {
+      if (!a.schluessel || !ING[a.schluessel]) return;
+      const cur = map.get(a.schluessel);
+      if (!cur){ map.set(a.schluessel, { schluessel:a.schluessel, text:a.text || '', menge:a.menge || null }); return; }
+      if (a.text) cur.text = (cur.text ? cur.text + ' \u00b7 ' : '') + a.text;
+      if (a.menge && cur.menge && a.menge.e === cur.menge.e) cur.menge = { n: Math.round((cur.menge.n + a.menge.n) * 10) / 10, e: cur.menge.e };
+      else if (a.menge && !cur.menge) cur.menge = a.menge;
+    });
+    const treffer = [...map.values()];
+    const rest = (b.artikel || []).filter(a => !a.schluessel || !ING[a.schluessel]).map(a => a.text).filter(Boolean);
+    UI.bon = { laden: b.laden || null, artikel: treffer, rest, sel: new Set(treffer.map(a => a.schluessel)) };
+    buzz([15,30,15]); openBon();
+  } catch(e){
+    if (e && e.detail) console.warn('Kassenbon:', e.detail);
+    bonFehler(e);
+    if (!e || e.code !== 'limit'){ try { sb.from('feedback').insert({ user_id:D.user.id, kind:'fehler', message:'Automatisch: Kassenbon fehlgeschlagen \u2013 ' + ((e && (e.code + ': ' + (e.detail || ''))) || String(e)).slice(0,400), app_version:VERSION }).then(()=>{}, ()=>{}); } catch(err){} }
+  }
+}
+function bonMenge(m){ return m ? `${String(m.n).replace('.', ',')}${m.e === 'St\u00fcck' ? '\u00d7' : ' ' + m.e}` : ''; }
+function openBon(){
+  const b = UI.bon; if (!b) return;
+  sheetFn = null;
+  const zeile = a => `<button class="opt pick-opt" data-action="bon-pick" data-k="${a.schluessel}" aria-pressed="${b.sel.has(a.schluessel)}">
+      <span class="oe">${ingEmoji(a.schluessel)}</span>
+      <span class="on">${ingName(a.schluessel)}${a.menge ? ` <span class="mg">${esc(bonMenge(a.menge))}</span>` : ''}${a.text ? `<small class="bon-raw">${esc(a.text)}</small>` : ''}</span>
+      ${D.fridge.includes(a.schluessel) ? '<span class="chip c-muted">schon da</span>' : ''}<span class="tick">\u2713</span></button>`;
+  openSheet(`${sheetHead('Kassenbon')}
+    <p class="muted" style="margin-top:-6px">${b.laden ? esc(b.laden) + ' \u00b7 ' : ''}${b.artikel.length ? 'Angetippt kommt in den K\u00fchlschrank. Tippe weg, was nicht stimmt.' : 'Vom Bon war nichts zuzuordnen.'}</p>
+    ${b.artikel.length ? `<div class="stack" style="gap:8px">${b.artikel.map(zeile).join('')}</div>
+      <button class="btn btn-herb btn-block" style="margin-top:16px" data-action="bon-ok">In den K\u00fchlschrank</button>` : ''}
+    ${b.rest.length ? `<div class="h2">Nicht zugeordnet</div><p class="muted" style="font-size:13px;margin-top:-6px">${esc(b.rest.slice(0, 20).join(' \u00b7 '))}</p>` : ''}
+    <button class="btn btn-line btn-block" style="margin-top:${b.artikel.length ? '8' : '14'}px" data-action="bon-photo">Noch einen Bon fotografieren</button>`);
+}
 
 /* ---------- Haltbarkeitsdatum per Foto ----------
    Die KI liest Datum und Produkt von der Verpackung. Danach kann man das Produkt
@@ -2116,6 +2185,29 @@ document.addEventListener('click', async e => {
       L.scanN = (L.scanN || 0) + 1; if (L.scanAdOk) L.scanAdOk = 0; saveLocal();
       $('#photoInput').click(); break; }
     case 'exp-photo': $('#expInput').click(); break;
+    case 'bon-photo': {
+      const today = isoDay(new Date());
+      if (L.scanDay !== today){ L.scanDay = today; L.scanN = 0; }
+      const needAd = !plusActive() && (L.scanN || 0) >= 1 && !(L.scanAdOk && Date.now() - L.scanAdOk < 10 * 60e3);
+      if (needAd){ openAd('scan'); break; }
+      L.scanN = (L.scanN || 0) + 1; if (L.scanAdOk) L.scanAdOk = 0; saveLocal();
+      $('#bonInput').click(); break; }
+    case 'bon-pick': { const k = t.dataset.k; if (!UI.bon) break;
+      UI.bon.sel.has(k) ? UI.bon.sel.delete(k) : UI.bon.sel.add(k);
+      t.setAttribute('aria-pressed', UI.bon.sel.has(k)); buzz(6); break; }
+    case 'bon-ok': { const b = UI.bon; if (!b) break;
+      const nehmen = b.artikel.filter(a => b.sel.has(a.schluessel));
+      const neu = nehmen.map(a => a.schluessel).filter(k => !D.fridge.includes(k));
+      D.fridge = [...new Set([...D.fridge, ...nehmen.map(a => a.schluessel)])];
+      nehmen.forEach(a => { if (a.menge) D.amounts[a.schluessel] = { n: a.menge.n, e: a.menge.e }; });
+      /* Was gerade gekauft wurde, ist auf der Einkaufsliste erledigt. */
+      let abgehakt = 0;
+      nehmen.forEach(a => { const it = D.shop.find(x => !x.checked && x.ing_key === a.schluessel); if (it){ toggleShop(it.id); abgehakt++; } });
+      saveFridgeSoon(); UI.justAdded = neu; UI.bon = null; closeSheet();
+      if (UI.tab !== 'fridge' || UI.ftab === 'shop'){ UI.tab = 'fridge'; UI.ftab = 'fridge'; }
+      render(); buzz([20,40,20]);
+      toast(neu.length ? `${plu(neu.length, 'Zutat', 'Zutaten')} im K\u00fchlschrank${abgehakt ? ` \u00b7 ${abgehakt} von der Liste` : ''}` : 'War schon alles da');
+      break; }
     case 'exp-pick': UI.expScan.product = t.dataset.k; UI.expScan.editing = false; UI.expQ = ''; buzz(8); openExpScan(true); break;
     case 'exp-edit': UI.expScan.editing = true; UI.expQ = UI.expScan.label || ''; openExpScan(true); setTimeout(() => { const i = $('#expQ'); if (i){ i.focus(); i.select(); } }, 50); break;
     case 'exp-save': saveExpScan(); break;

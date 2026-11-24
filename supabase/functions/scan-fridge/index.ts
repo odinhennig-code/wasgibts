@@ -32,6 +32,7 @@ Deno.serve(async (req) => {
 
     const { image, mediaType, keys, mode, today, hints } = await req.json();
     const expiry = mode === "expiry";
+    const bon = mode === "bon";
     if (!image || !Array.isArray(keys)) return json({ error: "failed", detail: "Bild fehlt" });
     if (image.length > 6_000_000) return json({ error: "failed", detail: "Bild zu groß" });
 
@@ -44,7 +45,21 @@ Deno.serve(async (req) => {
       if (uebersehen.length) gelernt += " Folgende Schlüssel wurden in der Vergangenheit übersehen – achte besonders auf sie: " + JSON.stringify(uebersehen) + ".";
     }
 
-    const prompt = expiry ?
+    const bonPrompt =
+      "Das Foto zeigt einen Kassenbon aus einem Supermarkt. Antworte auf Deutsch und NUR mit einem JSON-Objekt, ohne Text davor oder danach.\n" +
+      "1) \"szene\": \"bon\" wenn wirklich ein Kassenbon, eine Rechnung oder ein Lieferschein zu sehen ist, sonst \"anderes\".\n" +
+      "2) Bei \"anderes\": beschreibe in einem kurzen deutschen Satz, was tats\u00e4chlich zu sehen ist, und lass die Listen leer.\n" +
+      "3) Lies die gekauften Artikel. Auf Bons stehen Abk\u00fcrzungen und Markennamen \u2013 \u00fcbersetze sie in das Lebensmittel " +
+      "(z. B. \"H-MILCH 3,5%\" = Milch, \"SCHW NACKEN\" = Schweinefleisch, \"TOM.MARK\" = Tomatenmark, \"GOUDA JUNG\" = K\u00e4se).\n" +
+      "4) Ordne jedem Artikel EINEN Schl\u00fcssel aus der Liste zu. Passt keiner, setze \"schluessel\" auf null.\n" +
+      "5) Nicht-Lebensmittel (Pfand, T\u00fcte, Sp\u00fclmittel, Zahnpasta, Rabatt, Summe, MwSt) l\u00e4sst du ganz weg.\n" +
+      "6) \"menge\": nur wenn auf dem Bon eine Menge steht (z. B. \"500 g\", \"1,5 l\", \"6 Stk\"). Einheit genau eine von " +
+      "\"g\", \"ml\", \"St\u00fcck\", \"Pck.\" \u2013 Kilo und Liter rechnest du um. Sonst null.\n" +
+      "Erlaubte Schl\u00fcssel: " + JSON.stringify(keys) + "\n" +
+      "Form: {\"szene\":\"bon|anderes\",\"beschreibung\":\"\u2026\" oder null,\"laden\":\"Name des Marktes\" oder null," +
+      "\"artikel\":[{\"text\":\"H-MILCH 3,5%\",\"schluessel\":\"milch\",\"menge\":{\"n\":1000,\"e\":\"ml\"} oder null}]}";
+
+    const prompt = bon ? bonPrompt : expiry ?
       "Das Foto zeigt eine Lebensmittel-Verpackung, meistens mit Mindesthaltbarkeitsdatum (MHD, 'mindestens haltbar bis', 'zu verbrauchen bis', 'best before', EXP). " +
       "Heute ist " + String(today || new Date().toISOString().slice(0, 10)) + ". " +
       "1) Lies das Haltbarkeitsdatum. Formate wie 12.11.26, 12/11/2026, 12.11. oder nur Monat/Jahr (11/2026 = letzter Tag des Monats) sind möglich. Fehlt das Jahr, nimm das nächste passende Datum ab heute. " +
@@ -87,7 +102,7 @@ Deno.serve(async (req) => {
         if (!r.ok) { lastDetail = `Gemini ${model}: ${r.status} ${d?.error?.message ?? ""}`; continue; }
         const text = (d?.candidates?.[0]?.content?.parts ?? []).map((p: { text?: string }) => p.text ?? "").join("");
         if (!text){ lastDetail = `Gemini ${model}: leere Antwort ${d?.promptFeedback?.blockReason ?? ""}`; continue; }
-        return json(expiry ? parseExpiry(text, keys) : { ...parse(text, keys), via: model });
+        return json(bon ? parseBon(text, keys) : expiry ? parseExpiry(text, keys) : { ...parse(text, keys), via: model });
       }
     }
 
@@ -106,7 +121,7 @@ Deno.serve(async (req) => {
       });
       if (r.status === 429) limited = true;
       const d = await r.json().catch(() => ({}));
-      if (r.ok){ const t = d?.choices?.[0]?.message?.content ?? ""; return json(expiry ? parseExpiry(t, keys) : { ...parse(t, keys), via: "openrouter" }); }
+      if (r.ok){ const t = d?.choices?.[0]?.message?.content ?? ""; return json(bon ? parseBon(t, keys) : expiry ? parseExpiry(t, keys) : { ...parse(t, keys), via: "openrouter" }); }
       lastDetail = `OpenRouter: ${r.status} ${d?.error?.message ?? ""}`;
     }
 
@@ -139,6 +154,29 @@ function parse(text: string, keys: string[]) {
   if (!arr) return leer;
   try { return { ...leer, items: (JSON.parse(arr[0]) as unknown[]).map(String).filter((k) => keys.includes(k)) }; }
   catch { return leer; }
+}
+
+/** Liest den Kassenbon: Artikelzeilen mit Schl\u00fcssel und, wenn angegeben, Menge. */
+const BON_EINHEITEN = ["g", "ml", "St\u00fcck", "Pck."];
+function parseBon(text: string, keys: string[]) {
+  const leer = { bon: { szene: "anderes", beschreibung: null as string | null, laden: null as string | null, artikel: [] as unknown[] } };
+  const m = text.match(/\{[\s\S]*\}/);
+  if (!m) return leer;
+  let o: Record<string, unknown>;
+  try { o = JSON.parse(m[0]) as Record<string, unknown>; } catch { return leer; }
+  const szene = String(o.szene) === "bon" ? "bon" : "anderes";
+  const artikel = (Array.isArray(o.artikel) ? o.artikel : []).slice(0, 60).map((a) => {
+    const x = (a ?? {}) as Record<string, unknown>;
+    const s = typeof x.schluessel === "string" && keys.includes(x.schluessel) ? x.schluessel : null;
+    const mg = (x.menge ?? null) as Record<string, unknown> | null;
+    const n = mg && Number(mg.n);
+    const e = mg && typeof mg.e === "string" && BON_EINHEITEN.includes(mg.e) ? mg.e : null;
+    return { text: String(x.text ?? "").slice(0, 60), schluessel: s,
+             menge: n && isFinite(n) && n > 0 && e ? { n: Math.round(n * 10) / 10, e } : null };
+  }).filter((a) => a.text || a.schluessel);
+  const beschreibung = typeof o.beschreibung === "string" && o.beschreibung.trim() ? o.beschreibung.trim().slice(0, 200) : null;
+  const laden = typeof o.laden === "string" && o.laden.trim() ? o.laden.trim().slice(0, 40) : null;
+  return { bon: { szene, beschreibung, laden, artikel: szene === "bon" ? artikel : [] } };
 }
 
 function parseExpiry(text: string, keys: string[]) {

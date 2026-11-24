@@ -1953,3 +1953,7 @@ html.xt-on #tabbar{z-index:1}
 .mg-in::-webkit-outer-spin-button,.mg-in::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
 .mg-in[type=number]{-moz-appearance:textfield}
 .mg-e{flex:0 0 auto;min-width:56px;border:0;border-radius:12px;padding:9px 8px;background:var(--line);color:var(--fg);font:800 0.8rem/1 var(--f-body);cursor:pointer}
+
+/* ===================== 5.2 · Kassenbon ===================== */
+.bon-raw{display:block;color:var(--muted);font-weight:700;font-size:0.7rem;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pick-opt .on{line-height:1.25}
