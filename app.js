@@ -1204,6 +1204,41 @@ function closeSheet(){ $('#overlay').innerHTML=''; sheetFn=null; }
 function refreshSheet(){ if (sheetFn) sheetFn(true); }
 const sheetHead = t => `<div class="top" style="padding-top:0"><div class="h1" style="font-size:22px">${t}</div><button class="icon-btn" data-action="close" aria-label="Schließen">${I.x}</button></div>`;
 
+/* ---------- Update-Log ----------
+   Früher eine einzige lange Liste mit allem. Jetzt pro Version zugeklappt,
+   innen sortiert nach Neu / Besser / Behoben. */
+const LOG_GRUPPEN = [['neu', 'Neu'], ['besser', 'Besser'], ['fix', 'Behoben']];
+function logSortiere(items){
+  const g = { neu: [], besser: [], fix: [] };
+  items.forEach(i => {
+    const t = String(i).replace(/^[\s\p{Extended_Pictographic}←-⇿⌀-➿️‍]+/u, '').trim();
+    if (/^behoben:/i.test(t)) g.fix.push(t.replace(/^behoben:\s*/i, ''));
+    else if (/^neu:/i.test(t)) g.neu.push(t.replace(/^neu:\s*/i, ''));
+    else g.besser.push(t);
+  });
+  return g;
+}
+function changelogHtml(){
+  const f = UI.logFilter || 'alle';
+  const schalter = [['alle', 'Alles'], ['neu', 'Neu'], ['fix', 'Behoben']]
+    .map(([k, n]) => `<button data-action="log-filter" data-v="${k}" aria-pressed="${f === k}">${n}</button>`).join('');
+  const bloecke = CHANGELOG.map((c, n) => {
+    const g = logSortiere(c.items);
+    const zeig = LOG_GRUPPEN.filter(([k]) => (f === 'alle' || f === k) && g[k].length);
+    const anzahl = zeig.reduce((s, [k]) => s + g[k].length, 0);
+    if (!anzahl) return '';
+    return `<details class="lg"${n === 0 ? ' open' : ''}>
+      <summary><span class="v">${esc(c.v)}</span><span class="lg-d">${esc(c.d)}</span>
+        ${n === 0 ? '<span class="new-badge">NEU</span>' : ''}
+        <span class="lg-n">${anzahl}</span></summary>
+      ${zeig.map(([k, titel]) => `<div class="lg-g"><div class="lg-t lg-${k}">${titel}</div><ul>${
+        g[k].map(i => `<li>${esc(i)}</li>`).join('')}</ul></div>`).join('')}
+    </details>`;
+  }).join('');
+  return `<div id="logBox"><div class="seg2" role="group" aria-label="Was anzeigen">${schalter}</div>
+    <div class="card" style="padding:2px 14px">${bloecke || '<p class="muted" style="padding:14px 0">Dazu gibt es hier nichts.</p>'}</div></div>`;
+}
+
 function openRecipe(id, keep){
   sheetFn = (k) => openRecipe(id, k);
   const r = rec(id), me = D.profile, fr = new Set(D.fridge), favs = me.favs||[];
@@ -1928,9 +1963,11 @@ document.addEventListener('click', async e => {
     case 'dis': { const k=t.dataset.k, s=new Set(D.profile.dislikes||[]); s.has(k)?s.delete(k):s.add(k); updateProfile({ dislikes:[...s] }); t.setAttribute('aria-pressed', s.has(k)); buzz(6); break; }
     case 'alg': { const k=t.dataset.k, s=new Set(D.profile.allergies||[]); s.has(k)?s.delete(k):s.add(k); updateProfile({ allergies:[...s] }); t.setAttribute('aria-pressed', s.has(k)); buzz(6); break; }
     case 'save-prefs': { keepName(); await flushProfile(); closeSheet(); render(); toast('Gespeichert ✓'); break; }
-    case 'changelog': L.seenVersion = VERSION; saveLocal();
-      openSheet(`${sheetHead('Update-Log')}<div class="card" style="padding:4px 16px">${CHANGELOG.map((c,n)=>`<div class="log"><span class="v">${c.v}</span><div><b>${n===0?'<span class="new-badge">NEU</span> ':''}${c.d}</b><ul>${c.items.map(i=>`<li>${esc(i)}</li>`).join('')}</ul></div></div>`).join('')}</div>`);
+    case 'changelog': L.seenVersion = VERSION; saveLocal(); UI.logFilter = 'alle';
+      openSheet(`${sheetHead('Update-Log')}${changelogHtml()}`);
       $('[data-action=changelog] .new-badge')?.remove(); break;
+    case 'log-filter': { UI.logFilter = t.dataset.v;
+      const box = $('#logBox'); if (box) box.outerHTML = changelogHtml(); break; }
     case 'plus': openPlus(false); break;
     case 'sponsor': openSponsor(); break;
     case 'sponsor-shop': window.open(SPONSOR.url, '_blank', 'noopener'); break;

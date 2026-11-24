@@ -1911,3 +1911,27 @@ html.xt-on #tabbar{z-index:1}
 .scan-un-r+.scan-un-r{border-top:1px dashed color-mix(in srgb,var(--fg) 10%,transparent)}
 .scan-un-r>span{min-width:0}
 .scan-un-r .btn{flex:none}
+
+/* ---------- 5.2: Update-Log aufgeräumt ---------- */
+.seg2{display:flex;gap:4px;padding:4px;border-radius:999px;background:var(--surface-2);margin:0 0 12px}
+.seg2 button{flex:1;border:0;background:none;color:var(--muted);font:600 0.8235rem var(--f-body);padding:8px 10px;border-radius:999px;cursor:pointer;transition:background .2s,color .2s}
+.seg2 button[aria-pressed="true"]{background:var(--surface);color:var(--fg);box-shadow:var(--shadow)}
+.lg{border-bottom:1px solid var(--line)}
+.lg:last-child{border-bottom:0}
+.lg summary{display:flex;align-items:center;gap:10px;padding:13px 0;cursor:pointer;list-style:none;font-weight:600}
+.lg summary::-webkit-details-marker{display:none}
+.lg summary .v{font-family:var(--f-display);font-weight:700;color:var(--herb);min-width:40px}
+.lg-d{color:var(--muted);font-weight:500;font-size:0.8235rem;flex:1 1 auto;min-width:0}
+.lg-n{flex:none;min-width:22px;height:22px;padding:0 7px;border-radius:999px;background:var(--surface-2);color:var(--muted);
+  font:700 0.7059rem/22px var(--f-body);text-align:center}
+.lg summary::after{content:"";flex:none;width:7px;height:7px;margin-left:2px;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);
+  transform:rotate(45deg) translate(-2px,-2px);transition:transform .3s cubic-bezier(.45,1.35,.5,1)}
+.lg[open] summary::after{transform:rotate(-135deg) translate(-2px,-2px)}
+.lg-g{padding:0 0 10px}
+.lg-t{font:700 0.6471rem var(--f-body);letter-spacing:.09em;text-transform:uppercase;margin:2px 0 4px}
+.lg-neu{color:var(--herb)}.lg-besser{color:var(--yolk)}.lg-fix{color:var(--muted)}
+.lg-g ul{margin:0;padding-left:17px;color:var(--muted);font-size:0.8235rem;line-height:1.55}
+.lg-g li{margin-bottom:3px}
+.lg[open] .lg-g{animation:lgIn .3s ease both}
+@keyframes lgIn{from{opacity:0;transform:translateY(-4px)}}
+@media (prefers-reduced-motion:reduce){.lg summary::after,.lg[open] .lg-g{transition:none;animation:none}}
