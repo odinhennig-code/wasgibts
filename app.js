@@ -231,7 +231,21 @@ async function loadXRec(){ try { const { data, error } = await sb.from('recipes'
 /* Datum als JJJJ-MM-TT in Ortszeit */
 /* ---------- Saison-Look (Halloween) ----------
    Läuft automatisch vom 24. Oktober bis 2. November. Unter „Mehr → Darstellung" abschaltbar. */
-const seasonByDate = () => { const d = new Date(), m = d.getMonth(), t = d.getDate(); return (m === 9 && t >= 24) || (m === 10 && t <= 2) ? 'halloween' : (m === 11 && t <= 26) ? 'advent' : null; };
+/* Der 4. Advent ist der letzte Sonntag vor Heiligabend, der 1. drei Wochen davor.
+   So rechnet sich die Adventszeit jedes Jahr von allein aus. */
+function advent4(y){ const d = new Date(y, 11, 24); d.setDate(24 - d.getDay()); d.setHours(0,0,0,0); return d; }
+function advent1(y){ const d = advent4(y); d.setDate(d.getDate() - 21); return d; }
+/* Wie viele Kerzen brennen schon? 0 = noch keine, 4 = alle. */
+function adventKerzen(){ const h = heute0(), a = advent1(h.getFullYear()); return h < a ? 0 : Math.min(4, Math.floor((h - a) / (7 * 864e5)) + 1); }
+/* Noch wie oft schlafen bis Heiligabend? */
+function bisHeiligabend(){ const h = heute0(); return Math.round((new Date(h.getFullYear(), 11, 24) - h) / 864e5); }
+function heute0(){ const d = new Date(); d.setHours(0,0,0,0); return d; }
+const seasonByDate = () => {
+  const d = new Date(), m = d.getMonth(), t = d.getDate();
+  if ((m === 9 && t >= 24) || (m === 10 && t <= 2)) return 'halloween';
+  if (heute0() >= advent1(d.getFullYear()) && (m !== 11 || t <= 26)) return 'advent';
+  return null;
+};
 const seasonNow = () => L.season === false ? null : (L.preview || seasonByDate());
 const hwSeason = () => (L.preview || seasonByDate()) === 'halloween';
 const hwOn = () => seasonNow() === 'halloween';
@@ -815,8 +829,15 @@ function viewFamily(){
 }
 
 /* ---------- Reiter „Mehr" ---------- */
-const VERSION = '5.2';
+const VERSION = '5.3';
 const CHANGELOG = [
+  { v:'5.3', d:'27. November 2026', items:[
+    'Neu: Weihnachten in der App: Der Advents-Look startet jetzt schon am 1. Advent, nicht erst im Dezember. Auf „Heute“ brennt ein Adventskranz – jeden Sonntag eine Kerze mehr – und zählt, wie oft du noch bis Heiligabend schlafen musst',
+    'Neu: 15 Weihnachtsrezepte: Kartoffelsalat mit Würstchen, Raclette, Käsefondue, Weihnachtsgans, Apfelrotkohl, Grünkohl, Rouladen, Vanillekipferl, Zimtsterne, Ausstechplätzchen, Lebkuchen, Bratapfel, Christstollen, Kinderpunsch und Spekulatius-Tiramisu',
+    'Neu: Festtags-Planer: Für Heiligabend, den 1. und den 2. Weihnachtstag schlägt die App je ein Gericht vor. Tippen bis es passt, einmal bestätigen – und alles steht im Wochenplan, was fehlt auf der Einkaufsliste',
+    'Der Adventskalender hat jetzt hinter jeder Tür ein eigenes Rezept – und zwar zuerst die Weihnachtsrezepte',
+    '15 neue Zutaten für die Weihnachtsbäckerei: Zucker, Puderzucker, Vanillezucker, Zimt, Lebkuchengewürz, Mandeln, Marzipan, Rosinen, Orangen, Spekulatius, Preiselbeeren, Gans, Klöße, Raclettekäse und Grünkohl',
+    'Bei „Alle Rezepte“ gibt es in der Adventszeit einen Filter 🎄 Weihnachten'] },
   { v:'5.2', d:'24. November 2026', items:[
     'Neu: Kassenbon fotografieren – der ganze Einkauf landet mit einem Foto im Kühlschrank, Mengen inklusive, und auf der Einkaufsliste wird abgehakt, was du gerade gekauft hast',
     'Neu: Mengen im Kühlschrank – du kannst eintragen, wie viel von etwas da ist (g, ml, Stück, Packung). Freiwillig: wer nichts einträgt, hat weiter einfach „da / nicht da"',
@@ -3145,8 +3166,10 @@ function searchScore(r, q){
 }
 UI.rf = {};
 function passFilters(r){ const f = UI.rf;
-  return (!f.quick || r.t <= 20) && (!f.veg || isVeg(r)) && (!f.have || r.i.every(k => D.fridge.includes(k))) && (!f.season || inSeason(r)); }
-function filterChips(){ return `<div class="fchips">${[['quick','⏱ Bis 20 Min'],['veg','🥦 Vegetarisch'],['have','✅ Alles da'],['season','🍂 Saison']].map(([k, l]) => `<button data-action="rf" data-v="${k}" aria-pressed="${!!UI.rf[k]}">${l}</button>`).join('')}</div>`; }
+  return (!f.quick || r.t <= 20) && (!f.veg || isVeg(r)) && (!f.have || r.i.every(k => D.fridge.includes(k))) && (!f.season || inSeason(r)) && (!f.xmas || r.w); }
+function filterChips(){ const f = [['quick','⏱ Bis 20 Min'],['veg','🥦 Vegetarisch'],['have','✅ Alles da'],['season','🍂 Saison']];
+  if (adOn()) f.splice(1, 0, ['xmas','🎄 Weihnachten']);
+  return `<div class="fchips">${f.map(([k, l]) => `<button data-action="rf" data-v="${k}" aria-pressed="${!!UI.rf[k]}">${l}</button>`).join('')}</div>`; }
 
 /* ---------- Einkaufsliste: nach Supermarkt-Bereichen, teilen, Einkaufs-Modus ---------- */
 /* Reihenfolge = so, wie man durch einen Supermarkt läuft: vorne Obst und
@@ -3255,26 +3278,93 @@ function firstRunInfo(){
 
 /* ---------- Adventskalender (1.–24. Dezember) ---------- */
 const ADV_TIPS = ['Zwiebeln schneiden ohne Tränen: vorher 10 Minuten in den Kühlschrank legen.','Nudelwasser gehört gesalzen wie Meerwasser – ungefähr 1 Teelöffel pro Liter.','Kräuter bleiben länger frisch wie ein Blumenstrauß im Wasserglas.','Bananen lassen Obst daneben schneller reifen – praktisch bei harten Avocados.','Ein Holzlöffel quer über dem Topf verhindert, dass er überkocht.','Plätzchenteig wird mürber, wenn er eine Stunde im Kühlschrank ruht.','Brot nie in den Kühlschrank – dort wird es schneller altbacken.','Knoblauch lässt sich leichter schälen, wenn man die Zehe kurz andrückt.','Eier sind frisch, wenn sie in Wasser am Boden liegen bleiben.','Ein Spritzer Zitrone hält aufgeschnittene Äpfel hell.','Reste vom Vortag? Freitags gibt\'s bei vielen Familien „Restekönig".','Zimt passt nicht nur zu Süßem – probier ihn mal im Chili.','Kartoffeln mit kaltem Wasser aufsetzen, dann garen sie gleichmäßig.','Gefrorene Beeren direkt verwenden – nicht auftauen, sonst werden sie matschig.','Butter für Plätzchen: kalt für Mürbeteig, weich für Rührteig.','Ein Stück Apfel in der Keksdose hält Lebkuchen weich.','Pfanne erst heiß werden lassen, dann Öl – dann klebt nichts an.','Gewürze ohne Fett kurz anrösten – dann duften sie viel stärker.','Suppe zu salzig? Eine rohe Kartoffel mitkochen und wieder herausnehmen.','Teig ausrollen klappt am besten zwischen zwei Lagen Backpapier.','Schokolade schmilzt am schonendsten über einem Wasserbad.','Rotkohl schmeckt aufgewärmt am zweiten Tag sogar noch besser.','Am Heiligabend gibt\'s in vielen Familien Kartoffelsalat mit Würstchen – ganz ohne Stress.','Frohe Weihnachten! 🎄 Danke, dass ihr mit „Was gibt\'s?" kocht.'];
-function advDay(){ const d = new Date(); return d.getMonth() === 11 ? Math.min(24, d.getDate()) : Math.max(1, Math.min(24, d.getDate())); }
+function advDay(){ const d = new Date();
+  if (d.getMonth() === 11) return Math.min(24, d.getDate());
+  return L.preview === 'advent' ? Math.max(1, Math.min(24, d.getDate())) : 0; }
 function advRecipe(n){
-  const by = re => RX().filter(r => re.test(r.n)).sort((a, b) => a.n.localeCompare(b.n));
-  const sweet = by(/apfel|äpfel|zimt|keks|cookie|hefe|kuchen|waffel|crêpe|schoko|pudding|kaiserschmarrn|plätzchen|grieß|brownie|muffin/i), cozy = by(/suppe|eintopf|auflauf|gulasch|rotkohl|kürbis|braten|knödel|gratin|ragout/i);
-  const pool = n % 2 ? (sweet.length ? sweet : cozy) : (cozy.length ? cozy : sweet);
-  return pool.length ? pool[(n * 7 + 3) % pool.length] : RX()[n]; }
+  const alle = RX();
+  const by = re => alle.filter(r => re.test(r.n) && !r.w).sort((a, b) => a.n.localeCompare(b.n));
+  const sweet = by(/apfel|äpfel|zimt|keks|cookie|hefe|kuchen|waffel|crêpe|schoko|pudding|kaiserschmarrn|plätzchen|grieß|brownie|muffin/i);
+  const cozy = by(/suppe|eintopf|auflauf|gulasch|rotkohl|kürbis|braten|knödel|gratin|ragout/i);
+  /* Zuerst die echten Weihnachtsrezepte, danach wird mit Gemütlichem aufgefüllt. */
+  const pool = alle.filter(r => r.w);
+  for (let i = 0; pool.length < 24 && i < Math.max(sweet.length, cozy.length); i++){
+    if (sweet[i] && !pool.includes(sweet[i])) pool.push(sweet[i]);
+    if (pool.length < 24 && cozy[i] && !pool.includes(cozy[i])) pool.push(cozy[i]);
+  }
+  return pool.length ? pool[(n * 7 + 3) % pool.length] : alle[n]; }
+/* Alle Weihnachtsrezepte – Hauptgerichte zuerst, Süßes danach. */
+function xmasRezepte(){ const a = RX().filter(r => r.w);
+  return [...a.filter(r => r.meal !== 'suess'), ...a.filter(r => r.meal === 'suess')]; }
+/* Die drei Festtage – nur solange sie noch kommen. */
+function festTage(){ const h = heute0(), y = h.getFullYear();
+  return [[24, 'Heiligabend'], [25, '1. Weihnachtstag'], [26, '2. Weihnachtstag']]
+    .map(([t, n]) => { const d = new Date(y, 11, t); return { d, iso: isoDay(d), name: n, tag: t }; })
+    .filter(x => x.d >= h); }
 const ADV_ORDER = [7,18,3,22,11,1,15,9,24,5,13,20,2,17,8,23,12,4,19,10,6,16,21,14];
 function adventCard(){
-  if (!adOn()) return ''; const d = advDay(), open = (L.advent || []).includes(d);
-  return `<button class="adv-card" data-action="advent"><span class="adv-glow"></span><span class="adv-snow" aria-hidden="true">❄️</span>
-    <span class="adv-k">Adventskalender</span><b>${open ? `Tür ${d} ist offen ✓` : `Tür ${d} wartet auf dich`}</b><span class="adv-s">${open ? 'Schau dir die Überraschung nochmal an' : 'Heute: ein Rezept-Tipp und ein Küchen-Geheimnis'}</span><span class="adv-n">${d}</span></button>`;
+  if (!adOn()) return '';
+  const k = adventKerzen(), d = advDay(), tage = bisHeiligabend();
+  const offen = d && (L.advent || []).includes(d);
+  const gross = tage > 1 ? `Noch ${tage} Mal schlafen bis Heiligabend`
+    : tage === 1 ? 'Morgen ist Heiligabend' : tage === 0 ? 'Heute ist Heiligabend' : 'Frohe Weihnachten!';
+  const klein = d ? (offen ? `Tür ${d} ist offen \u2713 \u00b7 Rezepte und Festtage ansehen` : `Tür ${d} wartet auf dich`)
+    : 'Ab dem 1. Dezember geht jeden Tag eine Tür auf';
+  return `<button class="adv-card" data-action="advent"><span class="adv-glow"></span><span class="adv-snow" aria-hidden="true">\u2744\ufe0f</span>
+    <span class="xw-kranz" aria-hidden="true">${[1,2,3,4].map(i => `<i class="${i <= k ? 'an' : ''}"></i>`).join('')}</span>
+    <span class="adv-k">${k ? k + '. Advent' : 'Weihnachten'}</span><b>${gross}</b><span class="adv-s">${klein}</span>${d ? `<span class="adv-n">${d}</span>` : ''}</button>`;
 }
 function openAdvent(keep, opened){
   sheetFn = k => openAdvent(k, UI.advOpen);
+  const tab = UI.xtab || 'tuer';
+  openSheet(`${sheetHead('Weihnachten \ud83c\udf84')}
+    <div class="seg" role="group">${[['tuer', 'Türchen'], ['rezepte', 'Rezepte'], ['fest', 'Festtage']].map(([k, l]) =>
+      `<button data-action="xtab" data-v="${k}" aria-pressed="${tab === k}">${l}</button>`).join('')}</div>
+    ${tab === 'tuer' ? tuerHtml(opened) : tab === 'rezepte' ? xmasRezHtml() : festHtml()}`, keep);
+}
+function tuerHtml(opened){
   const d = advDay(), done = new Set(L.advent || []), sel = opened || UI.advOpen;
   const r = sel ? advRecipe(sel) : null;
-  openSheet(`${sheetHead('Adventskalender 🎄')}
-    <div class="adv-grid">${ADV_ORDER.map(n => `<button class="adv-door ${done.has(n) ? 'open' : ''} ${n === d && !done.has(n) ? 'today' : ''} ${n > d ? 'locked' : ''}" data-action="adv-door" data-v="${n}"><span class="ad-f"><b>${n}</b></span><span class="ad-b">${done.has(n) ? (advRecipe(n) || {}).e || '🎁' : ''}</span></button>`).join('')}</div>
-    ${r ? `<div class="adv-out" id="advOut"><div class="adv-day">Tür ${sel}</div><button class="rc" data-action="open-recipe" data-id="${r.id}">${photoEm(r)}<div class="main"><div class="t">${esc(r.n)}</div><div class="s"><span>⏱ ${r.t} Min</span><span class="chip c-tomato">Rezept des Tages</span></div></div>${I.chev}</button>
-      <div class="card adv-tip">💡 ${esc(ADV_TIPS[sel - 1])}</div></div>` : `<p class="muted" style="text-align:center;margin-top:14px">Jeden Tag geht eine neue Tür auf – mit einem Rezept und einem Küchen-Geheimnis.</p>`}`, keep);
+  return `<div class="adv-grid">${ADV_ORDER.map(n => `<button class="adv-door ${done.has(n) ? 'open' : ''} ${n === d && !done.has(n) ? 'today' : ''} ${n > d ? 'locked' : ''}" data-action="adv-door" data-v="${n}"><span class="ad-f"><b>${n}</b></span><span class="ad-b">${done.has(n) ? (advRecipe(n) || {}).e || '\ud83c\udf81' : ''}</span></button>`).join('')}</div>
+    ${r ? `<div class="adv-out" id="advOut"><div class="adv-day">Tür ${sel}</div><button class="rc" data-action="open-recipe" data-id="${r.id}">${photoEm(r)}<div class="main"><div class="t">${esc(r.n)}</div><div class="s"><span>\u23f1 ${r.t} Min</span><span class="chip c-tomato">Rezept des Tages</span></div></div>${I.chev}</button>
+      <div class="card adv-tip">\ud83d\udca1 ${esc(ADV_TIPS[sel - 1])}</div></div>`
+    : d ? `<p class="muted" style="text-align:center;margin-top:14px">Jeden Tag geht eine neue Tür auf – mit einem Rezept und einem Küchen-Geheimnis.</p>`
+        : `<p class="muted" style="text-align:center;margin-top:14px">Die erste Tür geht am 1. Dezember auf. Bis dahin: schau dir schon mal die Rezepte an.</p>`}`;
+}
+function xmasRezHtml(){
+  const rs = xmasRezepte();
+  const zeile = r => { const fehlt = r.i.filter(k => !D.fridge.includes(k)).length;
+    return `<button class="rc" data-action="open-recipe" data-id="${r.id}">${photoEm(r)}<div class="main"><div class="t">${esc(r.n)}</div><div class="s"><span>\u23f1 ${r.t} Min</span>${fehlt ? `<span class="chip c-muted">${plu(fehlt, 'Zutat fehlt', 'Zutaten fehlen')}</span>` : '<span class="chip c-herb">Alles da</span>'}</div></div>${I.chev}</button>`; };
+  const haupt = rs.filter(r => r.meal !== 'suess'), suess = rs.filter(r => r.meal === 'suess');
+  return `<p class="muted" style="margin-top:-2px">${plu(rs.length, 'Weihnachtsrezept', 'Weihnachtsrezepte')} – von Kartoffelsalat bis Christstollen.</p>
+    ${haupt.length ? `<div class="h2">Für den Tisch</div><div class="stack">${haupt.map(zeile).join('')}</div>` : ''}
+    ${suess.length ? `<div class="h2">Plätzchen & Süßes</div><div class="stack">${suess.map(zeile).join('')}</div>` : ''}`;
+}
+const FEST_STD = { 24:'kartsalat', 25:'gansbraten', 26:'raclette' };
+function festWahl(tag){
+  const h = xmasRezepte().filter(r => r.meal !== 'suess');
+  const id = (UI.fest || {})[tag] || FEST_STD[tag];
+  return rec(id) || h[0] || null;
+}
+function festHtml(){
+  const tage = festTage();
+  if (!tage.length) return `<div class="card empty"><div class="g">\ud83c\udf84</div><b>Die Festtage sind vorbei</b>Bis nächstes Jahr!</div>`;
+  const zeile = t => { const r = festWahl(t.tag), p = planFor(t.iso, 'abend');
+    return `<div class="fest-row"><div class="fest-d"><b>${t.name}</b><small>${t.d.toLocaleDateString(LOCALE, { day:'numeric', month:'long' })}${p ? ' \u00b7 steht schon im Plan' : ''}</small></div>
+      <button class="rc" data-action="fest-next" data-tag="${t.tag}">${r ? photoEm(r) : ''}<div class="main"><div class="t">${r ? esc(r.n) : '\u2013'}</div><div class="s"><span>\u23f1 ${r ? r.t : 0} Min</span><span class="chip c-muted">Tippen zum Wechseln</span></div></div></button></div>`; };
+  return `<p class="muted" style="margin-top:-2px">Ein Vorschlag pro Tag. Tippe auf ein Gericht, bis es passt – dann kommt alles in den Wochenplan und was fehlt auf die Einkaufsliste.</p>
+    <div class="stack" style="gap:12px">${tage.map(zeile).join('')}</div>
+    <button class="btn btn-herb btn-block" style="margin-top:16px" data-action="fest-go">Festtage planen</button>`;
+}
+async function festGo(){
+  const tage = festTage(); if (!tage.length) return;
+  const need = new Set(); let n = 0, g = 0;
+  for (const t of tage){ const r = festWahl(t.tag); if (!r) continue;
+    await setPlan(t.iso, r.id, 'abend'); g++;
+    r.i.forEach(k => { if (!D.fridge.includes(k)) need.add(k); }); }
+  addToList.note = 'Weihnachten'; try { n = await addToList([...need]); } finally { addToList.note = null; }
+  UI.fest = null; closeSheet(); render(); burstAt($('.week') || $('.h1')); buzz([20, 40, 20]);
+  toast(`\ud83c\udf84 ${plu(g, 'Festtag', 'Festtage')} geplant \u00b7 ${plu(n, 'Zutat', 'Zutaten')} auf der Liste`);
 }
 
 /* ---------- Sophia-Modus: weiße Herzen ---------- */
@@ -3347,7 +3437,14 @@ document.addEventListener('click', async e => {
     case 'wn-ok': closeSheet(); render(); break;
     case 'tz': L.tz = +t.dataset.v; saveLocal(); document.documentElement.style.setProperty('--tz', L.tz); render(); break;
     case 'preview': L.preview = t.dataset.v || undefined; if (L.season === false) L.season = true; saveLocal(); applyTheme(); render(); break;
-    case 'advent': UI.advOpen = null; openAdvent(); break;
+    case 'advent': UI.advOpen = null; UI.xtab = advDay() ? 'tuer' : 'rezepte'; openAdvent(); break;
+    case 'xtab': UI.xtab = t.dataset.v; openAdvent(true, UI.advOpen); break;
+    case 'fest-next': { const tag = +t.dataset.tag, h = xmasRezepte().filter(r => r.meal !== 'suess');
+      if (!h.length) break; const jetzt = festWahl(tag);
+      const i = Math.max(0, h.findIndex(r => r.id === (jetzt && jetzt.id)));
+      UI.fest = { ...(UI.fest || {}), [tag]: h[(i + 1) % h.length].id };
+      buzz(8); openAdvent(true, UI.advOpen); break; }
+    case 'fest-go': t.disabled = true; await festGo(); break;
     case 'adv-door': { const n = +t.dataset.v, d = advDay();
       if (n > d){ t.animate([{ transform:'rotate(0)' }, { transform:'rotate(-6deg)' }, { transform:'rotate(5deg)' }, { transform:'rotate(0)' }], { duration:380 }); toast(`🎅 Noch ${n - d} ${n - d === 1 ? 'Tag' : 'Tage'} Geduld!`); break; }
       const first = !(L.advent || []).includes(n); L.advent = [...new Set([...(L.advent || []), n])]; saveLocal(); UI.advOpen = n;

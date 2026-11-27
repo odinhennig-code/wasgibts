@@ -1957,3 +1957,27 @@ html.xt-on #tabbar{z-index:1}
 /* ===================== 5.2 · Kassenbon ===================== */
 .bon-raw{display:block;color:var(--muted);font-weight:700;font-size:0.7rem;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pick-opt .on{line-height:1.25}
+
+/* ===================== 5.3 · Weihnachten =====================
+   Adventskranz auf der Karte: vier Kerzen, so viele brennen,
+   wie Adventssonntage schon vorbei sind. */
+.xw-kranz{position:relative;display:flex;gap:11px;align-items:flex-end;margin:2px 0 9px}
+.xw-kranz i{position:relative;width:9px;height:24px;border-radius:3px;opacity:.4;
+  background:linear-gradient(180deg,#f8efdd,#d8c3a0);box-shadow:inset -2px 0 0 rgba(0,0,0,.14)}
+.xw-kranz i::before{content:"";position:absolute;left:50%;top:-12px;width:9px;height:13px;margin-left:-4.5px;
+  border-radius:50% 50% 45% 45%/62% 62% 38% 38%;opacity:0;
+  background:radial-gradient(circle at 50% 72%,#fffbe8,#E8B74A 52%,#e2622b);box-shadow:0 0 12px rgba(232,183,74,.9)}
+.xw-kranz i.an{opacity:1}
+.xw-kranz i.an::before{opacity:1;animation:xwFlame 1.7s ease-in-out infinite}
+.xw-kranz i.an:nth-child(2)::before{animation-delay:-.4s}
+.xw-kranz i.an:nth-child(3)::before{animation-delay:-.9s}
+.xw-kranz i.an:nth-child(4)::before{animation-delay:-1.3s}
+@keyframes xwFlame{50%{transform:scale(1.16) translateY(-1px);filter:brightness(1.12)}}
+@media (prefers-reduced-motion: reduce){.xw-kranz i.an::before{animation:none}}
+
+/* Die drei Festtage */
+.fest-row{background:var(--surface);border-radius:22px;box-shadow:var(--shadow);padding:12px}
+.fest-d{display:block;padding:2px 4px 9px}
+.fest-d b{display:block;font-family:var(--f-display);font-weight:700;font-size:1rem}
+.fest-d small{display:block;color:var(--muted);font-weight:700;font-size:0.76rem;margin-top:1px}
+.fest-row .rc{width:100%;box-shadow:none;background:var(--surface-2)}
